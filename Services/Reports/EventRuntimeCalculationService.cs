@@ -185,7 +185,94 @@ public static class EventRuntimeCalculationService
         bool esdExtraEnabled,
         double esdExtraHours)
     {
-        throw new NotImplementedException("State-machine runtime calculation has not been implemented.");
+        DateTime calculationStart =
+            ConvertPersianDateTimeToGregorian(calculationStartDate, "00:00");
+
+        DateTime periodStart = ConvertPersianDateTimeToGregorian(dateFrom, "00:00");
+
+        long nextDate = GetNextPersianDate(dateTo);
+        DateTime periodEndExclusive = ConvertPersianDateTimeToGregorian(nextDate, "00:00");
+
+        var window = new CalculationWindow(
+            calculationStart,
+            periodStart,
+            periodEndExclusive);
+
+        if (window.CalculationStart > window.PeriodStart)
+            throw new ArgumentException("Calculation start must not be after the report start.");
+
+        if (window.PeriodStart >= window.PeriodEndExclusive)
+            throw new ArgumentException("Report date range is invalid.");
+
+        Dictionary<string, UnitRuntimeState> states = profile.Units.ToDictionary(
+            unit => unit,
+            unit => new UnitRuntimeState
+            {
+                Unit = unit,
+                CurrentTime = window.CalculationStart,
+                IsRunning =
+                    initialStates.TryGetValue(unit, out UnitInitialEventState? initialState) &&
+                    initialState.IsRunningAtPeriodStart,
+                CumulativeRuntimeHours =
+                    baseRuntimeHours.TryGetValue(unit, out double baseRuntime)
+                        ? baseRuntime
+                        : 0,
+                RuntimeAfterOH =
+                    baseRuntimeAfterOHHours.TryGetValue(unit, out double baseAfterOH)
+                        ? baseAfterOH
+                        : 0
+            });
+
+        // TODO: EventLogItem currently does not expose tbl_events.id.
+        // Use that id as the final ordering key when it becomes available.
+        // Until then, preserve source order for events with identical date/time and unit.
+        List<EventLogItem> orderedEvents = events
+            .Select((eventItem, sourceOrder) => new OrderedRuntimeEvent(eventItem, sourceOrder))
+            .Where(e => states.ContainsKey(e.Unit))
+            .Where(e => IsSupportedEventType(e.EventType))
+            .Where(e => e.EventDateTime >= window.CalculationStart)
+            .Where(e => e.EventDateTime < window.PeriodEndExclusive)
+            .OrderBy(e => e.EventDateTime)
+            .ThenBy(e => e.Unit)
+            .ThenBy(e => e.SourceOrder)
+            .Select(e => e.Event)
+            .ToList();
+
+        foreach (EventLogItem ev in orderedEvents)
+        {
+            UnitRuntimeState state = states[ev.Unit];
+
+            AdvanceState(state, ev.EventDateTime, window);
+
+            string eventType = NormalizeEventType(ev.EventType);
+
+            if (eventType == "START")
+            {
+                ApplyStart(state, ev.EventDateTime, window);
+            }
+            else if (eventType == "NSD")
+            {
+                ApplyNSD(state, ev.EventDateTime, window);
+            }
+            else if (eventType == "ESD")
+            {
+                ApplyESD(
+                    state,
+                    ev.EventDateTime,
+                    window,
+                    esdExtraEnabled,
+                    esdExtraHours);
+            }
+            else if (eventType == "OH")
+            {
+                ApplyOH(state, ev.EventDateTime, window);
+            }
+        }
+
+        foreach (UnitRuntimeState state in states.Values)
+            AdvanceState(state, window.PeriodEndExclusive, window);
+
+        return BuildStateMachineResult(states, orderedEvents, window);
     }
 
     private static RuntimeCalculationComparison CompareLegacyAndStateMachine(
@@ -211,15 +298,234 @@ public static class EventRuntimeCalculationService
             esdExtraEnabled,
             esdExtraHours);
 
+        EventReportResult stateMachine = CalculateStateMachineCore(
+            profile,
+            events,
+            calculationStartDate,
+            dateFrom,
+            dateTo,
+            baseRuntimeHours,
+            baseRuntimeAfterOHHours,
+            initialStates,
+            esdExtraEnabled,
+            esdExtraHours);
+
         return new RuntimeCalculationComparison
         {
             Legacy = legacy,
-            StateMachine = null,
+            StateMachine = stateMachine,
             InvariantDifferences =
             [
-                "State-machine runtime calculation has not been implemented."
+                "Invariant comparison has not been implemented."
             ]
         };
+    }
+
+    private static void AdvanceState(
+        UnitRuntimeState state,
+        DateTime targetTime,
+        CalculationWindow window)
+    {
+        if (targetTime < state.CurrentTime)
+            throw new InvalidOperationException("Runtime events are not in chronological order.");
+
+        if (targetTime == state.CurrentTime)
+            return;
+
+        if (state.IsRunning)
+        {
+            double elapsedHours = (targetTime - state.CurrentTime).TotalHours;
+
+            state.CumulativeRuntimeHours += elapsedHours;
+            state.RuntimeAfterOH += elapsedHours;
+
+            DateTime overlapStart = state.CurrentTime > window.PeriodStart
+                ? state.CurrentTime
+                : window.PeriodStart;
+
+            DateTime overlapEnd = targetTime < window.PeriodEndExclusive
+                ? targetTime
+                : window.PeriodEndExclusive;
+
+            if (overlapEnd > overlapStart)
+            {
+                AddServiceDaysForRange(
+                    state.PeriodServiceDays,
+                    overlapStart,
+                    overlapEnd);
+            }
+        }
+
+        state.CurrentTime = targetTime;
+    }
+
+    private static void ApplyStart(
+        UnitRuntimeState state,
+        DateTime eventDateTime,
+        CalculationWindow window)
+    {
+        if (IsInsidePeriod(eventDateTime, window))
+        {
+            state.TotalEvents++;
+            state.StartCount++;
+
+            if (IsDayShiftTime(eventDateTime))
+                state.DayStartCount++;
+            else
+                state.NightStartCount++;
+        }
+
+        if (state.IsRunning)
+            return;
+
+        state.IsRunning = true;
+
+        if (IsInsidePeriod(eventDateTime, window))
+            state.PeriodRunStart = eventDateTime;
+    }
+
+    private static void ApplyNSD(
+        UnitRuntimeState state,
+        DateTime eventDateTime,
+        CalculationWindow window)
+    {
+        if (IsInsidePeriod(eventDateTime, window))
+        {
+            state.TotalEvents++;
+            state.NSDCount++;
+
+            if (IsDayShiftTime(eventDateTime))
+                state.DayNSDCount++;
+            else
+                state.NightNSDCount++;
+        }
+
+        ClosePeriodRun(state, eventDateTime, window);
+        state.IsRunning = false;
+    }
+
+    private static void ApplyESD(
+        UnitRuntimeState state,
+        DateTime eventDateTime,
+        CalculationWindow window,
+        bool esdExtraEnabled,
+        double esdExtraHours)
+    {
+        bool isInsidePeriod = IsInsidePeriod(eventDateTime, window);
+
+        if (isInsidePeriod)
+        {
+            state.TotalEvents++;
+            state.ESDCount++;
+
+            if (IsDayShiftTime(eventDateTime))
+                state.DayESDCount++;
+            else
+                state.NightESDCount++;
+        }
+
+        if (esdExtraEnabled && esdExtraHours > 0)
+        {
+            state.CumulativeRuntimeHours += esdExtraHours;
+            state.RuntimeAfterOH += esdExtraHours;
+
+            if (isInsidePeriod)
+                state.PeriodEsdExtraHours += esdExtraHours;
+        }
+
+        ClosePeriodRun(state, eventDateTime, window);
+        state.IsRunning = false;
+    }
+
+    private static void ApplyOH(
+        UnitRuntimeState state,
+        DateTime eventDateTime,
+        CalculationWindow window)
+    {
+        if (IsInsidePeriod(eventDateTime, window))
+            state.TotalEvents++;
+
+        ClosePeriodRun(state, eventDateTime, window);
+        state.IsRunning = false;
+        state.RuntimeAfterOH = 0;
+    }
+
+    private static void ClosePeriodRun(
+        UnitRuntimeState state,
+        DateTime runEnd,
+        CalculationWindow window)
+    {
+        if (!state.PeriodRunStart.HasValue)
+            return;
+
+        DateTime effectiveEnd = runEnd < window.PeriodEndExclusive
+            ? runEnd
+            : window.PeriodEndExclusive;
+
+        if (effectiveEnd > state.PeriodRunStart.Value)
+        {
+            double runHours =
+                (effectiveEnd - state.PeriodRunStart.Value).TotalHours;
+
+            if (runHours > state.LongestPeriodRunHours)
+                state.LongestPeriodRunHours = runHours;
+        }
+
+        state.PeriodRunStart = null;
+    }
+
+    private static EventReportResult BuildStateMachineResult(
+        Dictionary<string, UnitRuntimeState> states,
+        IReadOnlyList<EventLogItem> orderedEvents,
+        CalculationWindow window)
+    {
+        foreach (UnitRuntimeState state in states.Values)
+            ClosePeriodRun(state, window.PeriodEndExclusive, window);
+
+        List<UnitEventSummary> summaries = states.Values
+            .Select(state => new UnitEventSummary
+            {
+                Unit = state.Unit,
+                RuntimeHours = state.CumulativeRuntimeHours,
+                RuntimeAfterOH = state.RuntimeAfterOH,
+                TotalEvents = state.TotalEvents,
+                StartCount = state.StartCount,
+                NSDCount = state.NSDCount,
+                ESDCount = state.ESDCount,
+                EsdExtraHoursTotal = state.PeriodEsdExtraHours,
+                LongestRunHours = state.LongestPeriodRunHours,
+                DayStartCount = state.DayStartCount,
+                NightStartCount = state.NightStartCount,
+                DayNSDCount = state.DayNSDCount,
+                NightNSDCount = state.NightNSDCount,
+                DayESDCount = state.DayESDCount,
+                NightESDCount = state.NightESDCount
+            })
+            .ToList();
+
+        List<EventLogItem> periodEvents = orderedEvents
+            .Where(e => IsInsidePeriod(e.EventDateTime, window))
+            .ToList();
+
+        Dictionary<string, HashSet<long>> serviceDaysByUnit = states
+            .ToDictionary(
+                pair => pair.Key,
+                pair => pair.Value.PeriodServiceDays);
+
+        return new EventReportResult
+        {
+            UnitSummaries = summaries,
+            EventLogItems = periodEvents,
+            ServiceDaysByUnit = serviceDaysByUnit
+        };
+    }
+
+    private static bool IsInsidePeriod(
+        DateTime eventDateTime,
+        CalculationWindow window)
+    {
+        return eventDateTime >= window.PeriodStart &&
+               eventDateTime < window.PeriodEndExclusive;
     }
 
     private sealed class UnitRuntimeState
@@ -239,12 +545,45 @@ public static class EventRuntimeCalculationService
         public double LongestPeriodRunHours { get; set; }
 
         public HashSet<long> PeriodServiceDays { get; } = [];
+
+        public int TotalEvents { get; set; }
+
+        public int StartCount { get; set; }
+
+        public int NSDCount { get; set; }
+
+        public int ESDCount { get; set; }
+
+        public double PeriodEsdExtraHours { get; set; }
+
+        public int DayStartCount { get; set; }
+
+        public int NightStartCount { get; set; }
+
+        public int DayNSDCount { get; set; }
+
+        public int NightNSDCount { get; set; }
+
+        public int DayESDCount { get; set; }
+
+        public int NightESDCount { get; set; }
     }
 
     private readonly record struct CalculationWindow(
         DateTime CalculationStart,
         DateTime PeriodStart,
         DateTime PeriodEndExclusive);
+
+    private readonly record struct OrderedRuntimeEvent(
+        EventLogItem Event,
+        int SourceOrder)
+    {
+        public string Unit => Event.Unit;
+
+        public string EventType => Event.EventType;
+
+        public DateTime EventDateTime => Event.EventDateTime;
+    }
 
     private sealed class RuntimeCalculationComparison
     {
