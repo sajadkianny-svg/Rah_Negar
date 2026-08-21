@@ -23,6 +23,29 @@ public static class EventRuntimeCalculationService
         bool esdExtraEnabled,
         double esdExtraHours)
     {
+        return CalculateLegacyCore(
+            profile,
+            events,
+            dateFrom,
+            dateTo,
+            baseRuntimeHours,
+            baseRuntimeAfterOHHours,
+            initialStates,
+            esdExtraEnabled,
+            esdExtraHours);
+    }
+
+    private static EventReportResult CalculateLegacyCore(
+        ReportStationProfile profile,
+        IReadOnlyList<EventLogItem> events,
+        long dateFrom,
+        long dateTo,
+        Dictionary<string, double> baseRuntimeHours,
+        Dictionary<string, double> baseRuntimeAfterOHHours,
+        Dictionary<string, UnitInitialEventState> initialStates,
+        bool esdExtraEnabled,
+        double esdExtraHours)
+    {
         DateTime periodStart = ConvertPersianDateTimeToGregorian(dateFrom, "00:00");
 
         long nextDate = GetNextPersianDate(dateTo);
@@ -148,6 +171,88 @@ public static class EventRuntimeCalculationService
             EventLogItems = orderedEvents,
             ServiceDaysByUnit = serviceDaysByUnit
         };
+    }
+
+    private static EventReportResult CalculateStateMachineCore(
+        ReportStationProfile profile,
+        IReadOnlyList<EventLogItem> events,
+        long calculationStartDate,
+        long dateFrom,
+        long dateTo,
+        Dictionary<string, double> baseRuntimeHours,
+        Dictionary<string, double> baseRuntimeAfterOHHours,
+        Dictionary<string, UnitInitialEventState> initialStates,
+        bool esdExtraEnabled,
+        double esdExtraHours)
+    {
+        throw new NotImplementedException("State-machine runtime calculation has not been implemented.");
+    }
+
+    private static RuntimeCalculationComparison CompareLegacyAndStateMachine(
+        ReportStationProfile profile,
+        IReadOnlyList<EventLogItem> events,
+        long calculationStartDate,
+        long dateFrom,
+        long dateTo,
+        Dictionary<string, double> baseRuntimeHours,
+        Dictionary<string, double> baseRuntimeAfterOHHours,
+        Dictionary<string, UnitInitialEventState> initialStates,
+        bool esdExtraEnabled,
+        double esdExtraHours)
+    {
+        EventReportResult legacy = CalculateLegacyCore(
+            profile,
+            events,
+            dateFrom,
+            dateTo,
+            baseRuntimeHours,
+            baseRuntimeAfterOHHours,
+            initialStates,
+            esdExtraEnabled,
+            esdExtraHours);
+
+        return new RuntimeCalculationComparison
+        {
+            Legacy = legacy,
+            StateMachine = null,
+            InvariantDifferences =
+            [
+                "State-machine runtime calculation has not been implemented."
+            ]
+        };
+    }
+
+    private sealed class UnitRuntimeState
+    {
+        public string Unit { get; init; } = string.Empty;
+
+        public DateTime CurrentTime { get; set; }
+
+        public bool IsRunning { get; set; }
+
+        public double CumulativeRuntimeHours { get; set; }
+
+        public double RuntimeAfterOH { get; set; }
+
+        public DateTime? PeriodRunStart { get; set; }
+
+        public double LongestPeriodRunHours { get; set; }
+
+        public HashSet<long> PeriodServiceDays { get; } = [];
+    }
+
+    private readonly record struct CalculationWindow(
+        DateTime CalculationStart,
+        DateTime PeriodStart,
+        DateTime PeriodEndExclusive);
+
+    private sealed class RuntimeCalculationComparison
+    {
+        public required EventReportResult Legacy { get; init; }
+
+        public EventReportResult? StateMachine { get; init; }
+
+        public IReadOnlyList<string> InvariantDifferences { get; init; } = [];
     }
 
     private static void HandleStartEvent(
