@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Rah_Negar.Data;
 using Rah_Negar.Models;
+using Rah_Negar.Services.Reports;
 
 namespace Rah_Negar.Services;
 
@@ -21,6 +22,8 @@ public static class CommonRecordPersistenceService
     /// </summary>
     public static void DeleteExistingUnique(SqliteConnection conn, SqliteTransaction tx, long dateRep)
     {
+        MonthlyLockService.EnsureDateIsEditable(conn, tx, dateRep);
+
         const string sql = @"
 DELETE FROM tbl_unique
 WHERE date_rep = @date_rep;";
@@ -38,6 +41,8 @@ WHERE date_rep = @date_rep;";
     /// </summary>
     public static void InsertUnique(SqliteConnection conn, SqliteTransaction tx, DailyUniqueSaveModel model)
     {
+        MonthlyLockService.EnsureDateIsEditable(conn, tx, model.DateRep);
+
         const string sql = @"
 INSERT INTO tbl_unique
 (
@@ -76,6 +81,8 @@ VALUES
     /// </summary>
     public static void DeleteExistingEvents(SqliteConnection conn, SqliteTransaction tx, long dateRep)
     {
+        MonthlyLockService.EnsureDateIsEditable(conn, tx, dateRep);
+
         const string sql = @"
 DELETE FROM tbl_events
 WHERE date_rep = @date_rep;";
@@ -93,6 +100,9 @@ WHERE date_rep = @date_rep;";
     /// </summary>
     public static void InsertEvents(SqliteConnection conn, SqliteTransaction tx, List<DailyEventRowModel> eventsList)
     {
+        foreach (long dateRep in eventsList.Select(x => x.DateRep).Distinct())
+            MonthlyLockService.EnsureDateIsEditable(conn, tx, dateRep);
+
         const string sql = @"
 INSERT INTO tbl_events
 (

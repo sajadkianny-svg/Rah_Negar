@@ -10,6 +10,40 @@ namespace Rah_Negar.Services.Reports;
 public static class MonthlyLockService
 {
     /// <summary>
+    /// از انجام عملیات نوشتن روی تاریخ متعلق به ماه قفل‌شده جلوگیری می‌کند.
+    /// این بررسی داخل همان اتصال و Transaction عملیات ذخیره انجام می‌شود.
+    /// </summary>
+    public static void EnsureDateIsEditable(
+        SqliteConnection conn,
+        SqliteTransaction tx,
+        long dateRep)
+    {
+        int year = (int)(dateRep / 10000);
+        int month = (int)((dateRep / 100) % 100);
+
+        using SqliteCommand cmd = conn.CreateCommand();
+        cmd.Transaction = tx;
+        cmd.CommandText = @"
+SELECT is_locked
+FROM tbl_monthly_lock
+WHERE year_rep = @year_rep
+  AND month_rep = @month_rep
+LIMIT 1;";
+
+        cmd.Parameters.AddWithValue("@year_rep", year);
+        cmd.Parameters.AddWithValue("@month_rep", month);
+
+        object? result = cmd.ExecuteScalar();
+
+        if (result != null &&
+            result != DBNull.Value &&
+            Convert.ToInt32(result) == 1)
+        {
+            throw new InvalidOperationException(BuildLockedMonthMessage(year, month));
+        }
+    }
+
+    /// <summary>
     /// بررسی می‌کند آیا ماه مورد نظر قفل شده است یا نه
     /// </summary>
     public static bool IsMonthLocked(int year, int month)

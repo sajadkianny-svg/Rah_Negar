@@ -3,6 +3,7 @@
 using Microsoft.Data.Sqlite;
 using Rah_Negar.Data;
 using Rah_Negar.Models;
+using Rah_Negar.Services.Reports;
 
 namespace Rah_Negar.Services;
 
@@ -90,6 +91,8 @@ ORDER BY time_rep;";
     {
         if (model == null)
             throw new ArgumentNullException(nameof(model));
+
+        MonthlyLockService.EnsureDateIsEditable(conn, tx, model.DateRep);
 
         DeleteExisting(conn, tx, model.DateRep);
         InsertRows(conn, tx, model);

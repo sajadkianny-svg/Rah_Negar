@@ -61,8 +61,15 @@ public static class MonthlyFinalizeStatusService
     {
         int daysInMonth = new PersianCalendar().GetDaysInMonth(year, month);
 
-        long fromDate = year * 10000L + month * 100L + 1;
+        long monthStart = year * 10000L + month * 100L + 1;
         long toDate = year * 10000L + month * 100L + daysInMonth;
+        long dataStartDate = AppSettingsService.GetDataStartDate();
+        long fromDate = dataStartDate > 0
+            ? Math.Max(monthStart, dataStartDate)
+            : monthStart;
+
+        if (fromDate > toDate)
+            return false;
 
         // تعداد روزهای ثبت‌شده در tbl_unique
         const string sql = @"
@@ -77,6 +84,8 @@ WHERE date_rep BETWEEN @fromDate AND @toDate;";
 
         int count = Convert.ToInt32(cmd.ExecuteScalar());
 
-        return count == daysInMonth;
+        int expectedDays = (int)(toDate - fromDate) + 1;
+
+        return count == expectedDays;
     }
 }

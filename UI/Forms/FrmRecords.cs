@@ -161,7 +161,6 @@ namespace Rah_Negar.UI.Forms
             dgvData.SizeChanged += (_, _) => FitDgvDataColumnsByProfile();
             dgvEvents.SizeChanged += (_, _) => FitEventsGridColumns();
 
-            dgvData.CellValueChanged += dgvData_CellValueChanged;
             dgvData.CellValidating += dgvData_CellValidating;
 
             KeyPreview = true;

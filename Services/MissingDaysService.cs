@@ -29,6 +29,7 @@ public static class MissingDaysService
 
         HashSet<long> existingDates = GetExistingDatesForYear(year);
         List<string> missingDates = new();
+        long dataStartDate = AppSettingsService.GetDataStartDate();
 
         foreach (int month in normalizedMonths)
         {
@@ -37,6 +38,9 @@ public static class MissingDaysService
             for (int day = 1; day <= daysInMonth; day++)
             {
                 long dateRep = BuildDateRep(year, month, day);
+
+                if (dataStartDate > 0 && dateRep < dataStartDate)
+                    continue;
 
                 if (!existingDates.Contains(dateRep))
                 {

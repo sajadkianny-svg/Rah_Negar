@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Rah_Negar.Data;
 using Rah_Negar.Models;
+using Rah_Negar.Services.Reports;
 
 namespace Rah_Negar.Services;
 
@@ -40,6 +41,12 @@ public static class RashtRecordSaveService
         try
         {
             long repDate = dailyDataModel.DateRep;
+
+            MonthlyLockService.EnsureDateIsEditable(conn, tx, repDate);
+            MonthlyLockService.EnsureDateIsEditable(conn, tx, uniqueModel.DateRep);
+
+            foreach (long eventDate in eventsModel.Select(x => x.DateRep).Distinct())
+                MonthlyLockService.EnsureDateIsEditable(conn, tx, eventDate);
 
             DeleteExistingDailyData(conn, tx, repDate);
             DeleteExistingUnique(conn, tx, repDate);
@@ -332,6 +339,8 @@ ORDER BY time_rep;";
     {
         if (model == null)
             throw new ArgumentNullException(nameof(model));
+
+        MonthlyLockService.EnsureDateIsEditable(conn, tx, model.DateRep);
 
         DeleteExistingDailyData(conn, tx, model.DateRep);
         InsertDailyData(conn, tx, model);

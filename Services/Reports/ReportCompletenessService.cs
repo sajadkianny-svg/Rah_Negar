@@ -35,7 +35,10 @@ public static class ReportCompletenessService
     {
         List<ReportDailyStatus> result = [];
 
-        long currentDate = dateFrom;
+        long dataStartDate = AppSettingsService.GetDataStartDate();
+        long currentDate = dataStartDate > 0
+            ? Math.Max(dateFrom, dataStartDate)
+            : dateFrom;
 
         while (currentDate <= dateTo)
         {

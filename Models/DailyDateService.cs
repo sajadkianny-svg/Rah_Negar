@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Rah_Negar.Data;
 using Rah_Negar.Models;
+using Rah_Negar.Services.Reports;
 
 namespace Rah_Negar.Services;
 
@@ -38,6 +39,8 @@ public static class DailyDataService
 
         try
         {
+            MonthlyLockService.EnsureDateIsEditable(conn, tx, model.DateRep);
+
             DeleteExistingRows(conn, tx, model.DateRep);
 
             foreach (DailyDataRowModel row in model.Rows)
