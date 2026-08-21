@@ -56,4 +56,26 @@ public static class EventReportEngineService
 
         return result;
     }
+
+    /// <summary>
+    /// تاریخچه رویدادهای لازم برای مقایسه محاسبه Runtime را آماده می‌کند.
+    /// این متد فعلاً در مسیر تولید گزارش فراخوانی نمی‌شود و رفتار Calculate را تغییر نمی‌دهد.
+    /// </summary>
+    internal static List<EventLogItem> LoadRuntimeHistoryForComparison(
+        SqliteConnection conn,
+        long dateTo)
+    {
+        ArgumentNullException.ThrowIfNull(conn);
+
+        AppSettingsModel? settings = AppSettingsService.GetSettings();
+        long dataStartDate = settings?.DataStartDateRep ?? 0;
+
+        if (dataStartDate <= 0)
+            throw new InvalidOperationException("تاریخ مبنای شروع داده‌ها معتبر نیست");
+
+        return EventReportQueryService.LoadRuntimeHistory(
+            conn,
+            dataStartDate,
+            dateTo);
+    }
 }

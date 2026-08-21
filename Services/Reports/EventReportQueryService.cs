@@ -18,6 +18,25 @@ namespace Rah_Negar.Services.Reports;
 public static class EventReportQueryService
 {
     /// <summary>
+    /// رویدادهای مورد نیاز برای بازسازی Runtime را از تاریخ مبنای داده‌ها
+    /// تا پایان بازه گزارش می‌خواند.
+    /// این مسیر فعلاً توسط گزارش تولیدی استفاده نمی‌شود.
+    /// </summary>
+    public static List<EventLogItem> LoadRuntimeHistory(
+        SqliteConnection conn,
+        long dataStartDate,
+        long dateTo)
+    {
+        if (dataStartDate <= 0)
+            throw new ArgumentOutOfRangeException(nameof(dataStartDate));
+
+        if (dateTo < dataStartDate)
+            return [];
+
+        return LoadEvents(conn, dataStartDate, dateTo);
+    }
+
+    /// <summary>
     /// رویدادهای داخل بازه انتخاب‌شده را از جدول tbl_events می‌خواند.
     /// </summary>
     public static List<EventLogItem> LoadEvents(
