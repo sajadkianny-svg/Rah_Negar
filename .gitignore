@@ -1,0 +1,17 @@
+.vs/
+**/bin/
+**/obj/
+
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+TestResults/
+BenchmarkDotNet.Artifacts/
+
+*.tmp
+*.temp
+*.log
+*.bak
+*.orig

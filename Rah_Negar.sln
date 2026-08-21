@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36109.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rah_Negar", "Rah_Negar.csproj", "{ACD91878-BCB2-4193-835B-2635380713B3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ACD91878-BCB2-4193-835B-2635380713B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACD91878-BCB2-4193-835B-2635380713B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACD91878-BCB2-4193-835B-2635380713B3}.Debug|x64.ActiveCfg = Debug|x64
+		{ACD91878-BCB2-4193-835B-2635380713B3}.Debug|x64.Build.0 = Debug|x64
+		{ACD91878-BCB2-4193-835B-2635380713B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACD91878-BCB2-4193-835B-2635380713B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACD91878-BCB2-4193-835B-2635380713B3}.Release|x64.ActiveCfg = Release|x64
+		{ACD91878-BCB2-4193-835B-2635380713B3}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {82E15552-8E5D-4AF8-8883-D297B72BB9F3}
+	EndGlobalSection
+EndGlobal
