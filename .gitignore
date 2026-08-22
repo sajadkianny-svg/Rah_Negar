@@ -15,3 +15,7 @@ BenchmarkDotNet.Artifacts/
 *.log
 *.bak
 *.orig
+
+# Local Codex tooling
+.dotnet-cli/
+task.txt
