@@ -19,3 +19,5 @@ BenchmarkDotNet.Artifacts/
 # Local Codex tooling
 .dotnet-cli/
 task.txt
+
+desktop.ini
