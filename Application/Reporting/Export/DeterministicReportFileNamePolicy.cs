@@ -7,9 +7,24 @@ public sealed class DeterministicReportFileNamePolicy : IReportFileNamePolicy
     public string Create(FinalizedReportExportModel model, ReportExportFormat format)
     {
         ArgumentNullException.ThrowIfNull(model);
+        return Create(model.StationId, model.PersianPeriodLabel, model.PeriodKind,
+            model.SchemaVersion, format);
+    }
+
+    /// <summary>
+    /// Read-model overload used by the Pilot metadata observer. It applies the same naming
+    /// policy without constructing, finalizing, rendering, or persisting a report snapshot.
+    /// </summary>
+    public string Create(
+        string stationId,
+        string persianPeriodLabel,
+        Core.Reporting.Projection.ReportPeriodKind periodKind,
+        string schemaVersion,
+        ReportExportFormat format)
+    {
         string extension = format == ReportExportFormat.Pdf ? ".pdf" : ".xlsx";
-        return string.Join('_', Sanitize(model.StationId), Sanitize(model.PersianPeriodLabel),
-            model.PeriodKind.ToString(), Sanitize(model.SchemaVersion)) + extension;
+        return string.Join('_', Sanitize(stationId), Sanitize(persianPeriodLabel),
+            periodKind.ToString(), Sanitize(schemaVersion)) + extension;
     }
 
     private static string Sanitize(string value)

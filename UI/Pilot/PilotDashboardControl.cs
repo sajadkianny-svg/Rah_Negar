@@ -1,6 +1,7 @@
 using System.Globalization;
 using Rah_Negar.Foundation.Application.Integration;
 using Rah_Negar.Foundation.Application.Pilot;
+using Rah_Negar.Foundation.Application.Pilot.Live;
 using Rah_Negar.Foundation.Application.Pilot.Presentation;
 
 namespace Rah_Negar.UI.Pilot;
@@ -23,6 +24,16 @@ public sealed class PilotDashboardControl : UserControl,
     private readonly PilotEvidenceSummaryDisplay _evidence = new();
     private readonly PilotWarningDisplay _warnings = new();
     private readonly PilotBlockedReasonDisplay _blockedReasons = new();
+    private readonly TextBox _liveIdentity = ReadOnlyField("Pilot / Rehearsal identity");
+    private readonly TextBox _liveStation = ReadOnlyField("Pilot station");
+    private readonly TextBox _liveSession = ReadOnlyField("Pilot session status");
+    private readonly TextBox _liveAuthority = ReadOnlyField("Legacy authority indicator");
+    private readonly TextBox _livePreflight = ReadOnlyField("Read-only preflight status");
+    private readonly TextBox _liveMonitoring = ReadOnlyField("Pilot monitoring status");
+    private readonly TextBox _liveRollback = ReadOnlyField("Pilot rollback readiness");
+    private readonly TextBox _liveStop = ReadOnlyField("Pilot stop reason");
+    private readonly TextBox _liveCompletion = ReadOnlyField("Pilot completion status");
+    private readonly DataGridView _liveWorkflows = CreateWorkflowGrid();
     private readonly int _ownerThreadId = Environment.CurrentManagedThreadId;
     private PilotDashboardState? _currentState;
 
@@ -94,10 +105,11 @@ public sealed class PilotDashboardControl : UserControl,
         var root = new TableLayoutPanel
         {
             ColumnCount = 1,
-            RowCount = 4,
+            RowCount = 5,
             Dock = DockStyle.Fill,
             Padding = new Padding(16)
         };
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -105,10 +117,12 @@ public sealed class PilotDashboardControl : UserControl,
         root.Controls.Add(title, 0, 0);
         root.Controls.Add(identity, 0, 1);
         root.Controls.Add(indicators, 0, 2);
-        root.Controls.Add(messages, 0, 3);
+        root.Controls.Add(CreateLivePanel(), 0, 3);
+        root.Controls.Add(messages, 0, 4);
         Controls.Add(root);
 
         ClearState();
+        RenderLive(LivePilotDashboardView.Waiting());
     }
 
     public PilotUiSurfaceKind SurfaceKind => PilotUiSurfaceKind.EmbeddedPilotPanel;
@@ -124,6 +138,29 @@ public sealed class PilotDashboardControl : UserControl,
     public PilotAccessibilityRequirements Accessibility => PilotAccessibilityRequirements.Default;
     public PilotLayoutRequirements LayoutContract => PilotLayoutRequirements.Default;
     public PilotSurfaceSnapshot Snapshot { get; private set; } = EmptySnapshot();
+    public LivePilotDashboardView LiveSnapshot { get; private set; } =
+        LivePilotDashboardView.Waiting();
+
+    /// <summary>Renders already-sanitized operational evidence; it executes no workflow.</summary>
+    public void RenderLive(LivePilotDashboardView state)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        if (IsDisposed) return;
+        LiveSnapshot = state;
+        _liveIdentity.Text = state.PilotIdentity;
+        _liveStation.Text = state.Station;
+        _liveSession.Text = state.SessionStatus;
+        _liveAuthority.Text = state.LegacyAuthorityIndicator;
+        _livePreflight.Text = state.PreflightStatus;
+        _liveMonitoring.Text = state.MonitoringStatus;
+        _liveRollback.Text = state.RollbackReadiness;
+        _liveStop.Text = state.StopReason;
+        _liveCompletion.Text = state.CompletionStatus;
+        _liveWorkflows.Rows.Clear();
+        foreach (LivePilotWorkflowView workflow in state.Workflows)
+            _liveWorkflows.Rows.Add(WorkflowText(workflow.Workflow), workflow.Status,
+                workflow.Comparison, workflow.FingerprintSpecificationVersion);
+    }
 
     public Task RenderAsync(PilotDashboardState state, CancellationToken cancellationToken = default)
     {
@@ -360,4 +397,102 @@ public sealed class PilotDashboardControl : UserControl,
         panel.Controls.Add(field, 0, 1);
         layout.Controls.Add(panel, column, row);
     }
+
+    private Control CreateLivePanel()
+    {
+        var banner = new Label
+        {
+            AutoSize = false,
+            Dock = DockStyle.Top,
+            Height = 38,
+            BackColor = Color.FromArgb(153, 65, 0),
+            ForeColor = Color.White,
+            Font = new Font("Tahoma", 10f, FontStyle.Bold),
+            TextAlign = ContentAlignment.MiddleCenter,
+            RightToLeft = RightToLeft.Yes,
+            Text = "حالت آزمایشی (Pilot) — فقط خواندنی — مرجع بهره‌برداری: سامانه فعلی (Legacy)",
+            AccessibleName = "Pilot read-only safety banner"
+        };
+        var fields = new TableLayoutPanel
+        {
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 3,
+            Dock = DockStyle.Top,
+            RightToLeft = RightToLeft.Yes
+        };
+        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33f));
+        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33f));
+        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.34f));
+        AddLabeledField(fields, "شناسه Pilot / Rehearsal", _liveIdentity, 0, 0);
+        AddLabeledField(fields, "ایستگاه", _liveStation, 1, 0);
+        AddLabeledField(fields, "وضعیت نشست", _liveSession, 2, 0);
+        AddLabeledField(fields, "مرجع بهره‌برداری", _liveAuthority, 0, 1);
+        AddLabeledField(fields, "پیش‌بررسی فقط‌خواندنی", _livePreflight, 1, 1);
+        AddLabeledField(fields, "وضعیت پایش", _liveMonitoring, 2, 1);
+        AddLabeledField(fields, "آمادگی بازگشت", _liveRollback, 0, 2);
+        AddLabeledField(fields, "علت توقف", _liveStop, 1, 2);
+        AddLabeledField(fields, "وضعیت تکمیل", _liveCompletion, 2, 2);
+
+        var panel = new TableLayoutPanel
+        {
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 1,
+            RowCount = 3,
+            Dock = DockStyle.Top,
+            Padding = new Padding(0, 4, 0, 8)
+        };
+        panel.Controls.Add(banner, 0, 0);
+        panel.Controls.Add(fields, 0, 1);
+        panel.Controls.Add(_liveWorkflows, 0, 2);
+        return panel;
+    }
+
+    private static DataGridView CreateWorkflowGrid()
+    {
+        var grid = new DataGridView
+        {
+            Dock = DockStyle.Top,
+            Height = 145,
+            ReadOnly = true,
+            AllowUserToAddRows = false,
+            AllowUserToDeleteRows = false,
+            AllowUserToResizeRows = false,
+            AutoGenerateColumns = false,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            RowHeadersVisible = false,
+            MultiSelect = false,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            RightToLeft = RightToLeft.Yes,
+            AccessibleName = "Five Pilot workflow results",
+            TabStop = true
+        };
+        grid.Columns.Add(new DataGridViewTextBoxColumn
+            { HeaderText = "گردش‌کار", FillWeight = 28 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn
+            { HeaderText = "وضعیت", FillWeight = 20 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn
+            { HeaderText = "نتیجه مقایسه", FillWeight = 25 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn
+            { HeaderText = "نسخه Fingerprint", FillWeight = 27 });
+        return grid;
+    }
+
+    private static string WorkflowText(
+        Rah_Negar.Foundation.Application.Pilot.Validation.PilotValidationWorkflow workflow) =>
+        workflow switch
+        {
+            Rah_Negar.Foundation.Application.Pilot.Validation.PilotValidationWorkflow.Authentication =>
+                "قابلیت ورود",
+            Rah_Negar.Foundation.Application.Pilot.Validation.PilotValidationWorkflow.Reporting =>
+                "گزارش‌گیری",
+            Rah_Negar.Foundation.Application.Pilot.Validation.PilotValidationWorkflow.RuntimeEvent =>
+                "کارکرد / رویداد",
+            Rah_Negar.Foundation.Application.Pilot.Validation.PilotValidationWorkflow.ProtectedSettings =>
+                "تنظیمات حفاظت‌شده",
+            Rah_Negar.Foundation.Application.Pilot.Validation.PilotValidationWorkflow.Export =>
+                "فراداده خروجی",
+            _ => "نامشخص"
+        };
 }

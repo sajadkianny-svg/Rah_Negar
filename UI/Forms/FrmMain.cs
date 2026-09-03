@@ -6,6 +6,8 @@ using System.Globalization;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using Rah_Negar.UI.Forms.Base;
+using Rah_Negar.UI.Composition.Pilot;
+using Rah_Negar.UI.Forms.Pilot;
 
 namespace Rah_Negar.UI.Forms
 {
@@ -24,6 +26,8 @@ namespace Rah_Negar.UI.Forms
         /// </summary>
         private int _appliedThemeIndex = -1;
 
+        private readonly LinkLabel _pilotReadOnlyEntry = new();
+
         // ================= Constructor =================
 
         public FrmMain()
@@ -38,6 +42,7 @@ namespace Rah_Negar.UI.Forms
             ApplyThemeToMainForm();
             WireCardHover();
             WireCardClicks();
+            ConfigurePilotEntry();
             SetStatusText();
         }
 
@@ -479,6 +484,67 @@ namespace Rah_Negar.UI.Forms
             Activate();
 
             RefreshMainAfterChildClosed(forceStatusRefresh: false);
+        }
+
+        /// <summary>
+        /// Adds one explicit, non-default entry to the isolated read-only Pilot surface.
+        /// </summary>
+        private void ConfigurePilotEntry()
+        {
+            _pilotReadOnlyEntry.AutoSize = true;
+            _pilotReadOnlyEntry.Text = "Pilot / فقط خواندنی";
+            _pilotReadOnlyEntry.LinkColor = Color.Gold;
+            _pilotReadOnlyEntry.ActiveLinkColor = Color.White;
+            _pilotReadOnlyEntry.VisitedLinkColor = Color.Gold;
+            _pilotReadOnlyEntry.Font = new Font("Tahoma", 8F, FontStyle.Bold);
+            _pilotReadOnlyEntry.Location = new Point(8, 3);
+            _pilotReadOnlyEntry.TabStop = true;
+            _pilotReadOnlyEntry.AccessibleName = "ورود صریح به Pilot فقط خواندنی";
+            _pilotReadOnlyEntry.LinkClicked += OpenReadOnlyPilot;
+            pnlFooter.Controls.Add(_pilotReadOnlyEntry);
+            _pilotReadOnlyEntry.BringToFront();
+        }
+
+        private async void OpenReadOnlyPilot(
+            object? sender,
+            LinkLabelLinkClickedEventArgs e)
+        {
+            DialogResult confirmation = MessageBox.Show(this,
+                "این بخش در حالت آزمایشی (Pilot) و فقط خواندنی اجرا می‌شود." +
+                Environment.NewLine +
+                "مرجع بهره‌برداری همچنان برنامه فعلی (Legacy) است." +
+                Environment.NewLine + Environment.NewLine +
+                "آیا مایل به اجرای پیش‌بررسی Pilot هستید؟",
+                "تأیید ورود به Pilot فقط خواندنی",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning,
+                MessageBoxDefaultButton.Button2,
+                MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+            if (confirmation != DialogResult.Yes)
+                return;
+
+            _pilotReadOnlyEntry.Enabled = false;
+            try
+            {
+                var root = new LivePilotCompositionRoot(
+                    SqliteDatabaseHelper.GetDatabasePath());
+                LivePilotCompositionResult composition = await root.ComposeAsync();
+                using var form = new FrmLivePilot(composition);
+                form.ShowDialog(this);
+            }
+            catch
+            {
+                MessageBox.Show(this,
+                    "راه‌اندازی سطح Pilot فقط‌خواندنی ناموفق بود. برنامه فعلی بدون تغییر فعال است.",
+                    "Pilot فقط‌خواندنی", MessageBoxButtons.OK, MessageBoxIcon.Error,
+                    MessageBoxDefaultButton.Button1,
+                    MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+            }
+            finally
+            {
+                _pilotReadOnlyEntry.Enabled = true;
+                Activate();
+            }
         }
 
         // ================= Shortcut Methods =================
