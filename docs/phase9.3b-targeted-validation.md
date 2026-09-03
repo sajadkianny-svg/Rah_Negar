@@ -1,5 +1,9 @@
 # Phase 9.3B — Targeted Validation and Test Completion
 
+> Reconciled by the Phase 9.3 final audit report. This document remains supporting
+> validation evidence; `docs/phase9-controlled-live-pilot-integration-report.md`
+> is authoritative for final scope, status, and counts.
+
 ## Scope and starting point
 
 - Branch: `phase9-operational-readiness`
@@ -34,7 +38,9 @@ A small test-local SQLite fixture was added only to exercise the Phase 9.3 read-
 
 ## New Phase 9.3 tests
 
-The new test class contains 11 xUnit tests. The parameterized preflight test contributes two test cases at runtime, so the full test runner count increases by 12 cases.
+The new test class contains 10 xUnit test methods (9 facts and 1 theory). The
+parameterized preflight test contributes two test cases at runtime, so the full
+test runner count increases by 11 cases.
 
 ### Coverage matrix
 
@@ -97,7 +103,7 @@ Total: 637
 
 Final total test count: **637**.
 
-New Phase 9.3 tests: **11 xUnit test methods**, **12 executed cases** because the station preflight theory has two inline data rows.
+New Phase 9.3 tests: **10 xUnit test methods**, **11 executed cases** because the station preflight theory has two inline data rows.
 
 ## Build execution
 
