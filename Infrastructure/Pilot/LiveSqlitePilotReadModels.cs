@@ -92,7 +92,7 @@ public sealed class LiveSqlitePilotReadModels :
         var legacy = new AuthenticationOperationalObservation(_scope.StationId,
             legacyAvailable, identifiesShiftProfile: false, acceptsPersonnelNumber: false,
             enforcesStationScope: true,
-            ["legacy-password-capability", "legacy-session-observation", "station-scope"],
+            ["legacy-login-capability", "legacy-session-observation", "station-scope"],
             OperationalObservationBoundary.LegacyAuthoritative);
         var target = new AuthenticationOperationalObservation(_scope.StationId,
             targetAvailable, identifiesShiftProfile: targetTables,

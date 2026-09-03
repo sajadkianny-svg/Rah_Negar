@@ -2,7 +2,67 @@
 
 ## Final status
 
-**BLOCKED**
+**READY FOR MANUAL RERUN**
+
+This current status supersedes the earlier blocked execution record retained below. The
+Authentication item is not marked PASS; it requires a new manual run after the focused
+correction documented here.
+
+## Phase 9.4B Authentication defect record - 2026-09-03
+
+### Observed manual failure
+
+In the isolated Rasht qualification environment, login, explicit Pilot entry,
+confirmation, dashboard creation, Rasht station display, read-only preflight, Legacy
+authority indication, and the five workflow/fingerprint rows all succeeded. Selecting
+the read-only observation action deterministically stopped the session. Monitoring and
+Authentication were failed, the stop reason was a read-only observation error, no usable
+Authentication result/evidence was displayed, and the other four workflows remained
+pending. The operator reproduced this behavior twice.
+
+### Root cause
+
+The UI was not the cause, and the Rasht/Ramsar qualification Authentication rows satisfy
+the live read model's requirements. `LiveSqlitePilotReadModels` emitted the Legacy
+capability code `legacy-password-capability`. `OperationalText` deliberately rejects
+evidence identifiers containing `password`; therefore
+`AuthenticationOperationalObservation.IsValid` was false. The live observer returned no
+result before fingerprint generation, and the coordinator converted that invalid result
+to failed observer evidence and stopped the single-attempt session. A focused regression
+test reproduced the null result for both station fixtures and the Rasht `Stopped`
+lifecycle before correction.
+
+### Correction
+
+The single unsafe capability label was changed to the semantically equivalent,
+non-sensitive `legacy-login-capability`. No validation, authentication/security rule,
+database query, fixture row, schema, transaction, authority, credential handling, or
+other Pilot workflow changed. Pilot access remains read-only and Legacy remains
+authoritative.
+
+### Regression coverage
+
+`QualificationAuthenticationPilotRegressionTests` now exercises the real generated
+Rasht and Ramsar databases through `LiveSqlitePilotReadModels` and
+`LiveAuthenticationPilotObserver`. It verifies deterministic successful observations,
+safe SHA-256 fingerprints/evidence, absence of password, credential, hash, recovery,
+qualification password, salt, or verifier material from exposed evidence, byte-for-byte
+source database immutability, and a five-workflow Rasht session reaching operator review
+instead of aborting at Authentication.
+
+### Automated validation
+
+- Focused regression tests: **PASS** - 3 passed, 0 failed.
+- `dotnet build Rah_Negar.sln -c Release`: **PASS** - 0 errors; 12 existing
+  `NU1701` package-compatibility warnings.
+- `dotnet test Rah_Negar.sln -c Release`: **PASS** - 647 passed, 0 failed,
+  0 skipped.
+- `git diff --check`: **PASS** - no whitespace errors; informational LF-to-CRLF
+  working-copy notices only.
+
+Authentication remains awaiting manual verification and is not marked PASS.
+
+**Status: READY FOR MANUAL RERUN**
 
 The Phase 9.4B rerun was started using the Phase 9.4C isolated qualification environment. The generator produced both station fixtures and both launchers reached the initialized local application login/main flow. The actual Pilot surface could not be exercised reliably in this execution environment: UI Automation exposed the login controls but not the main WinForms child controls, and foreground keystroke injection was denied. No Pilot PASS was inferred from source code, automated tests, or fixture contents.
 
@@ -141,8 +201,12 @@ The launcher script correction is the only code/tooling modification in this rer
 
 ## Operator qualification conclusion
 
-Operator qualification is **not granted**. The isolated environment is prepared and launches correctly after the small launcher correction, but this execution session cannot reliably operate or visually inspect the native Pilot surface. No manual Pilot safety or functional PASS was inferred.
+Operator qualification is **not granted**. Authentication remains unpassed until the
+corrected isolated Pilot is manually rerun. The focused automated validation establishes
+only that the deterministic observer failure is corrected without changing authority or
+write boundaries.
 
 ## Readiness decision for Phase 9.4 finalization
 
-**BLOCKED — Phase 9.4B manual evidence is incomplete.** A future run needs a Windows/native UI session that can visibly operate the main WinForms controls, capture sanitized evidence, and attempt each requested DPI scale. Do not begin Phase 9.5 or authority transition.
+**READY FOR MANUAL RERUN** — rerun the isolated manual Authentication observation; do not
+mark it PASS until that rerun succeeds. Do not begin Phase 9.5 or any authority transition.
