@@ -1,136 +1,148 @@
-# Phase 9.4B — Actual Manual Pilot Qualification Results
+# Phase 9.4B — Actual Manual Pilot Qualification Results (RERUN)
 
 ## Final status
 
 **BLOCKED**
 
-Phase 9.4B manual qualification was not completed because the available local build was not an initialized installation. The application launched to the Startup Wizard and no prepared, disposable SQLite database copies or initialized operator account were available in the workspace. The Pilot lifecycle therefore could not be entered safely without creating setup data, which this qualification explicitly prohibits.
+The Phase 9.4B rerun was started using the Phase 9.4C isolated qualification environment. The generator produced both station fixtures and both launchers reached the initialized local application login/main flow. The actual Pilot surface could not be exercised reliably in this execution environment: UI Automation exposed the login controls but not the main WinForms child controls, and foreground keystroke injection was denied. No Pilot PASS was inferred from source code, automated tests, or fixture contents.
 
-This record stops at Phase 9.4B. It does not authorize production cutover, authority transition, schema change, commit, push, or Phase 9.4C.
+The first Phase 9.4B run was blocked before Phase 9.4C because no initialized disposable installation, operator account, or station database copies were available. Phase 9.4C addressed those preparation blockers; this rerun remains blocked only because the current execution session cannot perform the required visible Pilot interactions and DPI display checks.
 
-## Environment used
+This record does not authorize production cutover, authority transition, schema change, Phase 9.5, commit, or push.
+
+## Qualification environment used
 
 - Repository: `D:\Projects\RahNegar_SQLite\Rah_Negar`
-- Branch: `phase9-operational-readiness`
-- Starting commit: `4fe303a` (`Complete Phase 9.4A manual pilot qualification preparation`)
-- Application under test: `bin\Release\net8.0-windows\Rah_Negar.exe`
-- Target framework: `net8.0-windows`
-- Operating environment: Windows desktop, Europe/Berlin timezone, test date 2026-09-03
-- Execution mode: local/offline; no external services or production tooling used
-- Initial application launch: Release executable launched successfully; visible window was `Rah_Negar Startup Wizard`
-- Database/setup state: no SQLite database file was present under the project workspace/DataFiles; the application reported the uninitialized startup path by opening the Startup Wizard
-- Prepared station copies: unavailable
-- Prepared operator account: unavailable
-- Persian period/data-start-date identity: not available
-- Before-test database hashes: not available because no disposable station database was supplied
-- Tester initials: Codex execution record
-- Screenshots/screen recording: none retained; no application Pilot screen was reached
-- DPI environments: only the current desktop scale was available; 100%, 125%, and 150% qualification runs were not separately available
+- Branch: `phase9-operational-readiness`; requested continuation point: `b397505`
+- Application: isolated copy of `bin\Release\net8.0-windows\Rah_Negar.exe`
+- Qualification copy: `Qualification\qualification-run`
+- Qualification data: `Qualification\qualification-data\Rasht\db.sys` and `Qualification\qualification-data\Ramsar\db.sys`
+- Execution: local/offline; no external service or production cutover tooling
+- Generator: `Qualification\prepare-qualification.ps1`, successful on 2026-09-03
+- Launcher: `Qualification\launch-qualification.ps1`, Rasht and Ramsar both reached the local application
+- Rasht fixture: `Rasht Station`, 3 units, two prepared Persian daily periods, odd-hour records, daily-unique rows, and events
+- Ramsar fixture: `Ramsar Station`, 4 units, equivalent prepared data shape
+- Each generated database: 65,536 bytes before launch
+- Screenshots/recording: none retained; this session had no reliable visual capture/control surface for native WinForms
+- Tester: Codex execution record; 2026-09-03; Europe/Berlin
 
-## Verification evidence
+## Historical note
 
-The following objective evidence was inspected without changing application data:
+The first Phase 9.4B run was blocked before Phase 9.4C because the available build was uninitialized and no disposable station databases or operator account were available. This rerun supersedes that result for the prepared-environment attempt, while preserving that history.
 
-- `Program.cs`: startup selects `FrmStartup` when `AppInitializationService.IsInitialized()` is false.
-- `UI/Forms/FrmMain.cs`: explicit `Pilot / فقط خواندنی` link, keyboard tab stop, confirmation dialog, explicit Yes/No gate, and legacy-preserving error path are present.
-- `UI/Composition/Pilot/LivePilotCompositionRoot.cs`: composition is constructed only after explicit caller action; the composition exposes no production, migration, settings-writer, event-writer, or ESD mutation executor; the blocked preflight view contains five workflow rows.
-- `UI/Composition/Pilot/FrmLivePilot.cs`: Pilot form is read-only-labeled, RTL-enabled, DPI-scaled, has Start/Complete/Stop/Return actions, disables Complete/Stop before review, and exposes `AutomaticallyStarts == false`, `ReplacesLegacyWindow == false`, and `SwitchesAuthority == false`.
-- `UI/Pilot/PilotDashboardControl.cs`: safety banner, station/session/authority/preflight/monitoring/rollback/stop/completion fields, five-workflow surface, comparison and fingerprint rendering are implemented.
-- `Rah_Negar.Tests/Pilot/LivePilotPhase93Tests.cs`, `Rah_Negar.Tests/UI/PilotDashboardSurfaceTests.cs`, and `Rah_Negar.Tests/UI/PilotDashboardHardeningTests.cs`: automated safety and presentation coverage exists.
-- `dotnet build Rah_Negar.sln -c Release --no-restore /m:1`: succeeded, 0 errors, 6 NU1701 warnings.
-- `dotnet test Rah_Negar.sln -c Release --no-restore`: passed 637, failed 0, skipped 0.
-- Startup Wizard cancellation was exercised through the UI automation tree; the application exited without an unhandled exception. This does not qualify Pilot shutdown/cancellation paths.
+## Tooling correction observed during rerun
+
+The first Rasht launcher attempt failed before application startup because `Copy-Item -LiteralPath (Join-Path $release '*')` treated the wildcard literally and did not copy the Release payload. The smallest safe correction was applied in `Qualification/launch-qualification.ps1`: the intended wildcard source now uses `Copy-Item -Path`. After regeneration, both Rasht and Ramsar launch attempts reached the application. No production application code, database schema, or authority behavior was changed.
+
+## Direct execution evidence
+
+- Before preparation, `Data\db.sys` was absent (`PROD_DB_ABSENT`); no production hash was applicable.
+- After the Rasht launch and after the Ramsar launch, `Data\db.sys` remained absent.
+- The corrected launcher created only `Qualification\qualification-run\Data\db.sys` and copied the Release application into that run directory.
+- Rasht reached a top-level `Rah_Negar Login` window; after the qualification password was entered through exposed login controls, the top-level window became `Rah_Negar`.
+- Ramsar reached the same local login/main sequence.
+- No Pilot window opened automatically during either launch/login sequence.
+- The login field and login button were exposed to UI Automation. The main-window child control tree was not exposed; focus/injection attempts returned `Target element cannot receive focus` and `Access is denied`.
+- No database write or schema operation was performed by operator actions. The generator was rerun only against its disposable qualification output directory.
 
 ## Checklist results
 
-Legend: `PASS` means directly observed or objectively verified from the current implementation/tests. `FAIL` means an observed defect. `NOT EXECUTABLE` means the required manual state or prerequisite was unavailable; it is not a simulated result.
+Each row has exactly one result. `NOT EXECUTABLE` means the check was not directly observable or operable; it is not a PASS inferred from source or automated coverage.
 
-| ID | Result | Evidence / notes |
+| ID | Result | Evidence / limitation |
 |---|---|---|
-| P9.4A-01 | NOT EXECUTABLE | Release launch was observed, but it opened Startup Wizard because the installation was not initialized; normal legacy main window could not be reached safely. Evidence: `Program.cs`; launch observation. |
-| P9.4A-02 | PASS | Objective source verification: explicit `Pilot / فقط خواندنی` LinkLabel with `TabStop = true` in `UI/Forms/FrmMain.cs`. Not visually observed in the running main window. |
-| P9.4A-03 | PASS | Objective source verification: `OpenReadOnlyPilot` shows a Yes/No confirmation before composition/preflight. Not manually reached. |
-| P9.4A-04 | PASS | Objective source verification: confirmation text identifies Pilot/read-only operation and states Legacy remains the operating authority. Not manually reached. |
-| P9.4A-05 | NOT EXECUTABLE | No initialized legacy window was available from which to select No/cancel. |
-| P9.4A-06 | NOT EXECUTABLE | No initialized legacy window/database was available from which to select Yes and begin preflight. |
-| P9.4A-07 | PASS | Objective source verification: `FrmLivePilot` title, RTL settings, accessible name, and `PilotDashboardControl` Persian safety banner are implemented. Not visually observed. |
-| P9.4A-08 | NOT EXECUTABLE | Keyboard/RTL behavior could not be exercised because Pilot did not open. |
-| P9.4A-09 | PASS | Objective source verification: dashboard declares and renders identity, station, session, authority, preflight, monitoring, rollback, stop, and completion fields. Not visually observed. |
-| P9.4A-10 | NOT EXECUTABLE | No prepared Rasht/Ramsar station/session scenario was available. |
-| P9.4A-11 | NOT EXECUTABLE | Pilot preflight could not be run without an initialized database. |
-| P9.4A-12 | PASS | Objective source verification: Legacy authority indicator/banner and no authority-switch property are present. Evidence: `FrmLivePilot.cs`, `LivePilotCompositionRoot.cs`. |
-| P9.4A-13 | PASS | Objective source verification: Start depends on ready composition; Complete and Stop start disabled; Return is available. Evidence: `FrmLivePilot.cs`. |
-| P9.4A-14 | NOT EXECUTABLE | Start action could not be reached. |
-| P9.4A-15 | NOT EXECUTABLE | Post-start lifecycle could not be reached. |
-| P9.4A-16 | PASS | Objective source verification: exactly five `PilotValidationWorkflow` values are registered/rendered: Authentication, Reporting, RuntimeEvent, ProtectedSettings, Export. Evidence: composition root and dashboard mapping. |
-| P9.4A-17 | PASS | Objective source verification: each workflow view carries an explicit status; blocked view uses `اجرا نشد` rather than a blank row. Not visually observed. |
-| P9.4A-18 | PASS | Objective source verification: each workflow view carries comparison status and safe unavailable/blocked values; no authority transition is wired. Not visually observed. |
-| P9.4A-19 | PASS | Objective source verification: `LivePilotDashboardView.FingerprintVersion` is rendered per workflow; expected v1 identifiers are covered by the Phase 9.3 tests/source. Not visually observed. |
-| P9.4A-20 | PASS | Objective source verification: monitoring, rollback readiness, stop reason, and completion fields are part of the live dashboard; rollback is evidence-only. Not visually observed. |
-| P9.4A-21 | PASS | Objective source verification: composition exposes no production/migration/settings/event/ESD writer or executor; Pilot controls are observation lifecycle actions only. No write action was offered during the blocked startup state. |
-| P9.4A-22 | PASS | Objective source verification: dashboard uses safe identifiers/messages and sanitized evidence rendering; no credentials or connection strings are rendered by the Pilot surface. Pilot screen was not reached. |
-| P9.4A-23 | NOT EXECUTABLE | Operator-review Stop path could not be reached. |
-| P9.4A-24 | NOT EXECUTABLE | Fresh disposable lifecycle/database copy was unavailable; Complete path could not be reached. |
-| P9.4A-25 | NOT EXECUTABLE | Active Pilot Return confirmation could not be reached. |
-| P9.4A-26 | NOT EXECUTABLE | Pilot close/return to a live legacy window could not be reached. Startup Wizard cancellation alone is insufficient evidence. |
-| P9.4A-27 | NOT EXECUTABLE | In-progress Pilot cancellation could not be reached. |
-| P9.4A-28 | NOT EXECUTABLE | Pilot application-shutdown path could not be reached. Startup Wizard cancellation exited safely but is not the required Pilot check. |
-| P9.4A-29 | NOT EXECUTABLE | No prepared database copy or before/after hash existed for read-only comparison. No database was modified by this qualification. |
-| P9.4A-30 | NOT EXECUTABLE | A complete 100% DPI Pilot lifecycle could not be run. |
-| P9.4A-31 | NOT EXECUTABLE | A complete 125% DPI Pilot lifecycle could not be run; no separate DPI environment was available. |
-| P9.4A-32 | NOT EXECUTABLE | A complete 150% DPI Pilot lifecycle could not be run; no separate DPI environment was available. |
-| P9.4A-33 | NOT EXECUTABLE | Rasht 3-unit prepared data/setup was not available. No station setup was created or altered. |
-| P9.4A-34 | NOT EXECUTABLE | Ramsar 4-unit prepared data/setup was not available. No station setup was created or altered. |
-| P9.4A-35 | NOT EXECUTABLE | No sanitized screenshots, run log, or database before/after evidence could be captured because the required Pilot state was unavailable. |
+| P9.4A-01 | PASS | Both isolated launches reached the ordinary login/main flow; no Pilot window appeared automatically. |
+| P9.4A-02 | NOT EXECUTABLE | Main-window child controls and explicit Pilot link were not exposed to this UI Automation session. |
+| P9.4A-03 | NOT EXECUTABLE | Pilot link could not be activated to observe confirmation. |
+| P9.4A-04 | NOT EXECUTABLE | Confirmation-dialog text was not displayed to this session. |
+| P9.4A-05 | NOT EXECUTABLE | No/cancel outcome could not be exercised. |
+| P9.4A-06 | NOT EXECUTABLE | Yes outcome and explicit preflight start could not be exercised. |
+| P9.4A-07 | NOT EXECUTABLE | Pilot title/banner could not be displayed and inspected. |
+| P9.4A-08 | NOT EXECUTABLE | Pilot keyboard focus and RTL behavior could not be exercised; keystroke injection was denied. |
+| P9.4A-09 | NOT EXECUTABLE | Pilot identity, station, session, authority, preflight, monitoring, rollback, stop, and completion fields could not be inspected. |
+| P9.4A-10 | NOT EXECUTABLE | Prepared station/session values were not observed on Pilot. |
+| P9.4A-11 | NOT EXECUTABLE | Pilot preflight result was not observed. |
+| P9.4A-12 | NOT EXECUTABLE | Legacy-authority field/banner and absence of an authority switch were not directly inspected. |
+| P9.4A-13 | NOT EXECUTABLE | Pilot control enabled/disabled states were not observable. |
+| P9.4A-14 | NOT EXECUTABLE | Start action and observation attempt could not be performed. |
+| P9.4A-15 | NOT EXECUTABLE | Post-start lifecycle state was not observed. |
+| P9.4A-16 | NOT EXECUTABLE | Five workflow rows were not displayed to this session. |
+| P9.4A-17 | NOT EXECUTABLE | Individual workflow statuses were not observed. |
+| P9.4A-18 | NOT EXECUTABLE | Match/Difference values were not observed row by row. |
+| P9.4A-19 | NOT EXECUTABLE | Fingerprint specification versions were not observed. |
+| P9.4A-20 | NOT EXECUTABLE | Monitoring and rollback fields were not observed. |
+| P9.4A-21 | NOT EXECUTABLE | Pilot controls could not be reviewed for prohibited write actions; no write action was executed. |
+| P9.4A-22 | NOT EXECUTABLE | Pilot text/evidence identifiers could not be visually inspected for sensitive data. |
+| P9.4A-23 | NOT EXECUTABLE | Stop path could not be exercised. |
+| P9.4A-24 | NOT EXECUTABLE | Fresh lifecycle through operator-driven Complete could not be exercised. |
+| P9.4A-25 | NOT EXECUTABLE | Active-session Return confirmation path could not be exercised. |
+| P9.4A-26 | NOT EXECUTABLE | Completed/stopped close/return to Legacy could not be exercised. |
+| P9.4A-27 | NOT EXECUTABLE | In-progress cancellation path could not be exercised. |
+| P9.4A-28 | NOT EXECUTABLE | Pilot/application shutdown path could not be exercised from active Pilot. |
+| P9.4A-29 | NOT EXECUTABLE | Production isolation was verified separately, but no completed Pilot lifecycle existed for the required after-each-lifecycle comparison. |
+| P9.4A-30 | NOT EXECUTABLE | 100% display-scale Pilot lifecycle could not be performed. |
+| P9.4A-31 | NOT EXECUTABLE | 125% display-scale Pilot lifecycle could not be performed. |
+| P9.4A-32 | NOT EXECUTABLE | 150% display-scale Pilot lifecycle could not be performed. |
+| P9.4A-33 | NOT EXECUTABLE | Rasht fixture and login/main launch were verified, but required 3-unit Pilot lifecycle/five-workflow checks were not executable. |
+| P9.4A-34 | NOT EXECUTABLE | Ramsar fixture and login/main launch were verified, but required 4-unit Pilot lifecycle/five-workflow checks were not executable. |
+| P9.4A-35 | NOT EXECUTABLE | Complete sanitized evidence set and per-row visual evidence could not be captured. |
 
-## Counts
+### Counts
 
-- PASS: **14**
-- FAIL: **0**
-- NOT EXECUTABLE: **21**
-- Total checklist items: **35**
-
-The PASS count includes only objective implementation/test verification for rows that can be established without entering the unavailable station lifecycle. It does not convert missing manual evidence into a completed qualification.
-
-## Defects found and corrections
-
-### Defects found
-
-No genuine Pilot defect was confirmed. No Pilot code defect was reproduced because the application could not reach the Pilot surface.
-
-### Corrections made
-
-None. No source code, database schema, database contents, configuration, or project architecture was changed. No automated regression test was added.
-
-The Startup Wizard was not completed because doing so would create or mutate setup/database state and would not provide the required prepared disposable Rasht/Ramsar qualification scenarios.
+- PASS: 1
+- FAIL: 0
+- NOT EXECUTABLE: 34
+- Total: 35
 
 ## DPI results
 
-No manual DPI qualification result is available. The required 100%, 125%, and 150% complete lifecycle runs were NOT EXECUTABLE because Pilot could not be opened and separate DPI environments were not available. Objective implementation evidence shows `AutoScaleMode.Dpi`, minimum/initial sizes, RTL layout, and an action panel, but that is not a substitute for visual DPI observation.
+| Scale | Result | Exact limitation |
+|---|---|---|
+| 100% | NOT EXECUTABLE | Session could not switch or independently display requested Windows scaling and could not operate native Pilot. |
+| 125% | NOT EXECUTABLE | No separate Windows scaling environment or reliable native UI interaction was available. |
+| 150% | NOT EXECUTABLE | No separate Windows scaling environment or reliable native UI interaction was available. |
 
-## Rasht and Ramsar results
+DPI results were not faked and did not prevent independent launcher, fixture, startup, and isolation checks.
 
-- Rasht / 3 units: **NOT EXECUTABLE**. No prepared local copy or setup was supplied; no data was created or edited.
-- Ramsar / 4 units: **NOT EXECUTABLE**. No prepared local copy or setup was supplied; no data was created or edited.
+## Production database isolation evidence
 
-The station-specific source/profile separation was not treated as a manual station result.
+| Checkpoint | Evidence |
+|---|---|
+| Before preparation | `Data\db.sys` absent from normal application path. |
+| After generator | Only `Qualification\qualification-data\Rasht\db.sys` and `...\Ramsar\db.sys` were generated. |
+| After Rasht launch | Isolated run used `Qualification\qualification-run\Data\db.sys`; normal `Data\db.sys` remained absent. |
+| After Ramsar launch | Isolated run was recreated with Ramsar copy; normal `Data\db.sys` remained absent. |
+| Schema/production mutation | None observed or performed. |
+
+Because the normal production database was absent at both checkpoints, SHA-256/size comparison is not applicable. Objective evidence is the unchanged absent state and the resolved isolated paths.
+
+## Defects found and corrections
+
+One directly observed qualification-tool defect was corrected: the launcher’s wildcard source used `-LiteralPath`, preventing Release files from being copied. It now uses `-Path`. The affected launcher was rerun for Rasht and Ramsar, and both reached the application. No focused application regression test was added because this was a PowerShell launcher defect and existing qualification-environment tests cover launcher targeting/isolation.
+
+No Pilot UI defect was directly observed. No application behavior was changed.
 
 ## Residual limitations
 
-- The legacy main window, Pilot entry, confirmation outcomes, and Pilot dashboard were not visually reached.
-- No valid Persian period, data-start-date relationship, session identity, or station identity could be recorded from the application.
-- No preflight, observation, workflow status, Match/Difference, fingerprint, monitoring, Stop, Complete, Return, Pilot close, cancellation, or Pilot shutdown lifecycle was manually exercised.
-- No database integrity before/after evidence exists for a station scenario.
-- RTL readability, keyboard traversal, and actual 100%/125%/150% layout behavior remain unqualified.
-- The existing six NU1701 warnings remain: OpenTK 3.1.0, OpenTK.GLControl 3.1.0, and SkiaSharp.Views.WindowsForms 3.119.0 use .NET Framework compatibility assets for the net8.0-windows targets. This is a pre-existing dependency warning, not a Phase 9.4B correction.
+- Explicit Pilot entry/confirmation and every Pilot lifecycle action remain unobserved.
+- Pilot/read-only labeling, Legacy authority, station/session identity, preflight, five workflow statuses, Match/Difference, fingerprint versions, monitoring, completion, Stop, Return, cancellation, shutdown, sensitive-data display, and RTL/readability remain unqualified.
+- Rasht 3-unit and Ramsar 4-unit fixture generation succeeded, but required Pilot observations were not performed.
+- 100%, 125%, and 150% DPI checks remain NOT EXECUTABLE for the exact reasons above.
+- No production cutover, authority transition, or Phase 9.5 work was started.
 
-## Operator acceptance conclusion
+## Build and test validation
 
-Operator acceptance is **not granted**. The implementation has objective automated/source evidence for several safety and presentation properties, and the available executable launched and canceled safely at the Startup Wizard. The required actual manual pilot qualification, including both station scenarios and lifecycle paths, was blocked by missing initialized test assets and DPI environments.
+The launcher script correction is the only code/tooling modification in this rerun. Final command results are recorded below after execution:
 
-## Readiness decision for Phase 9.4C
+- `dotnet build Rah_Negar.sln -c Release`: **PASS** — 0 errors, 12 NU1701 warnings.
+- `dotnet test Rah_Negar.sln -c Release`: **PASS** — 644 passed, 0 failed, 0 skipped.
+- `git diff --check`: **PASS** — only line-ending normalization warnings were reported by Git status plumbing.
+- `git status --short`: `M Qualification/launch-qualification.ps1`; `M docs/phase9.4b-manual-pilot-qualification-results.md`.
 
-**BLOCKED — do not begin Phase 9.4C.**
+## Operator qualification conclusion
 
-Before any future qualification attempt, provide an initialized local/offline installation with a verified backup or disposable database copy for Rasht (3 units), a separate restored copy for Ramsar (4 units), an authorized operator account, a valid post-data-start Persian period, before-test integrity evidence, sanitized capture capability, and 100%/125%/150% DPI environments. Then rerun the full checklist from P9.4A-01; do not infer the currently NOT EXECUTABLE rows from source or automated tests.
+Operator qualification is **not granted**. The isolated environment is prepared and launches correctly after the small launcher correction, but this execution session cannot reliably operate or visually inspect the native Pilot surface. No manual Pilot safety or functional PASS was inferred.
 
+## Readiness decision for Phase 9.4 finalization
+
+**BLOCKED — Phase 9.4B manual evidence is incomplete.** A future run needs a Windows/native UI session that can visibly operate the main WinForms controls, capture sanitized evidence, and attempt each requested DPI scale. Do not begin Phase 9.5 or authority transition.

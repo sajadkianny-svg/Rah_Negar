@@ -11,6 +11,6 @@ $run = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'qualification-run'))
 if (-not $run.StartsWith([IO.Path]::GetFullPath($PSScriptRoot), [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe qualification run path.' }
 if (Test-Path -LiteralPath $run) { Remove-Item -LiteralPath $run -Recurse -Force }
 New-Item -ItemType Directory -Path (Join-Path $run 'Data') -Force | Out-Null
-Copy-Item -LiteralPath (Join-Path $release '*') -Destination $run -Recurse -Force
+Copy-Item -Path (Join-Path $release '*') -Destination $run -Recurse -Force
 Copy-Item -LiteralPath $db -Destination (Join-Path $run 'Data\db.sys') -Force
 Start-Process -FilePath (Join-Path $run 'Rah_Negar.exe') -WorkingDirectory $run -Wait
