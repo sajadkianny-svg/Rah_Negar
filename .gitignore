@@ -20,4 +20,8 @@ BenchmarkDotNet.Artifacts/
 .dotnet-cli/
 task.txt
 
+# Disposable Phase 9.4C qualification artifacts only
+Qualification/qualification-data/
+Qualification/qualification-run/
+
 desktop.ini

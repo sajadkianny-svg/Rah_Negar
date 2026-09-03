@@ -18,6 +18,9 @@
     <Compile Remove="Rah_Negar.Tests\**\*.cs" />
     <EmbeddedResource Remove="Rah_Negar.Tests\**\*" />
     <None Remove="Rah_Negar.Tests\**\*" />
+    <Compile Remove="QualificationTool\**\*.cs" />
+    <EmbeddedResource Remove="QualificationTool\**\*" />
+    <None Remove="QualificationTool\**\*" />
   </ItemGroup>
 
   <ItemGroup>
