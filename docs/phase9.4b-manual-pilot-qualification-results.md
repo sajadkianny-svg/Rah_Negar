@@ -1,301 +1,171 @@
-# Phase 9.4B — Actual Manual Pilot Qualification Results (RERUN)
+# Phase 9.4B — Actual Manual Pilot Qualification Results
 
-## Final status
+## Current status
 
-**READY FOR MANUAL RERUN**
+**QUALIFIED WITH LIMITATIONS**
 
-This current status supersedes the earlier blocked execution record retained below. The
-manual Authentication rerun now completes successfully and its observed comparison
-difference is acceptable for the current Pilot. Reporting is not marked PASS; it
-requires a new manual run after the focused correction documented here.
+This is the authoritative record of the newest human manual qualification run in
+the isolated Phase 9.4C environment. The functional Rasht and Ramsar Pilot
+lifecycle observations succeeded, but several checklist paths were not manually
+exercised. This status does not authorize production authority cutover, authority
+transition, schema change, commit, or push.
 
-## Phase 9.4B Reporting defect record - 2026-09-03
+## Scope and evidence basis
 
-### Observed manual failure
+The results below use only the human observations supplied for this closure. An
+automated test is recorded as automated evidence, never as a manual PASS. The two
+station scenarios were run separately in the disposable qualification environment:
+Rasht with 3 units and Ramsar with 4 units. Both used the explicit login, main-window
+Pilot entry, confirmation, Start Observation, Complete Pilot, and Return to current
+application flow.
 
-In the isolated Rasht qualification environment, login, Pilot confirmation, read-only
-preflight, and Authentication all completed. Authentication displayed a comparison
-difference that is acceptable for the current Pilot. Reporting then failed immediately,
-the session stopped, monitoring became failed, and the stop reason reported an error in
-read-only observation. Runtime/Event, Protected Settings, and Export remained pending.
-Selecting workflow rows did not refresh the top detail panel, so only the row-level
-Reporting failure and generic stop reason were visible.
+## Historical blocked attempts and defect discoveries
 
-### Reproduction and exact root cause
+Earlier attempts are retained as history only; their superseded BLOCKED/READY
+conclusions are not the current status.
 
-The failure was reproduced through the real `LiveSqlitePilotReadModels` and
-`LiveReportingPilotObserver` against freshly generated isolated Rasht and Ramsar
-qualification databases. Both stations returned a complete Legacy report, an accepted
-Phase 9.3 target projection, non-empty summaries, valid chart points, and complete daily
-statuses. The qualification reporting fixture is therefore valid for the real read
-model and required no change.
+1. The first environment attempt was blocked by missing initialized disposable
+   databases, operator setup, station fixtures, and a controlled launch path.
+   Phase 9.4C supplied the isolated generator and launcher.
+2. A qualification launcher wildcard-copy defect was corrected in the launcher
+   before the successful human run. It was not a production-code change.
+3. Authentication initially failed because the safe evidence identifier contained
+   a prohibited `password` token (`legacy-password-capability`). The identifier was
+   corrected to a safe value; authentication differences now complete as observable
+   comparison outcomes.
+4. Reporting initially failed because a nullable finalized-snapshot checksum was
+   converted to an all-zero sentinel before validation. The constructor was corrected
+   to preserve `null` while still rejecting malformed supplied checksums.
+5. Workflow-row selection initially did not refresh the top detail panel. The live
+   view binding was corrected so selection now displays the selected workflow’s
+   categorical status, comparison, safe evidence identifier, and UTC timestamp.
 
-`ReportingOperationalObservation` supports an absent finalized snapshot: its validity
-rule accepts a `null` finalized-snapshot checksum, while rejecting an invalid or all-zero
-checksum. Its constructor nevertheless passed a `null` checksum through
-`FingerprintSafety.SafeSha256`, which converted absence into a 64-character all-zero
-placeholder. Both live Legacy and target reporting observations were consequently
-invalid. `LiveReportingPilotObserver` returned `null` before fingerprint generation,
-and the coordinator correctly converted that invalid observer result to sanitized
-`observer-invalid-evidence`, failed monitoring, and a stopped single-attempt session.
-No report-engine or projection exception was thrown; the manual UI's error wording was
-the coordinator's safe generic observer-failure presentation.
+The authentication and reporting corrections, including the row-detail correction,
+were already present on the branch before this final manual run. No production code
+was changed for this closure recording.
 
-### Correction
+## Final Rasht manual qualification — 3 units
 
-The constructor now preserves `null` when no finalized-snapshot checksum exists and
-continues to pass every supplied checksum through the existing SHA-256 safety function.
-Malformed supplied checksums still become the invalid all-zero sentinel and remain
-rejected. This is a one-condition correction to the observation contract; no reporting
-calculation, completeness/domain validation, SQL query, fixture data, schema,
-transaction, finalized-month protection, authority rule, or production database was
-changed. Pilot access remains read-only and Legacy remains authoritative.
+Qualification database preparation, login, explicit Pilot entry and confirmation,
+read-only preflight, and session creation succeeded. The station displayed as Rasht.
+Legacy was visibly identified as the current operational authority, the read-only
+banner remained visible, five workflows and all fingerprint versions were visible,
+Start Observation was enabled, and Complete/Stop were initially disabled.
 
-### Regression coverage
+After Start Observation, all five workflows executed without failure:
 
-`QualificationReportingPilotRegressionTests` exercises the generated Rasht and Ramsar
-databases through the real preflight, reporting read model, Phase 9.3 projection,
-fingerprint specification, and live observer. Coverage verifies successful valid
-observation for both stations, deterministic status/fingerprints/evidence, SHA-256
-shape, preserved Legacy authority, no raw-row or SQL exposure, absence of sensitive
-fixture/credential material from exposed evidence, and byte-for-byte database
-immutability. A Rasht session test uses the corrected real Authentication and Reporting
-observers and proves that valid Reporting no longer aborts the run. A guard test proves
-that a supplied malformed finalized checksum is still rejected.
+| Workflow | Execution | Comparison | Fingerprint |
+|---|---|---|---|
+| Authentication | Completed | Difference observed | `auth-fingerprint-v1` |
+| Reporting | Completed | Match | `reporting-fingerprint-v1` |
+| Runtime/Event | Completed | Match | `runtime-event-fingerprint-v1` |
+| Protected Settings | Completed | Difference observed | `protected-settings-fingerprint-v1` |
+| Export | Completed | Difference observed | `export-fingerprint-v1` |
 
-### Workflow-row detail behavior
+The session reached operator review; Complete Pilot and Stop Pilot became enabled,
+with no workflow failed or pending. Reporting row selection displayed Reporting,
+Match, Completed, Severity None, `live-reporting-evidence`, and a timestamp without
+raw exception, SQL, or sensitive detail. Complete Pilot changed the session and
+completion statuses to completed and disabled Start/Complete/Stop while retaining
+the results. Return to current application returned successfully to FrmMain.
 
-The row behavior was a small isolated UI binding defect. The workflow grid had no
-selection/current-cell handler, its rows were not associated with their
-`LivePilotWorkflowView`, and the live view discarded the coordinator's already-sanitized
-result status, evidence reference, and UTC observation time. The live view now carries
-only those safe metadata fields, rows retain their view object, and selection or keyboard
-current-cell changes refresh the top detail panel. The selected panel displays the safe
-workflow label, categorical status/comparison, safe evidence reference, and UTC time.
-Failure detail remains deliberately categorical: exception text, stack traces, SQL, raw
-rows, and sensitive values are not exposed. A focused STA WinForms test verifies row
-selection refresh and the safety boundary.
+## Final Ramsar manual qualification — 4 units
 
-### Automated validation after correction
+The isolated Ramsar environment launched successfully. Qualification login, FrmMain,
+explicit Pilot entry and confirmation succeeded. After Start Observation, all five
+workflows completed without failure:
 
-- Focused Reporting and workflow-row tests: **PASS** - 5 passed, 0 failed.
-- Expanded affected-path tests (Reporting, Authentication, live session, dashboard and
-  hardening): **PASS** - 67 passed, 0 failed.
-- `dotnet build Rah_Negar.sln -c Release`: **PASS** - 0 errors; 12 existing
-  `NU1701` compatibility warnings.
-- `dotnet test Rah_Negar.sln -c Release`: **PASS** - 652 passed, 0 failed,
-  0 skipped.
-- `git diff --check`: **PASS** - no whitespace errors; informational LF-to-CRLF
-  working-copy notices only.
+| Workflow | Execution | Comparison | Fingerprint |
+|---|---|---|---|
+| Authentication | Completed | Difference observed | `auth-fingerprint-v1` |
+| Reporting | Completed | Match | `reporting-fingerprint-v1` |
+| Runtime/Event | Completed | Match | `runtime-event-fingerprint-v1` |
+| Protected Settings | Completed | Difference observed | `protected-settings-fingerprint-v1` |
+| Export | Completed | Difference observed | `export-fingerprint-v1` |
 
-Reporting remains awaiting manual verification and is not marked PASS.
+Complete Pilot changed the session and completion statuses to completed, preserved
+the workflow evidence, and left Legacy authoritative. Return to current application
+returned successfully to FrmMain.
 
-**Status: READY FOR MANUAL RERUN**
+## Interpretation of workflow outcomes
 
-## Phase 9.4B Authentication defect record - 2026-09-03
+Execution success and comparison outcome are separate facts. Authentication
+`Difference observed` is an expected, observable Pilot comparison result, not an
+execution failure. Protected Settings and Export `Difference observed` results are
+also comparison outcomes, not workflow execution failures. Reporting and
+Runtime/Event produced `Match` in both Rasht and Ramsar. No workflow was observed to
+fail, remain pending, or abort either final lifecycle.
 
-### Observed manual failure
+## Safety conclusions
 
-In the isolated Rasht qualification environment, login, explicit Pilot entry,
-confirmation, dashboard creation, Rasht station display, read-only preflight, Legacy
-authority indication, and the five workflow/fingerprint rows all succeeded. Selecting
-the read-only observation action deterministically stopped the session. Monitoring and
-Authentication were failed, the stop reason was a read-only observation error, no usable
-Authentication result/evidence was displayed, and the other four workflows remained
-pending. The operator reproduced this behavior twice.
+- Pilot remained read-only throughout the observed runs.
+- Legacy remained authoritative; no authority cutover occurred.
+- No production database or schema mutation occurred.
+- The qualification environment remained isolated from the production database.
+- No sensitive credential/hash/recovery/connection-string or raw exception/SQL detail
+  was displayed in the Pilot UI.
 
-### Root cause
+## Checklist reconciliation
 
-The UI was not the cause, and the Rasht/Ramsar qualification Authentication rows satisfy
-the live read model's requirements. `LiveSqlitePilotReadModels` emitted the Legacy
-capability code `legacy-password-capability`. `OperationalText` deliberately rejects
-evidence identifiers containing `password`; therefore
-`AuthenticationOperationalObservation.IsValid` was false. The live observer returned no
-result before fingerprint generation, and the coordinator converted that invalid result
-to failed observer evidence and stopped the single-attempt session. A focused regression
-test reproduced the null result for both station fixtures and the Rasht `Stopped`
-lifecycle before correction.
+Statuses are exactly `PASS`, `FAIL`, or `NOT EXECUTABLE / NOT MANUALLY VERIFIED`.
+Where the checklist item is a compound requirement and one required part was not
+observed, the item is not marked PASS. The same status applies to both station runs
+unless a station-specific note is shown.
 
-### Correction
-
-The single unsafe capability label was changed to the semantically equivalent,
-non-sensitive `legacy-login-capability`. No validation, authentication/security rule,
-database query, fixture row, schema, transaction, authority, credential handling, or
-other Pilot workflow changed. Pilot access remains read-only and Legacy remains
-authoritative.
-
-### Regression coverage
-
-`QualificationAuthenticationPilotRegressionTests` now exercises the real generated
-Rasht and Ramsar databases through `LiveSqlitePilotReadModels` and
-`LiveAuthenticationPilotObserver`. It verifies deterministic successful observations,
-safe SHA-256 fingerprints/evidence, absence of password, credential, hash, recovery,
-qualification password, salt, or verifier material from exposed evidence, byte-for-byte
-source database immutability, and a five-workflow Rasht session reaching operator review
-instead of aborting at Authentication.
-
-### Automated validation
-
-- Focused regression tests: **PASS** - 3 passed, 0 failed.
-- `dotnet build Rah_Negar.sln -c Release`: **PASS** - 0 errors; 12 existing
-  `NU1701` package-compatibility warnings.
-- `dotnet test Rah_Negar.sln -c Release`: **PASS** - 647 passed, 0 failed,
-  0 skipped.
-- `git diff --check`: **PASS** - no whitespace errors; informational LF-to-CRLF
-  working-copy notices only.
-
-At this earlier Authentication-fix checkpoint, Authentication remained awaiting manual
-verification and was not marked PASS. The current manual state recorded above supersedes
-that checkpoint.
-
-**Status: READY FOR MANUAL RERUN**
-
-The Phase 9.4B rerun was started using the Phase 9.4C isolated qualification environment. The generator produced both station fixtures and both launchers reached the initialized local application login/main flow. The actual Pilot surface could not be exercised reliably in this execution environment: UI Automation exposed the login controls but not the main WinForms child controls, and foreground keystroke injection was denied. No Pilot PASS was inferred from source code, automated tests, or fixture contents.
-
-The first Phase 9.4B run was blocked before Phase 9.4C because no initialized disposable installation, operator account, or station database copies were available. Phase 9.4C addressed those preparation blockers; this rerun remains blocked only because the current execution session cannot perform the required visible Pilot interactions and DPI display checks.
-
-This record does not authorize production cutover, authority transition, schema change, Phase 9.5, commit, or push.
-
-## Qualification environment used
-
-- Repository: `D:\Projects\RahNegar_SQLite\Rah_Negar`
-- Branch: `phase9-operational-readiness`; requested continuation point: `b397505`
-- Application: isolated copy of `bin\Release\net8.0-windows\Rah_Negar.exe`
-- Qualification copy: `Qualification\qualification-run`
-- Qualification data: `Qualification\qualification-data\Rasht\db.sys` and `Qualification\qualification-data\Ramsar\db.sys`
-- Execution: local/offline; no external service or production cutover tooling
-- Generator: `Qualification\prepare-qualification.ps1`, successful on 2026-09-03
-- Launcher: `Qualification\launch-qualification.ps1`, Rasht and Ramsar both reached the local application
-- Rasht fixture: `Rasht Station`, 3 units, two prepared Persian daily periods, odd-hour records, daily-unique rows, and events
-- Ramsar fixture: `Ramsar Station`, 4 units, equivalent prepared data shape
-- Each generated database: 65,536 bytes before launch
-- Screenshots/recording: none retained; this session had no reliable visual capture/control surface for native WinForms
-- Tester: Codex execution record; 2026-09-03; Europe/Berlin
-
-## Historical note
-
-The first Phase 9.4B run was blocked before Phase 9.4C because the available build was uninitialized and no disposable station databases or operator account were available. This rerun supersedes that result for the prepared-environment attempt, while preserving that history.
-
-## Tooling correction observed during rerun
-
-The first Rasht launcher attempt failed before application startup because `Copy-Item -LiteralPath (Join-Path $release '*')` treated the wildcard literally and did not copy the Release payload. The smallest safe correction was applied in `Qualification/launch-qualification.ps1`: the intended wildcard source now uses `Copy-Item -Path`. After regeneration, both Rasht and Ramsar launch attempts reached the application. No production application code, database schema, or authority behavior was changed.
-
-## Direct execution evidence
-
-- Before preparation, `Data\db.sys` was absent (`PROD_DB_ABSENT`); no production hash was applicable.
-- After the Rasht launch and after the Ramsar launch, `Data\db.sys` remained absent.
-- The corrected launcher created only `Qualification\qualification-run\Data\db.sys` and copied the Release application into that run directory.
-- Rasht reached a top-level `Rah_Negar Login` window; after the qualification password was entered through exposed login controls, the top-level window became `Rah_Negar`.
-- Ramsar reached the same local login/main sequence.
-- No Pilot window opened automatically during either launch/login sequence.
-- The login field and login button were exposed to UI Automation. The main-window child control tree was not exposed; focus/injection attempts returned `Target element cannot receive focus` and `Access is denied`.
-- No database write or schema operation was performed by operator actions. The generator was rerun only against its disposable qualification output directory.
-
-## Checklist results
-
-Each row has exactly one result. `NOT EXECUTABLE` means the check was not directly observable or operable; it is not a PASS inferred from source or automated coverage.
-
-| ID | Result | Evidence / limitation |
+| ID | Status | Manual evidence / limitation |
 |---|---|---|
-| P9.4A-01 | PASS | Both isolated launches reached the ordinary login/main flow; no Pilot window appeared automatically. |
-| P9.4A-02 | NOT EXECUTABLE | Main-window child controls and explicit Pilot link were not exposed to this UI Automation session. |
-| P9.4A-03 | NOT EXECUTABLE | Pilot link could not be activated to observe confirmation. |
-| P9.4A-04 | NOT EXECUTABLE | Confirmation-dialog text was not displayed to this session. |
-| P9.4A-05 | NOT EXECUTABLE | No/cancel outcome could not be exercised. |
-| P9.4A-06 | NOT EXECUTABLE | Yes outcome and explicit preflight start could not be exercised. |
-| P9.4A-07 | NOT EXECUTABLE | Pilot title/banner could not be displayed and inspected. |
-| P9.4A-08 | NOT EXECUTABLE | Pilot keyboard focus and RTL behavior could not be exercised; keystroke injection was denied. |
-| P9.4A-09 | NOT EXECUTABLE | Pilot identity, station, session, authority, preflight, monitoring, rollback, stop, and completion fields could not be inspected. |
-| P9.4A-10 | NOT EXECUTABLE | Prepared station/session values were not observed on Pilot. |
-| P9.4A-11 | NOT EXECUTABLE | Pilot preflight result was not observed. |
-| P9.4A-12 | NOT EXECUTABLE | Legacy-authority field/banner and absence of an authority switch were not directly inspected. |
-| P9.4A-13 | NOT EXECUTABLE | Pilot control enabled/disabled states were not observable. |
-| P9.4A-14 | NOT EXECUTABLE | Start action and observation attempt could not be performed. |
-| P9.4A-15 | NOT EXECUTABLE | Post-start lifecycle state was not observed. |
-| P9.4A-16 | NOT EXECUTABLE | Five workflow rows were not displayed to this session. |
-| P9.4A-17 | NOT EXECUTABLE | Individual workflow statuses were not observed. |
-| P9.4A-18 | NOT EXECUTABLE | Match/Difference values were not observed row by row. |
-| P9.4A-19 | NOT EXECUTABLE | Fingerprint specification versions were not observed. |
-| P9.4A-20 | NOT EXECUTABLE | Monitoring and rollback fields were not observed. |
-| P9.4A-21 | NOT EXECUTABLE | Pilot controls could not be reviewed for prohibited write actions; no write action was executed. |
-| P9.4A-22 | NOT EXECUTABLE | Pilot text/evidence identifiers could not be visually inspected for sensitive data. |
-| P9.4A-23 | NOT EXECUTABLE | Stop path could not be exercised. |
-| P9.4A-24 | NOT EXECUTABLE | Fresh lifecycle through operator-driven Complete could not be exercised. |
-| P9.4A-25 | NOT EXECUTABLE | Active-session Return confirmation path could not be exercised. |
-| P9.4A-26 | NOT EXECUTABLE | Completed/stopped close/return to Legacy could not be exercised. |
-| P9.4A-27 | NOT EXECUTABLE | In-progress cancellation path could not be exercised. |
-| P9.4A-28 | NOT EXECUTABLE | Pilot/application shutdown path could not be exercised from active Pilot. |
-| P9.4A-29 | NOT EXECUTABLE | Production isolation was verified separately, but no completed Pilot lifecycle existed for the required after-each-lifecycle comparison. |
-| P9.4A-30 | NOT EXECUTABLE | 100% display-scale Pilot lifecycle could not be performed. |
-| P9.4A-31 | NOT EXECUTABLE | 125% display-scale Pilot lifecycle could not be performed. |
-| P9.4A-32 | NOT EXECUTABLE | 150% display-scale Pilot lifecycle could not be performed. |
-| P9.4A-33 | NOT EXECUTABLE | Rasht fixture and login/main launch were verified, but required 3-unit Pilot lifecycle/five-workflow checks were not executable. |
-| P9.4A-34 | NOT EXECUTABLE | Ramsar fixture and login/main launch were verified, but required 4-unit Pilot lifecycle/five-workflow checks were not executable. |
-| P9.4A-35 | NOT EXECUTABLE | Complete sanitized evidence set and per-row visual evidence could not be captured. |
+| P9.4A-01 | PASS | Rasht and Ramsar launched through ordinary login and FrmMain; Pilot did not open automatically. |
+| P9.4A-02 | PASS | FrmMain visibly contained the explicit `Pilot / فقط خواندنی` entry in both scenarios. |
+| P9.4A-03 | PASS | Clicking the entry displayed the explicit Pilot confirmation message. |
+| P9.4A-04 | PASS | The confirmation explicitly identified read-only Pilot mode and preceded entry. |
+| P9.4A-05 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | The No/cancel confirmation outcome was not manually exercised. |
+| P9.4A-06 | PASS | Confirmation was accepted and read-only Pilot composition/preflight began without automatic workflow execution. |
+| P9.4A-07 | PASS | Pilot/read-only safety labeling and Legacy-authority indication were visible. |
+| P9.4A-08 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | Independent keyboard-focus and RTL qualification was not fully manually exercised. |
+| P9.4A-09 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | The supplied observations do not directly confirm every listed identity, monitoring, rollback, stop-reason, and completion field before Start. |
+| P9.4A-10 | PASS | Rasht displayed Rasht with a created session; Ramsar launched its corresponding isolated scenario with a created session. |
+| P9.4A-11 | PASS | Read-only preflight displayed ready / connection confirmed before observation. |
+| P9.4A-12 | PASS | Legacy was clearly displayed as current operational authority and remained so. |
+| P9.4A-13 | PASS | Start was enabled; Complete and Stop initially disabled; Return remained available. |
+| P9.4A-14 | PASS | Start Observation was manually invoked and each final scenario completed one controlled observation run. |
+| P9.4A-15 | PASS | Both sessions reached operator decision/review after observation. |
+| P9.4A-16 | PASS | Exactly five workflows were displayed. |
+| P9.4A-17 | PASS | All five rows were completed; none was failed or pending in either final run. |
+| P9.4A-18 | PASS | Match/Difference values were visible row by row; differences remained review outcomes. |
+| P9.4A-19 | PASS | All five expected fingerprint versions were visible in both scenarios. |
+| P9.4A-20 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | The complete monitoring and rollback-field check was not directly documented. |
+| P9.4A-21 | PASS | The observed Pilot surface remained read-only and no prohibited write or authority action was offered or executed. |
+| P9.4A-22 | PASS | No sensitive credential/hash/recovery/connection-string or raw exception/SQL detail was displayed. |
+| P9.4A-23 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | Stop was enabled after review, but the Stop operation itself was not exercised. |
+| P9.4A-24 | PASS | Complete Pilot was clicked in both scenarios; completed status and Legacy authority were preserved. |
+| P9.4A-25 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | Return from an active, not-yet-completed session and its confirmation were not exercised. |
+| P9.4A-26 | PASS | Return from completed sessions successfully restored FrmMain in both scenarios. |
+| P9.4A-27 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | Active-session cancellation was not manually exercised. |
+| P9.4A-28 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | Application shutdown while Pilot was active was not manually exercised. |
+| P9.4A-29 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | No manual before/after database comparison evidence was supplied for each lifecycle. |
+| P9.4A-30 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | Independent 100% DPI lifecycle qualification was not performed/documented. |
+| P9.4A-31 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | Independent 125% DPI lifecycle qualification was not performed/documented. |
+| P9.4A-32 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | Independent 150% DPI lifecycle qualification was not performed/documented. |
+| P9.4A-33 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | Rasht functional lifecycle succeeded, but the item also requires Stop and complete station-scenario checks; Stop was not exercised. |
+| P9.4A-34 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | Ramsar functional lifecycle succeeded, but the item also requires Stop and complete station-scenario checks; Stop was not exercised. |
+| P9.4A-35 | NOT EXECUTABLE / NOT MANUALLY VERIFIED | The supplied record does not establish a complete sanitized screenshot/run-log evidence package for every checklist row. |
 
-### Counts
+Counts: **PASS 19; FAIL 0; NOT EXECUTABLE / NOT MANUALLY VERIFIED 16**.
 
-- PASS: 1
-- FAIL: 0
-- NOT EXECUTABLE: 34
-- Total: 35
+## Automated and repository validation evidence
 
-## DPI results
+The correction commits already on the branch include focused regression coverage for
+the authentication safe-evidence identifier, nullable reporting checksum, live
+Rasht/Ramsar reporting observations, session completion, and workflow-row detail
+binding. Automated coverage is supporting evidence only and does not change the
+manual checklist statuses above. Final build/test counts for this closure are recorded
+after the requested validation commands are run.
 
-| Scale | Result | Exact limitation |
-|---|---|---|
-| 100% | NOT EXECUTABLE | Session could not switch or independently display requested Windows scaling and could not operate native Pilot. |
-| 125% | NOT EXECUTABLE | No separate Windows scaling environment or reliable native UI interaction was available. |
-| 150% | NOT EXECUTABLE | No separate Windows scaling environment or reliable native UI interaction was available. |
+## Final decision
 
-DPI results were not faked and did not prevent independent launcher, fixture, startup, and isolation checks.
-
-## Production database isolation evidence
-
-| Checkpoint | Evidence |
-|---|---|
-| Before preparation | `Data\db.sys` absent from normal application path. |
-| After generator | Only `Qualification\qualification-data\Rasht\db.sys` and `...\Ramsar\db.sys` were generated. |
-| After Rasht launch | Isolated run used `Qualification\qualification-run\Data\db.sys`; normal `Data\db.sys` remained absent. |
-| After Ramsar launch | Isolated run was recreated with Ramsar copy; normal `Data\db.sys` remained absent. |
-| Schema/production mutation | None observed or performed. |
-
-Because the normal production database was absent at both checkpoints, SHA-256/size comparison is not applicable. Objective evidence is the unchanged absent state and the resolved isolated paths.
-
-## Defects found and corrections
-
-One directly observed qualification-tool defect was corrected: the launcher’s wildcard source used `-LiteralPath`, preventing Release files from being copied. It now uses `-Path`. The affected launcher was rerun for Rasht and Ramsar, and both reached the application. No focused application regression test was added because this was a PowerShell launcher defect and existing qualification-environment tests cover launcher targeting/isolation.
-
-No Pilot UI defect was directly observed. No application behavior was changed.
-
-## Residual limitations
-
-- Explicit Pilot entry/confirmation and every Pilot lifecycle action remain unobserved.
-- Pilot/read-only labeling, Legacy authority, station/session identity, preflight, five workflow statuses, Match/Difference, fingerprint versions, monitoring, completion, Stop, Return, cancellation, shutdown, sensitive-data display, and RTL/readability remain unqualified.
-- Rasht 3-unit and Ramsar 4-unit fixture generation succeeded, but required Pilot observations were not performed.
-- 100%, 125%, and 150% DPI checks remain NOT EXECUTABLE for the exact reasons above.
-- No production cutover, authority transition, or Phase 9.5 work was started.
-
-## Build and test validation
-
-The launcher script correction is the only code/tooling modification in this rerun. Final command results are recorded below after execution:
-
-- `dotnet build Rah_Negar.sln -c Release`: **PASS** — 0 errors, 12 NU1701 warnings.
-- `dotnet test Rah_Negar.sln -c Release`: **PASS** — 644 passed, 0 failed, 0 skipped.
-- `git diff --check`: **PASS** — only line-ending normalization warnings were reported by Git status plumbing.
-- `git status --short`: `M Qualification/launch-qualification.ps1`; `M docs/phase9.4b-manual-pilot-qualification-results.md`.
-
-## Historical operator qualification conclusion (superseded)
-
-At this earlier checkpoint, operator qualification was **not granted** because
-Authentication still required a manual rerun. The focused automated validation then
-established only that the deterministic observer failure was corrected without changing
-authority or write boundaries. The current Reporting record above supersedes this
-historical conclusion.
-
-## Historical readiness decision for Phase 9.4 finalization (superseded)
-
-**READY FOR MANUAL RERUN** — rerun the isolated manual Authentication observation; do not
-mark it PASS until that rerun succeeds. This historical instruction is superseded: the
-current next step is the focused manual Reporting rerun. Do not begin Phase 9.5 or any
-authority transition.
+The functional final manual Pilot lifecycles for Rasht 3-unit and Ramsar 4-unit
+scenarios are qualified with limitations. Phase 9.4 is **not fully qualified** under
+the checklist’s every-applicable-row acceptance rule because Stop, active cancellation,
+active shutdown, complete database before/after evidence, and independent 100%/125%/
+150% DPI visual checks were not all manually performed. No production authority
+transition is authorized.
