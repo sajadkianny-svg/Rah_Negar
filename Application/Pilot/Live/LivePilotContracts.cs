@@ -97,19 +97,32 @@ public sealed class LivePilotWorkflowView
         PilotValidationWorkflow workflow,
         string status,
         string comparison,
-        string fingerprintSpecificationVersion)
+        string fingerprintSpecificationVersion,
+        OperationalWorkflowComparisonStatus? resultStatus = null,
+        string? evidenceReference = null,
+        DateTimeOffset? observedAtUtc = null)
     {
         Workflow = workflow;
         Status = Safe(status, "نامشخص");
         Comparison = Safe(comparison, "نامشخص");
         FingerprintSpecificationVersion = Safe(
             fingerprintSpecificationVersion, "ثبت نشده");
+        ResultStatus = resultStatus.HasValue && Enum.IsDefined(resultStatus.Value)
+            ? resultStatus
+            : null;
+        EvidenceReference = OperationalText.IsUsableIdentifier(evidenceReference)
+            ? evidenceReference
+            : null;
+        ObservedAtUtc = observedAtUtc?.Offset == TimeSpan.Zero ? observedAtUtc : null;
     }
 
     public PilotValidationWorkflow Workflow { get; }
     public string Status { get; }
     public string Comparison { get; }
     public string FingerprintSpecificationVersion { get; }
+    public OperationalWorkflowComparisonStatus? ResultStatus { get; }
+    public string? EvidenceReference { get; }
+    public DateTimeOffset? ObservedAtUtc { get; }
 
     private static string Safe(string? value, string fallback) =>
         string.IsNullOrWhiteSpace(value) || value.Length > 160 || value.Any(char.IsControl)

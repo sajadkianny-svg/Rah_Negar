@@ -102,7 +102,8 @@ public sealed class LivePilotOperatorSession : IDisposable
         LivePilotWorkflowView[] workflows = Enum.GetValues<PilotValidationWorkflow>()
             .Select(workflow => byWorkflow.TryGetValue(workflow, out var item)
                 ? new LivePilotWorkflowView(workflow, WorkflowStatus(item.Status),
-                    ComparisonStatus(item.Status), item.FingerprintSpecificationVersion)
+                    ComparisonStatus(item.Status), item.FingerprintSpecificationVersion,
+                    item.Status, item.EvidenceReference, item.ObservedAtUtc)
                 : new LivePilotWorkflowView(workflow, "در انتظار", "بررسی نشده",
                     LivePilotDashboardView.FingerprintVersion(workflow)))
             .ToArray();

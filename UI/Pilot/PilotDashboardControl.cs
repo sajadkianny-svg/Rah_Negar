@@ -2,7 +2,9 @@ using System.Globalization;
 using Rah_Negar.Foundation.Application.Integration;
 using Rah_Negar.Foundation.Application.Pilot;
 using Rah_Negar.Foundation.Application.Pilot.Live;
+using Rah_Negar.Foundation.Application.Pilot.Operational;
 using Rah_Negar.Foundation.Application.Pilot.Presentation;
+using Rah_Negar.Foundation.Application.Pilot.Validation;
 
 namespace Rah_Negar.UI.Pilot;
 
@@ -120,6 +122,8 @@ public sealed class PilotDashboardControl : UserControl,
         root.Controls.Add(CreateLivePanel(), 0, 3);
         root.Controls.Add(messages, 0, 4);
         Controls.Add(root);
+        _liveWorkflows.SelectionChanged += (_, _) => RenderSelectedLiveWorkflow();
+        _liveWorkflows.CurrentCellChanged += (_, _) => RenderSelectedLiveWorkflow();
 
         ClearState();
         RenderLive(LivePilotDashboardView.Waiting());
@@ -156,10 +160,61 @@ public sealed class PilotDashboardControl : UserControl,
         _liveRollback.Text = state.RollbackReadiness;
         _liveStop.Text = state.StopReason;
         _liveCompletion.Text = state.CompletionStatus;
+        PilotValidationWorkflow? selectedWorkflow =
+            _liveWorkflows.CurrentRow?.Tag is LivePilotWorkflowView selected
+                ? selected.Workflow
+                : null;
         _liveWorkflows.Rows.Clear();
         foreach (LivePilotWorkflowView workflow in state.Workflows)
-            _liveWorkflows.Rows.Add(WorkflowText(workflow.Workflow), workflow.Status,
+        {
+            int index = _liveWorkflows.Rows.Add(WorkflowText(workflow.Workflow), workflow.Status,
                 workflow.Comparison, workflow.FingerprintSpecificationVersion);
+            _liveWorkflows.Rows[index].Tag = workflow;
+        }
+        if (_liveWorkflows.Rows.Count > 0)
+        {
+            DataGridViewRow row = _liveWorkflows.Rows.Cast<DataGridViewRow>()
+                .FirstOrDefault(item => item.Tag is LivePilotWorkflowView workflow &&
+                    workflow.Workflow == selectedWorkflow) ?? _liveWorkflows.Rows[0];
+            _liveWorkflows.CurrentCell = row.Cells[0];
+            row.Selected = true;
+            RenderSelectedLiveWorkflow();
+        }
+    }
+
+    private void RenderSelectedLiveWorkflow()
+    {
+        if (_liveWorkflows.CurrentRow?.Tag is not LivePilotWorkflowView workflow) return;
+        PilotUiViewStatus status = workflow.ResultStatus switch
+        {
+            OperationalWorkflowComparisonStatus.Match => PilotUiViewStatus.Completed,
+            OperationalWorkflowComparisonStatus.Difference =>
+                PilotUiViewStatus.DifferenceDetected,
+            OperationalWorkflowComparisonStatus.Failed => PilotUiViewStatus.Failed,
+            _ => PilotUiViewStatus.Loading
+        };
+        ShadowDifferenceSeverity severity = workflow.ResultStatus switch
+        {
+            OperationalWorkflowComparisonStatus.Match => ShadowDifferenceSeverity.None,
+            OperationalWorkflowComparisonStatus.Difference => ShadowDifferenceSeverity.Warning,
+            OperationalWorkflowComparisonStatus.Failed => ShadowDifferenceSeverity.Failed,
+            _ => ShadowDifferenceSeverity.Informational
+        };
+        bool evidenceAvailable = workflow.EvidenceReference is not null;
+        string timestamp = workflow.ObservedAtUtc is { } observed
+            ? observed.ToString("yyyy-MM-dd HH:mm:ss 'UTC'", CultureInfo.InvariantCulture)
+            : "Timestamp unavailable";
+        IReadOnlyList<string> warnings = workflow.ResultStatus ==
+            OperationalWorkflowComparisonStatus.Failed
+            ? ["Read-only observation failed; diagnostic details are intentionally not displayed."]
+            : [];
+        Snapshot = new(LiveSnapshot.PilotIdentity, WorkflowText(workflow.Workflow),
+            StatusText(status), workflow.Comparison, SeverityText(severity),
+            EvidenceText(evidenceAvailable, workflow.EvidenceReference),
+            LiveSnapshot.RollbackReadiness, "Correlation unavailable", timestamp,
+            warnings, [], false);
+        ApplySnapshot(Snapshot, status, severity, evidenceAvailable,
+            workflow.EvidenceReference);
     }
 
     public Task RenderAsync(PilotDashboardState state, CancellationToken cancellationToken = default)

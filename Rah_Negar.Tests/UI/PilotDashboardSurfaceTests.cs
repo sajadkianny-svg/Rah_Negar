@@ -3,7 +3,10 @@ using System.Runtime.ExceptionServices;
 using System.Windows.Forms;
 using Rah_Negar.Foundation.Application.Integration;
 using Rah_Negar.Foundation.Application.Pilot;
+using Rah_Negar.Foundation.Application.Pilot.Live;
+using Rah_Negar.Foundation.Application.Pilot.Operational;
 using Rah_Negar.Foundation.Application.Pilot.Presentation;
+using Rah_Negar.Foundation.Application.Pilot.Validation;
 using Rah_Negar.UI.Pilot;
 
 namespace Rah_Negar.Tests.UI;
@@ -53,6 +56,49 @@ public sealed class PilotDashboardSurfaceTests
             Assert.Equal("correlation-surface-1", rendered.CorrelationId);
             Assert.Equal("2026-08-22 19:30:45 UTC", rendered.Timestamp);
             Assert.False(rendered.UsesSafeFallback);
+        });
+    }
+
+    [Fact]
+    public void Selecting_live_workflow_row_refreshes_safe_top_detail_panel()
+    {
+        RunSta(() =>
+        {
+            using var surface = new PilotDashboardControl();
+            var view = new LivePilotDashboardView("pilot-live-1", "Rasht", "Stopped",
+                "Ready",
+                [
+                    new LivePilotWorkflowView(PilotValidationWorkflow.Authentication,
+                        "Completed", "Difference", "auth-fingerprint-v1",
+                        OperationalWorkflowComparisonStatus.Difference,
+                        "live-authentication-evidence", Timestamp),
+                    new LivePilotWorkflowView(PilotValidationWorkflow.Reporting,
+                        "Failed", "Failed", "reporting-fingerprint-v1",
+                        OperationalWorkflowComparisonStatus.Failed,
+                        "observer-invalid-evidence", Timestamp)
+                ],
+                "Failed", "Ready", "Read-only observation failed", "Not completed");
+            surface.RenderLive(view);
+            DataGridView grid = Descendants(surface).OfType<DataGridView>().Single(item =>
+                item.AccessibleName == "Five Pilot workflow results");
+
+            grid.CurrentCell = grid.Rows.Cast<DataGridViewRow>().Single(row =>
+                row.Tag is LivePilotWorkflowView workflow &&
+                workflow.Workflow == PilotValidationWorkflow.Reporting).Cells[0];
+
+            Assert.Equal(grid.CurrentRow!.Cells[0].Value, surface.Snapshot.SelectedFeature);
+            Assert.Equal("Failed", surface.Snapshot.ComparisonStatus);
+            Assert.Equal("Available: observer-invalid-evidence",
+                surface.Snapshot.EvidenceSummary);
+            Assert.Equal("2026-08-22 19:30:45 UTC", surface.Snapshot.Timestamp);
+            Assert.Contains("diagnostic details are intentionally not displayed",
+                surface.Snapshot.Warnings.Single(), StringComparison.Ordinal);
+            string rendered = string.Join('|', surface.Snapshot.SelectedFeature,
+                surface.Snapshot.ComparisonStatus, surface.Snapshot.EvidenceSummary,
+                surface.Snapshot.Timestamp, string.Join('|', surface.Snapshot.Warnings));
+            Assert.DoesNotContain("exception", rendered, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("stack trace", rendered, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("SELECT ", rendered, StringComparison.OrdinalIgnoreCase);
         });
     }
 

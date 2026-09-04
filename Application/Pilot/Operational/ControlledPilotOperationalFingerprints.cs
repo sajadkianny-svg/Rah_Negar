@@ -137,7 +137,9 @@ public sealed class ReportingOperationalObservation : IControlledPilotBoundaryOb
         WarningCodes = OperationalCollections.SafeSortedIdentifiers(warningCodes);
         FinalizedSnapshotId = string.IsNullOrWhiteSpace(finalizedSnapshotId) ? null :
             OperationalText.SafeIdentifier(finalizedSnapshotId, "snapshot-unavailable");
-        FinalizedSnapshotChecksum = FingerprintSafety.SafeSha256(finalizedSnapshotChecksum);
+        FinalizedSnapshotChecksum = finalizedSnapshotChecksum is null
+            ? null
+            : FingerprintSafety.SafeSha256(finalizedSnapshotChecksum);
         Boundary = boundary;
     }
 

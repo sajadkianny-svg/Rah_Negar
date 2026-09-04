@@ -5,8 +5,92 @@
 **READY FOR MANUAL RERUN**
 
 This current status supersedes the earlier blocked execution record retained below. The
-Authentication item is not marked PASS; it requires a new manual run after the focused
-correction documented here.
+manual Authentication rerun now completes successfully and its observed comparison
+difference is acceptable for the current Pilot. Reporting is not marked PASS; it
+requires a new manual run after the focused correction documented here.
+
+## Phase 9.4B Reporting defect record - 2026-09-03
+
+### Observed manual failure
+
+In the isolated Rasht qualification environment, login, Pilot confirmation, read-only
+preflight, and Authentication all completed. Authentication displayed a comparison
+difference that is acceptable for the current Pilot. Reporting then failed immediately,
+the session stopped, monitoring became failed, and the stop reason reported an error in
+read-only observation. Runtime/Event, Protected Settings, and Export remained pending.
+Selecting workflow rows did not refresh the top detail panel, so only the row-level
+Reporting failure and generic stop reason were visible.
+
+### Reproduction and exact root cause
+
+The failure was reproduced through the real `LiveSqlitePilotReadModels` and
+`LiveReportingPilotObserver` against freshly generated isolated Rasht and Ramsar
+qualification databases. Both stations returned a complete Legacy report, an accepted
+Phase 9.3 target projection, non-empty summaries, valid chart points, and complete daily
+statuses. The qualification reporting fixture is therefore valid for the real read
+model and required no change.
+
+`ReportingOperationalObservation` supports an absent finalized snapshot: its validity
+rule accepts a `null` finalized-snapshot checksum, while rejecting an invalid or all-zero
+checksum. Its constructor nevertheless passed a `null` checksum through
+`FingerprintSafety.SafeSha256`, which converted absence into a 64-character all-zero
+placeholder. Both live Legacy and target reporting observations were consequently
+invalid. `LiveReportingPilotObserver` returned `null` before fingerprint generation,
+and the coordinator correctly converted that invalid observer result to sanitized
+`observer-invalid-evidence`, failed monitoring, and a stopped single-attempt session.
+No report-engine or projection exception was thrown; the manual UI's error wording was
+the coordinator's safe generic observer-failure presentation.
+
+### Correction
+
+The constructor now preserves `null` when no finalized-snapshot checksum exists and
+continues to pass every supplied checksum through the existing SHA-256 safety function.
+Malformed supplied checksums still become the invalid all-zero sentinel and remain
+rejected. This is a one-condition correction to the observation contract; no reporting
+calculation, completeness/domain validation, SQL query, fixture data, schema,
+transaction, finalized-month protection, authority rule, or production database was
+changed. Pilot access remains read-only and Legacy remains authoritative.
+
+### Regression coverage
+
+`QualificationReportingPilotRegressionTests` exercises the generated Rasht and Ramsar
+databases through the real preflight, reporting read model, Phase 9.3 projection,
+fingerprint specification, and live observer. Coverage verifies successful valid
+observation for both stations, deterministic status/fingerprints/evidence, SHA-256
+shape, preserved Legacy authority, no raw-row or SQL exposure, absence of sensitive
+fixture/credential material from exposed evidence, and byte-for-byte database
+immutability. A Rasht session test uses the corrected real Authentication and Reporting
+observers and proves that valid Reporting no longer aborts the run. A guard test proves
+that a supplied malformed finalized checksum is still rejected.
+
+### Workflow-row detail behavior
+
+The row behavior was a small isolated UI binding defect. The workflow grid had no
+selection/current-cell handler, its rows were not associated with their
+`LivePilotWorkflowView`, and the live view discarded the coordinator's already-sanitized
+result status, evidence reference, and UTC observation time. The live view now carries
+only those safe metadata fields, rows retain their view object, and selection or keyboard
+current-cell changes refresh the top detail panel. The selected panel displays the safe
+workflow label, categorical status/comparison, safe evidence reference, and UTC time.
+Failure detail remains deliberately categorical: exception text, stack traces, SQL, raw
+rows, and sensitive values are not exposed. A focused STA WinForms test verifies row
+selection refresh and the safety boundary.
+
+### Automated validation after correction
+
+- Focused Reporting and workflow-row tests: **PASS** - 5 passed, 0 failed.
+- Expanded affected-path tests (Reporting, Authentication, live session, dashboard and
+  hardening): **PASS** - 67 passed, 0 failed.
+- `dotnet build Rah_Negar.sln -c Release`: **PASS** - 0 errors; 12 existing
+  `NU1701` compatibility warnings.
+- `dotnet test Rah_Negar.sln -c Release`: **PASS** - 652 passed, 0 failed,
+  0 skipped.
+- `git diff --check`: **PASS** - no whitespace errors; informational LF-to-CRLF
+  working-copy notices only.
+
+Reporting remains awaiting manual verification and is not marked PASS.
+
+**Status: READY FOR MANUAL RERUN**
 
 ## Phase 9.4B Authentication defect record - 2026-09-03
 
@@ -60,7 +144,9 @@ instead of aborting at Authentication.
 - `git diff --check`: **PASS** - no whitespace errors; informational LF-to-CRLF
   working-copy notices only.
 
-Authentication remains awaiting manual verification and is not marked PASS.
+At this earlier Authentication-fix checkpoint, Authentication remained awaiting manual
+verification and was not marked PASS. The current manual state recorded above supersedes
+that checkpoint.
 
 **Status: READY FOR MANUAL RERUN**
 
@@ -199,14 +285,17 @@ The launcher script correction is the only code/tooling modification in this rer
 - `git diff --check`: **PASS** — only line-ending normalization warnings were reported by Git status plumbing.
 - `git status --short`: `M Qualification/launch-qualification.ps1`; `M docs/phase9.4b-manual-pilot-qualification-results.md`.
 
-## Operator qualification conclusion
+## Historical operator qualification conclusion (superseded)
 
-Operator qualification is **not granted**. Authentication remains unpassed until the
-corrected isolated Pilot is manually rerun. The focused automated validation establishes
-only that the deterministic observer failure is corrected without changing authority or
-write boundaries.
+At this earlier checkpoint, operator qualification was **not granted** because
+Authentication still required a manual rerun. The focused automated validation then
+established only that the deterministic observer failure was corrected without changing
+authority or write boundaries. The current Reporting record above supersedes this
+historical conclusion.
 
-## Readiness decision for Phase 9.4 finalization
+## Historical readiness decision for Phase 9.4 finalization (superseded)
 
 **READY FOR MANUAL RERUN** — rerun the isolated manual Authentication observation; do not
-mark it PASS until that rerun succeeds. Do not begin Phase 9.5 or any authority transition.
+mark it PASS until that rerun succeeds. This historical instruction is superseded: the
+current next step is the focused manual Reporting rerun. Do not begin Phase 9.5 or any
+authority transition.
