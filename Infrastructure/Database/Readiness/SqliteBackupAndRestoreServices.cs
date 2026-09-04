@@ -189,7 +189,8 @@ internal static class ReadinessFileHash
     public static async Task<string> ComputeSha256Async(string explicitPath, CancellationToken token)
     {
         await using var stream = new FileStream(explicitPath, FileMode.Open, FileAccess.Read,
-            FileShare.Read, 81920, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            FileShare.ReadWrite | FileShare.Delete, 81920,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
         byte[] hash = await SHA256.HashDataAsync(stream, token).ConfigureAwait(false);
         return Convert.ToHexString(hash);
     }
