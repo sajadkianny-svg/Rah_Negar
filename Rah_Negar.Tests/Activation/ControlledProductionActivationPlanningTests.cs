@@ -3,6 +3,7 @@ using Rah_Negar.Foundation.Application.Activation;
 using Rah_Negar.Foundation.Application.Database.Readiness;
 using Rah_Negar.Foundation.Application.Security;
 using Rah_Negar.Foundation.Time;
+using Rah_Negar.Infrastructure.Database.Readiness;
 
 namespace Rah_Negar.Tests.Activation;
 
@@ -231,8 +232,7 @@ public sealed class ControlledProductionActivationPlanningTests
     public async Task Production_executor_exists_only_as_contract_and_test_double_requires_approved_context()
     {
         Type[] productionTypes = typeof(IProductionMigrationExecutor).Assembly.GetTypes();
-        Assert.DoesNotContain(productionTypes, type => type.IsClass && !type.IsAbstract &&
-            typeof(IProductionMigrationExecutor).IsAssignableFrom(type));
+        Assert.Single(productionTypes, type => type == typeof(ProductionMigrationExecutor));
         Assert.DoesNotContain(productionTypes, type => type.IsClass && !type.IsAbstract &&
             typeof(IFutureFeatureActivationExecutor).IsAssignableFrom(type));
 
@@ -359,7 +359,8 @@ public sealed class ControlledProductionActivationPlanningTests
             evidence.EvidencePackageId, evidence.DatabaseIdentityFingerprint,
             evidence.CorrelationId, Now.AddMinutes(-1), Now.AddMinutes(10));
         return new(Path.GetFullPath(Path.Combine("future", "explicit-production.sqlite")), evidence,
-            approval, authorization, new(ActivationGuardDecision.Allowed, Array.Empty<string>()));
+            approval, authorization, new(ActivationGuardDecision.Allowed, Array.Empty<string>()),
+            Path.GetFullPath(Path.Combine("future", "explicit-backup.sqlite")), new string('A', 64));
     }
 
     private sealed record FixedClock(DateTimeOffset UtcNow) : IClock

@@ -275,8 +275,26 @@ public static class ApprovedProductionMigrationContextValidator
     {
         if (context is null || string.IsNullOrWhiteSpace(context.ExplicitDatabasePath) ||
             !Path.IsPathFullyQualified(context.ExplicitDatabasePath) ||
-            context.GuardResult.Decision != ActivationGuardDecision.Allowed || nowUtc.Offset != TimeSpan.Zero)
+            string.IsNullOrWhiteSpace(context.ExplicitVerifiedBackupPath) ||
+            !Path.IsPathFullyQualified(context.ExplicitVerifiedBackupPath) ||
+            !IsSha256(context.VerifiedBackupSha256) ||
+            context.EvidencePackage is null || context.Authorization is null ||
+            context.GuardResult is null ||
+            context.GuardResult.Decision != ActivationGuardDecision.Allowed ||
+            nowUtc.Offset != TimeSpan.Zero)
             return false;
+        string databasePath;
+        string backupPath;
+        try
+        {
+            databasePath = Path.GetFullPath(context.ExplicitDatabasePath);
+            backupPath = Path.GetFullPath(context.ExplicitVerifiedBackupPath);
+        }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return false;
+        }
+        if (StringComparer.OrdinalIgnoreCase.Equals(databasePath, backupPath)) return false;
         ActivationEvidencePackage evidence = context.EvidencePackage;
         ExplicitProductionMigrationAuthorization authorization = context.Authorization;
         if (!ActivationEvidencePackageValidator.Validate(evidence).IsComplete ||
@@ -296,4 +314,7 @@ public static class ApprovedProductionMigrationContextValidator
                 evidence.DatabaseIdentityFingerprint) &&
             StringComparer.Ordinal.Equals(authorization.CorrelationId, evidence.CorrelationId);
     }
+
+    private static bool IsSha256(string? value) => !string.IsNullOrWhiteSpace(value) &&
+        value.Length == 64 && value.All(Uri.IsHexDigit);
 }

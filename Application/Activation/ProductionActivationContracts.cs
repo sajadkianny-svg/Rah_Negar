@@ -204,7 +204,9 @@ public sealed record ApprovedProductionMigrationContext(
     ActivationEvidencePackage EvidencePackage,
     ProductionActivationApproval Approval,
     ExplicitProductionMigrationAuthorization Authorization,
-    ProductionActivationGuardResult GuardResult);
+    ProductionActivationGuardResult GuardResult,
+    string? ExplicitVerifiedBackupPath = null,
+    string? VerifiedBackupSha256 = null);
 
 public enum ProductionMigrationExecutionStatus
 {
@@ -217,10 +219,85 @@ public sealed record ProductionMigrationExecutionResult(
     ProductionMigrationExecutionStatus Status,
     string CorrelationId,
     string? SafeReceiptId,
-    string ResultCategory);
+    string ResultCategory,
+    ProductionMigrationValidationReceipt? Receipt = null);
 
 /// <summary>
-/// Future production execution boundary only. Phase 8.0 intentionally provides no production implementation.
+/// Immutable, non-secret result of one explicit migration execution boundary.
+/// It records validation and preservation evidence only; it does not grant or
+/// imply target authority.
+/// </summary>
+public sealed class ProductionMigrationValidationReceipt
+{
+    public ProductionMigrationValidationReceipt(
+        string receiptId,
+        string correlationId,
+        string databaseIdentityFingerprint,
+        string backupIdentityFingerprint,
+        MigrationHistoryClassification initialClassification,
+        int initialVersion,
+        int finalVersion,
+        IEnumerable<string> appliedMigrationIds,
+        bool idempotentRerun,
+        bool originalBackupUnchanged,
+        bool preflightIntegrityPassed,
+        bool postValidationPassed,
+        PreservationVerificationResult preservation,
+        bool legacyRemainsAuthoritative,
+        bool targetRoutingDisabled,
+        OperationalRollbackState rollbackState,
+        DateTimeOffset completedAtUtc)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(receiptId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(correlationId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(databaseIdentityFingerprint);
+        ArgumentException.ThrowIfNullOrWhiteSpace(backupIdentityFingerprint);
+        ArgumentNullException.ThrowIfNull(appliedMigrationIds);
+        ArgumentNullException.ThrowIfNull(preservation);
+        if (completedAtUtc.Offset != TimeSpan.Zero)
+            throw new ArgumentException("Receipt time must be UTC.", nameof(completedAtUtc));
+
+        ReceiptId = receiptId;
+        CorrelationId = correlationId;
+        DatabaseIdentityFingerprint = databaseIdentityFingerprint;
+        BackupIdentityFingerprint = backupIdentityFingerprint;
+        InitialClassification = initialClassification;
+        InitialVersion = initialVersion;
+        FinalVersion = finalVersion;
+        AppliedMigrationIds = Array.AsReadOnly(appliedMigrationIds.ToArray());
+        IdempotentRerun = idempotentRerun;
+        OriginalBackupUnchanged = originalBackupUnchanged;
+        PreflightIntegrityPassed = preflightIntegrityPassed;
+        PostValidationPassed = postValidationPassed;
+        Preservation = preservation;
+        LegacyRemainsAuthoritative = legacyRemainsAuthoritative;
+        TargetRoutingDisabled = targetRoutingDisabled;
+        RollbackState = rollbackState;
+        CompletedAtUtc = completedAtUtc;
+    }
+
+    public string ReceiptId { get; }
+    public string CorrelationId { get; }
+    public string DatabaseIdentityFingerprint { get; }
+    public string BackupIdentityFingerprint { get; }
+    public MigrationHistoryClassification InitialClassification { get; }
+    public int InitialVersion { get; }
+    public int FinalVersion { get; }
+    public IReadOnlyList<string> AppliedMigrationIds { get; }
+    public bool IdempotentRerun { get; }
+    public bool OriginalBackupUnchanged { get; }
+    public bool PreflightIntegrityPassed { get; }
+    public bool PostValidationPassed { get; }
+    public PreservationVerificationResult Preservation { get; }
+    public bool LegacyRemainsAuthoritative { get; }
+    public bool TargetRoutingDisabled { get; }
+    public OperationalRollbackState RollbackState { get; }
+    public DateTimeOffset CompletedAtUtc { get; }
+}
+
+/// <summary>
+/// Explicit production execution contract. Implementations must remain behind
+/// the approved-context boundary and must never activate target authority.
 /// </summary>
 public interface IProductionMigrationExecutor
 {
