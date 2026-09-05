@@ -1,6 +1,6 @@
 # Phase 9.5 Consolidated Manual Qualification Runbook
 
-Status: **READY TO EXECUTE NOW** (Phase 9.5C2)
+Status: **MQ-08 READY FOR MANUAL REQUALIFICATION** (Phase 9.5C3)
 
 This runbook is isolated qualification only. It does not authorize production
 cutover, migration, restore, Target authority, or production-data mutation.
@@ -60,7 +60,7 @@ if (Test-Path -LiteralPath .\Qualification\qualification-data) { Remove-Item -Li
 | MQ-05 | Activation tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B7ActivationBoundaryTests" --logger "trx;LogFileName=mq-05.trx"` | Both fixtures | No | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | AUTH-03, AUTH-04, MIG-06, SEC-05 |
 | MQ-06 | Stop after successful active observation; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-02, UI-06 |
 | MQ-07 | Cancel during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-03, UI-06 |
-| MQ-08 | Close app during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-04, UI-06 |
+| MQ-08 | Requalify Pilot-form close guard during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | READY FOR MANUAL REQUALIFICATION — original manual FAIL recorded in results document | UI-04, UI-06 |
 | MQ-09 | Independent 100% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
 | MQ-10 | Independent 125% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
 | MQ-11 | Independent 150% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
@@ -131,14 +131,29 @@ covers a hang, false session, database mutation, raw error or lost Legacy route.
 Capture screenshots, cancellation state text, hashes, safe log, station and UTC
 time. No destructive action; cleanup is common cleanup.
 
-## MQ-08 - application shutdown while active
+## MQ-08 - Pilot-form shutdown guard requalification
 
-For each station, start observation and close the copied app through the normal
-window close action. PASS requires process exit, cancellation/disposal, no crash
-dialog, readable fixture and safe restart with ordinary Legacy startup and no
-automatic Pilot/Target. Capture active/shutdown/restart screenshots, process
-exit observation, hashes and sanitized log. No destructive action; cleanup is
-common cleanup.
+This item is **READY FOR MANUAL REQUALIFICATION** because the original manual
+qualification recorded a FAIL: after declining the first unfinished-session
+warning, a second Pilot-form X closed without warning. Do not resume other
+manual items as part of this requalification.
+
+For each station, use a fresh isolated fixture and initial copied-database
+hash. Enter Pilot explicitly, confirm read-only mode, start observation, and
+wait until the session is active/incomplete (`ReviewRequired` / review state).
+Click the Pilot form X and select No/cancel on the unfinished-session warning.
+Verify the Pilot form remains open and the session remains incomplete. Click X
+again and verify the same warning appears again. Repeat the cancel-and-X cycle
+at least three more times; every attempt must warn and every cancellation must
+keep the form open. Then complete the allowed stop/close path explicitly and
+verify deterministic return to Main Form, no application-wide exit, unchanged
+Legacy authority, and unchanged fixture/copied-database hashes.
+
+Capture screenshots of the active state, each guard response, the repeated
+cancel state, and the final safe return, plus station, UTC time, Release
+binary hash, process-exit observation, before/after hashes, and a sanitized
+log. Record `PASS` only if the human evidence satisfies every expectation;
+otherwise record `FAIL`. No destructive action; cleanup is common cleanup.
 
 ## MQ-09, MQ-10 and MQ-11 - 100%, 125% and 150% DPI
 

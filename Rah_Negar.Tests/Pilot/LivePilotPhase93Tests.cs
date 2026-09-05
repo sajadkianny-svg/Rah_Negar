@@ -227,6 +227,78 @@ public sealed class LivePilotPhase93Tests
     }
 
     [Fact]
+    public void Active_first_close_attempt_triggers_guard()
+    {
+        ActiveCloseScenarioResult result = RunActiveCloseScenario(1);
+
+        Assert.Equal(1, result.WarningCount);
+        Assert.Equal([true], result.CancelledAttempts);
+    }
+
+    [Fact]
+    public void Cancelling_first_close_attempt_keeps_form_and_session_open()
+    {
+        ActiveCloseScenarioResult result = RunActiveCloseScenario(1);
+
+        Assert.True(result.FormStayedOpenAfterCancelledAttempts);
+        Assert.Equal([ControlledPilotOperationalLifecycle.ReviewRequired],
+            result.LifecyclesAfterCancelledAttempts);
+    }
+
+    [Fact]
+    public void Active_second_close_attempt_still_triggers_guard()
+    {
+        ActiveCloseScenarioResult result = RunActiveCloseScenario(2);
+
+        Assert.Equal(2, result.WarningCount);
+        Assert.Equal([true, true], result.CancelledAttempts);
+    }
+
+    [Fact]
+    public void Repeated_cancelled_close_attempts_do_not_weaken_guard()
+    {
+        ActiveCloseScenarioResult result = RunActiveCloseScenario(5);
+
+        Assert.Equal(5, result.WarningCount);
+        Assert.All(result.CancelledAttempts, Assert.True);
+        Assert.All(result.LifecyclesAfterCancelledAttempts,
+            lifecycle => Assert.Equal(ControlledPilotOperationalLifecycle.ReviewRequired,
+                lifecycle));
+    }
+
+    [Fact]
+    public void Completed_session_closes_without_shutdown_guard()
+    {
+        TerminalCloseScenarioResult result = RunTerminalCloseScenario(
+            complete: true);
+
+        Assert.Equal(ControlledPilotOperationalLifecycle.Completed, result.Lifecycle);
+        Assert.Equal(0, result.WarningCount);
+        Assert.False(result.Cancelled);
+    }
+
+    [Fact]
+    public void Stopped_session_closes_without_shutdown_guard()
+    {
+        TerminalCloseScenarioResult result = RunTerminalCloseScenario(
+            complete: false);
+
+        Assert.Equal(ControlledPilotOperationalLifecycle.Stopped, result.Lifecycle);
+        Assert.Equal(0, result.WarningCount);
+        Assert.False(result.Cancelled);
+    }
+
+    [Fact]
+    public void Shutdown_guard_does_not_change_authority_state()
+    {
+        ActiveCloseScenarioResult result = RunActiveCloseScenario(3);
+
+        Assert.False(result.ChangesAuthority);
+        Assert.False(result.ChangesProductionAuthority);
+        Assert.Equal(ControlledPilotOperationalLifecycle.Stopped, result.FinalLifecycle);
+    }
+
+    [Fact]
     public async Task End_to_end_observation_preserves_source_database_and_legacy_authority()
     {
         await using TestPilotDatabase database = await TestPilotDatabase.CreateAsync("Ramsar Station");
@@ -248,6 +320,98 @@ public sealed class LivePilotPhase93Tests
         new(LivePilotReadOnlyPreflightStatus.Ready, "ready", At,
             new LivePilotReadScope(fixture.StationId, fixture.StationId, fixture.Scope,
                 14050601, 14050601, 14050602, 0, 2880, "1405-06", false, 0));
+
+    private static ActiveCloseScenarioResult RunActiveCloseScenario(int attempts)
+    {
+        ActiveCloseScenarioResult? result = null;
+        RunSta(() =>
+        {
+            ControlledPilotOperationalFixture fixture = ControlledPilotOperationalFixture.Rasht();
+            using var session = new LivePilotOperatorSession(fixture.Coordinator(), Ready(fixture),
+                new FixedTimeProvider(ControlledPilotOperationalFixture.WindowStart.AddMinutes(10)));
+            session.StartObservationAsync().GetAwaiter().GetResult();
+            using var dashboard = new PilotDashboardControl();
+            var composition = new LivePilotCompositionResult(dashboard, session,
+                session.CreateView(), "test-close-guard");
+            int warnings = 0;
+            var cancelled = new List<bool>();
+            var lifecycles = new List<ControlledPilotOperationalLifecycle>();
+            bool stayedOpen = true;
+            using var form = new FrmLivePilot(composition, () =>
+            {
+                warnings++;
+                return DialogResult.No;
+            });
+            form.Shown += (_, _) =>
+            {
+                for (int index = 0; index < attempts; index++)
+                {
+                    form.Close();
+                    cancelled.Add(!form.IsDisposed);
+                    lifecycles.Add(session.Lifecycle);
+                }
+
+                stayedOpen = !form.IsDisposed;
+                session.StopAsync().GetAwaiter().GetResult();
+                form.Close();
+            };
+            form.ShowDialog();
+            result = new ActiveCloseScenarioResult(warnings, cancelled, lifecycles,
+                stayedOpen, session.Lifecycle, session.ChangesAuthority,
+                composition.ChangesProductionAuthority);
+        });
+        return result!;
+    }
+
+    private static TerminalCloseScenarioResult RunTerminalCloseScenario(bool complete)
+    {
+        TerminalCloseScenarioResult? result = null;
+        RunSta(() =>
+        {
+            ControlledPilotOperationalFixture fixture = ControlledPilotOperationalFixture.Rasht();
+            using var session = new LivePilotOperatorSession(fixture.Coordinator(), Ready(fixture),
+                new FixedTimeProvider(ControlledPilotOperationalFixture.WindowStart.AddMinutes(10)));
+            session.StartObservationAsync().GetAwaiter().GetResult();
+            if (complete)
+                session.CompleteAsync().GetAwaiter().GetResult();
+            else
+                session.StopAsync().GetAwaiter().GetResult();
+
+            using var dashboard = new PilotDashboardControl();
+            var composition = new LivePilotCompositionResult(dashboard, session,
+                session.CreateView(), "test-terminal-close");
+            int warnings = 0;
+            bool cancelled = true;
+            using var form = new FrmLivePilot(composition, () =>
+            {
+                warnings++;
+                return DialogResult.No;
+            });
+            form.FormClosing += (_, e) => cancelled = e.Cancel;
+            form.Shown += (_, _) =>
+            {
+                form.Close();
+            };
+            form.ShowDialog();
+            result = new TerminalCloseScenarioResult(session.Lifecycle, warnings,
+                cancelled);
+        });
+        return result!;
+    }
+
+    private sealed record ActiveCloseScenarioResult(
+        int WarningCount,
+        IReadOnlyList<bool> CancelledAttempts,
+        IReadOnlyList<ControlledPilotOperationalLifecycle> LifecyclesAfterCancelledAttempts,
+        bool FormStayedOpenAfterCancelledAttempts,
+        ControlledPilotOperationalLifecycle FinalLifecycle,
+        bool ChangesAuthority,
+        bool ChangesProductionAuthority);
+
+    private sealed record TerminalCloseScenarioResult(
+        ControlledPilotOperationalLifecycle Lifecycle,
+        int WarningCount,
+        bool Cancelled);
 
     private static string RepositoryRoot()
     {

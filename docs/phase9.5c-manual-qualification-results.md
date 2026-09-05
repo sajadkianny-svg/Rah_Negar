@@ -1,6 +1,6 @@
 # Phase 9.5C Consolidated Manual Qualification Results
 
-Exact final status: **PHASE 9.5C MANUAL QUALIFICATION PARTIALLY COMPLETE**
+Exact current status: **PHASE 9.5C3 FIX COMPLETE — MANUAL REQUALIFICATION REQUIRED**
 
 **PRODUCTION CUTOVER IS NOT AUTHORIZED.** Legacy remains authoritative. No
 production database, migration, restore, Target authority transition, commit,
@@ -39,7 +39,7 @@ requires an interactive desktop lifecycle that was unavailable.
 | MQ-05 | AUTH-03, AUTH-04, MIG-06, SEC-05 | Both fixtures | EXECUTABLE NOW | BLOCKED | `Rah_Negar.Tests/TestResults/mq-05.trx`; automated assertions passed, manual JSONL/evidence review not completed |
 | MQ-06 | UI-02, UI-06 | Rasht 3 / Ramsar 4 | BLOCKED BY LOCAL TOOLING | BLOCKED | No native desktop app surface; no manual PASS claimed |
 | MQ-07 | UI-03, UI-06 | Rasht 3 / Ramsar 4 | BLOCKED BY LOCAL TOOLING | BLOCKED | No native desktop app surface; no manual PASS claimed |
-| MQ-08 | UI-04, UI-06 | Rasht 3 / Ramsar 4 | BLOCKED BY LOCAL TOOLING | BLOCKED | No native desktop app surface; no manual PASS claimed |
+| MQ-08 | UI-04, UI-06 | Rasht 3 / Ramsar 4 | C3 original manual FAIL | READY FOR MANUAL REQUALIFICATION | Pilot shutdown-guard defect; see `docs/phase9.5c3-pilot-shutdown-guard-fix-report.md` |
 | MQ-09 | UI-05, UI-06 | Rasht 3 / Ramsar 4, 100% DPI | BLOCKED BY LOCAL TOOLING | BLOCKED | DPI could not be manually exercised |
 | MQ-10 | UI-05, UI-06 | Rasht 3 / Ramsar 4, 125% DPI | BLOCKED BY LOCAL TOOLING | BLOCKED | DPI could not be manually exercised |
 | MQ-11 | UI-05, UI-06 | Rasht 3 / Ramsar 4, 150% DPI | BLOCKED BY LOCAL TOOLING | BLOCKED | DPI could not be manually exercised |
@@ -48,6 +48,10 @@ requires an interactive desktop lifecycle that was unavailable.
 Current counts: **executed 5; PASS 0; FAIL 0; BLOCKED 12**. The five executed
 items are test commands run for qualification support; they are not promoted
 to manual PASS because the runbook requires operator evidence review.
+
+Phase 9.5C3 update: MQ-08 now records the original manual qualification FAIL
+described below. The defect fix is complete and the item is **READY FOR MANUAL
+REQUALIFICATION**; no manual PASS is claimed.
 
 ## 4. Executed items
 
@@ -133,13 +137,15 @@ and routing-disabled. No authority state changed.
 
 ## 14. Validation
 
-`git diff --check`: PASS after documentation changes. No production or test
-code was changed, so full build/test was not rerun after the documentation-only
-changes. The focused suites above all passed before documentation capture.
+`git diff --check`: PASS after the C3 code, test, and documentation changes.
+The focused C3 suite passed with 18/18 tests. The full Release solution build
+passed with 0 errors and 12 NU1701 compatibility warnings; the full solution
+test run passed with 690/690 tests. No production data or authority state was
+changed.
 
 ## 15. Exact final status
 
-**PHASE 9.5C2 UNBLOCKING COMPLETE — READY FOR HUMAN MANUAL QUALIFICATION**
+**PHASE 9.5C3 FIX COMPLETE — MANUAL REQUALIFICATION REQUIRED**
 
 ## Phase 9.5C2 superseding update
 
@@ -155,3 +161,23 @@ Current C2 counts: READY TO EXECUTE NOW 12; EXECUTED PASS 0; EXECUTED FAIL 0;
 BLOCKED 0. Production-only evidence remains outside these 12 items and is not
 executed. Legacy remains authoritative; Target remains inactive and routing
 disabled. **PRODUCTION CUTOVER IS NOT AUTHORIZED.**
+
+## Phase 9.5C3 pilot shutdown-guard defect update
+
+### Original manual FAIL
+
+During manual qualification, an active/incomplete Pilot session was closed
+with the form X. The first warning appeared and the operator declined closing,
+leaving the form open. A second X produced no warning, closed the Pilot form,
+and returned to Main Form without exiting the application. Legacy authority
+remained unchanged. This is a confirmed manual qualification FAIL for MQ-08.
+
+### C3 disposition
+
+`FrmLivePilot` now clears the modal `DialogResult` whenever a close attempt is
+cancelled, including the asynchronous stop-then-close handoff. Focused
+regression coverage exercises first, second, and repeated cancelled X
+attempts, plus completed/stopped terminal sessions and authority invariants.
+The code fix is complete; MQ-08 remains **READY FOR MANUAL REQUALIFICATION**.
+The exact requalification procedure is in the C3 fix report. No other manual
+qualification item is resumed by this update.

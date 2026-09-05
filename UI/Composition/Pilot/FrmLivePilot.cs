@@ -15,14 +15,24 @@ public sealed class FrmLivePilot : BaseForm
     private readonly Button _stop = ActionButton("توقف Pilot");
     private readonly Button _return = ActionButton("بازگشت به برنامه فعلی");
     private readonly CancellationTokenSource _lifetime = new();
+    private readonly Func<DialogResult> _unfinishedSessionConfirmation;
     private bool _closingAfterStop;
     private bool _operationInProgress;
 
     public FrmLivePilot(LivePilotCompositionResult composition)
+        : this(composition, null)
+    {
+    }
+
+    internal FrmLivePilot(
+        LivePilotCompositionResult composition,
+        Func<DialogResult>? unfinishedSessionConfirmation)
     {
         ArgumentNullException.ThrowIfNull(composition);
         _dashboard = composition.Dashboard;
         _session = composition.Session;
+        _unfinishedSessionConfirmation = unfinishedSessionConfirmation ??
+            ShowUnfinishedSessionConfirmation;
 
         Text = "Pilot / فقط خواندنی";
         StartPosition = FormStartPosition.CenterParent;
@@ -69,22 +79,18 @@ public sealed class FrmLivePilot : BaseForm
 
         if (_operationInProgress)
         {
-            e.Cancel = true;
+            KeepOpenAfterCloseAttempt(e);
             return;
         }
 
-        DialogResult answer = MessageBox.Show(this,
-            "نشست Pilot هنوز تکمیل نشده است. آیا نشست آزمایشی متوقف و پنجره بسته شود؟",
-            "توقف Pilot فقط‌خواندنی", MessageBoxButtons.YesNo,
-            MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2,
-            MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+        DialogResult answer = _unfinishedSessionConfirmation();
         if (answer != DialogResult.Yes)
         {
-            e.Cancel = true;
+            KeepOpenAfterCloseAttempt(e);
             return;
         }
 
-        e.Cancel = true;
+        KeepOpenAfterCloseAttempt(e);
         _ = StopThenCloseAsync();
     }
 
@@ -191,6 +197,21 @@ public sealed class FrmLivePilot : BaseForm
         _closingAfterStop = true;
         Close();
     }
+
+    private void KeepOpenAfterCloseAttempt(FormClosingEventArgs e)
+    {
+        e.Cancel = true;
+        // A modal form assigns DialogResult.Cancel for an X close attempt before
+        // FormClosing. Clear that implicit result when the close is rejected so
+        // the next X attempt is routed through this guard again.
+        DialogResult = DialogResult.None;
+    }
+
+    private DialogResult ShowUnfinishedSessionConfirmation() => MessageBox.Show(this,
+        "نشست Pilot هنوز تکمیل نشده است. آیا نشست آزمایشی متوقف و پنجره بسته شود؟",
+        "توقف Pilot فقط‌خواندنی", MessageBoxButtons.YesNo,
+        MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2,
+        MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
 
     private void SetBusy(bool busy)
     {
