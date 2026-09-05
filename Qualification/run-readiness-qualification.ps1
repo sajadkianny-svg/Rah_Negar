@@ -27,17 +27,17 @@ if (-not $SkipPreparation) {
 }
 
 $filters = [ordered]@{
-    'MQ-01' = 'ManagedSqliteBackupRestoreBoundaryTests'
-    'MQ-02' = 'Phase95B4SecurityCompositionTests'
-    'MQ-03' = 'Phase95B5ProvisioningTests'
-    'MQ-04' = 'Phase95B6ProductionMigrationExecutorTests'
-    'MQ-05' = 'Phase95B7ActivationBoundaryTests'
+    'MQ-01' = 'FullyQualifiedName~ManagedSqliteBackupRestoreBoundaryTests'
+    'MQ-02' = 'FullyQualifiedName~Phase95B4SecurityCompositionTests'
+    'MQ-03' = 'Qualification=MQ-03'
+    'MQ-04' = 'Qualification=MQ-04'
+    'MQ-05' = 'FullyQualifiedName~Phase95B7ActivationBoundaryTests'
 }
 $testProject = Join-Path $repo 'Rah_Negar.Tests\Rah_Negar.Tests.csproj'
 $records = [System.Collections.Generic.List[object]]::new()
 foreach ($item in $filters.Keys) {
     $trx = Join-Path $evidence "$item.trx"
-    & dotnet test $testProject -c Release --no-restore --filter "FullyQualifiedName~$($filters[$item])" --logger "trx;LogFileName=$trx"
+    & dotnet test $testProject -c Release --no-restore --filter $filters[$item] --logger "trx;LogFileName=$trx"
     $exitCode = $LASTEXITCODE
     $records.Add([pscustomobject]@{
         qualificationId = $item

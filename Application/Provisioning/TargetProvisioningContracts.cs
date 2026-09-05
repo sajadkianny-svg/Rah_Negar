@@ -6,23 +6,17 @@ using Rah_Negar.Foundation.Application.Security;
 
 namespace Rah_Negar.Foundation.Application.Provisioning;
 
-public enum TargetStationCode
-{
-    Rasht,
-    Ramsar
-}
+public sealed record TargetStationProfileProvisioningDefinition(
+    string ProfileId,
+    int UnitCount);
 
-public static class TargetStationScopeRules
+public static class TargetStationProfileRules
 {
-    public static int ExpectedUnitCount(TargetStationCode station) => station switch
-    {
-        TargetStationCode.Rasht => 3,
-        TargetStationCode.Ramsar => 4,
-        _ => throw new ArgumentOutOfRangeException(nameof(station))
-    };
+    public const int MinimumUnitCount = 3;
+    public const int MaximumUnitCount = 5;
 
-    public static bool IsSupported(TargetStationCode station) =>
-        station is TargetStationCode.Rasht or TargetStationCode.Ramsar;
+    public static bool IsUnitCountSupported(int unitCount) =>
+        unitCount is >= MinimumUnitCount and <= MaximumUnitCount;
 }
 
 public sealed record TargetUnitProvisioningRecord(
@@ -102,7 +96,7 @@ public sealed record TargetFinalizedLockProvisioningRecord(
 public sealed record TargetStationProvisioningPackage(
     string ManifestId,
     string CorrelationId,
-    TargetStationCode Station,
+    TargetStationProfileProvisioningDefinition StationProfile,
     string StationId,
     string StationName,
     DateTimeOffset CreatedAtUtc,
@@ -130,10 +124,10 @@ public sealed record TargetProvisioningEntitySummary(
 public sealed record TargetStationProvisioningManifest(
     string ManifestId,
     string CorrelationId,
-    TargetStationCode Station,
+    string StationProfileId,
     string StationId,
     string StationName,
-    int ExpectedUnitCount,
+    int ProfileUnitCount,
     int TargetSchemaVersion,
     IReadOnlyDictionary<string, int> EntityCounts,
     IReadOnlyList<TargetProvisioningEntitySummary> Entities,
@@ -147,7 +141,6 @@ public enum TargetProvisioningFailure
 {
     None,
     InvalidManifest,
-    UnsupportedStation,
     SchemaUnavailable,
     Conflict,
     InfrastructureFailure
@@ -208,7 +201,11 @@ public static class TargetStationProvisioningManifestBuilder
         if (!validation.IsValid)
             throw new ArgumentException(string.Join(";", validation.Issues), nameof(package));
 
-        var entities = new List<TargetProvisioningEntitySummary>();
+        var entities = new List<TargetProvisioningEntitySummary>
+        {
+            new("StationProfile", package.StationProfile.ProfileId, 1,
+                Fingerprint($"{package.StationProfile.ProfileId}|{package.StationProfile.UnitCount}"))
+        };
         entities.AddRange(package.Units.OrderBy(x => x.UnitId, StringComparer.Ordinal)
             .Select(x => new TargetProvisioningEntitySummary("Unit", x.UnitId, x.Revision, Fingerprint(
                 $"{x.StationId}|{x.UnitId}|{x.UnitNumber}|{x.UnitName}|{x.IsActive}|{x.Revision}"))));
@@ -243,6 +240,7 @@ public static class TargetStationProvisioningManifestBuilder
         IReadOnlyDictionary<string, int> counts = new ReadOnlyDictionary<string, int>(
             new Dictionary<string, int>(StringComparer.Ordinal)
             {
+                ["StationProfiles"] = 1,
                 ["Units"] = package.Units.Count,
                 ["ShiftProfiles"] = package.ShiftProfiles.Count,
                 ["ManagementCredential"] = 1,
@@ -256,8 +254,8 @@ public static class TargetStationProvisioningManifestBuilder
             });
         string fingerprint = Fingerprint(string.Join('\n', entities.Select(x =>
             $"{x.EntityType}|{x.EntityReference}|{x.Revision}|{x.Fingerprint}")));
-        return new(package.ManifestId.Trim(), package.CorrelationId.Trim(), package.Station,
-            package.StationId.Trim(), package.StationName.Trim(), TargetStationScopeRules.ExpectedUnitCount(package.Station),
+        return new(package.ManifestId.Trim(), package.CorrelationId.Trim(), package.StationProfile.ProfileId.Trim(),
+            package.StationId.Trim(), package.StationName.Trim(), package.StationProfile.UnitCount,
             4, counts, new ReadOnlyCollection<TargetProvisioningEntitySummary>(entities),
             Fingerprint(package.EsdAdjustmentCanonical), fingerprint, package.ManagementApproverReference.Trim(),
             package.DataOwnerReference.Trim(), package.SecurityReviewerReference.Trim());
@@ -274,15 +272,18 @@ public static class TargetStationProvisioningManifestBuilder
 
     private static void ValidateIdentity(TargetStationProvisioningPackage p, ICollection<string> issues)
     {
-        if (!TargetStationScopeRules.IsSupported(p.Station)) issues.Add("unsupported-station");
         if (!IsSafeId(p.ManifestId) || !IsSafeId(p.CorrelationId)) issues.Add("manifest-correlation-required");
         if (!IsSafeId(p.StationId) || string.IsNullOrWhiteSpace(p.StationName)) issues.Add("station-identity-required");
+        if (p.StationProfile is null || !IsSafeId(p.StationProfile.ProfileId))
+            issues.Add("station-profile-identity-required");
+        if (p.StationProfile is null || !TargetStationProfileRules.IsUnitCountSupported(p.StationProfile.UnitCount))
+            issues.Add("profile-unit-count-out-of-range");
         if (p.CreatedAtUtc.Offset != TimeSpan.Zero) issues.Add("created-at-must-be-utc");
     }
 
     private static void ValidateUnits(TargetStationProvisioningPackage p, ICollection<string> issues)
     {
-        int expected = TargetStationScopeRules.ExpectedUnitCount(p.Station);
+        int expected = p.StationProfile?.UnitCount ?? 0;
         if (p.Units.Count != expected) issues.Add("unit-count-mismatch");
         if (p.Units.Any(x => !StringComparer.Ordinal.Equals(x.StationId, p.StationId))) issues.Add("unit-station-mismatch");
         if (p.Units.Select(x => x.UnitId).Distinct(StringComparer.Ordinal).Count() != p.Units.Count) issues.Add("duplicate-unit");

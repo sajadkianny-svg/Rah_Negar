@@ -8,6 +8,7 @@ namespace Rah_Negar.Tests.Database;
 public sealed class MigrationFrameworkTests
 {
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Runner_orders_migrations_and_records_history()
     {
         await using TemporarySqliteDatabase database = TemporarySqliteDatabase.Create();
@@ -29,6 +30,7 @@ public sealed class MigrationFrameworkTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Runner_is_idempotent_for_applied_migrations()
     {
         await using TemporarySqliteDatabase database = TemporarySqliteDatabase.Create();
@@ -44,6 +46,7 @@ public sealed class MigrationFrameworkTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Checksum_failure_rolls_back_ledger_and_schema()
     {
         await using TemporarySqliteDatabase database = TemporarySqliteDatabase.Create();
@@ -60,6 +63,7 @@ public sealed class MigrationFrameworkTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Failed_migration_rolls_back_all_framework_changes()
     {
         await using TemporarySqliteDatabase database = TemporarySqliteDatabase.Create();

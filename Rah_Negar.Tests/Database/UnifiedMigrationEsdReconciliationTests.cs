@@ -14,6 +14,7 @@ public sealed class UnifiedMigrationEsdReconciliationTests
     private static readonly DateTimeOffset Now = new(2026, 8, 24, 14, 0, 0, TimeSpan.Zero);
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public void Inventory_Is_Deterministic_Unique_Contiguous_And_NonDestructive()
     {
         IReadOnlyList<IDatabaseMigration> first = Chain();
@@ -37,6 +38,7 @@ public sealed class UnifiedMigrationEsdReconciliationTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Empty_Database_Applies_Complete_Chain_Then_Reruns_As_NoOp()
     {
         await using TemporarySqliteDatabase db = TemporarySqliteDatabase.Create();
@@ -79,6 +81,7 @@ public sealed class UnifiedMigrationEsdReconciliationTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Runner_Rejects_Checksum_History_And_Schema_Version_Tampering()
     {
         await using TemporarySqliteDatabase db = TemporarySqliteDatabase.Create();
@@ -96,6 +99,7 @@ public sealed class UnifiedMigrationEsdReconciliationTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Intermediate_Failure_Rolls_Back_Chain_And_History()
     {
         await using TemporarySqliteDatabase db = TemporarySqliteDatabase.Create();
@@ -203,6 +207,7 @@ public sealed class UnifiedMigrationEsdReconciliationTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public void Chain_Source_Has_No_Production_Discovery_Rbac_Support_Or_Destructive_Legacy_Sql()
     {
         string combined = string.Join('\n', Chain().Select(x => x.ChecksumPayload));

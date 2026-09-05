@@ -36,6 +36,7 @@ public sealed class FrmLivePilot : BaseForm
 
         Text = "Pilot / فقط خواندنی";
         StartPosition = FormStartPosition.CenterParent;
+        WindowState = FormWindowState.Maximized;
         MinimumSize = new Size(980, 720);
         Size = new Size(1120, 820);
         AutoScaleMode = AutoScaleMode.Dpi;

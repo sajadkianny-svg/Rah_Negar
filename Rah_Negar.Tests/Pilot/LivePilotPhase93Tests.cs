@@ -227,6 +227,37 @@ public sealed class LivePilotPhase93Tests
     }
 
     [Fact]
+    public void Pilot_dashboard_defaults_maximized_without_changing_main_or_activation_boundaries()
+    {
+        RunSta(() =>
+        {
+            using var dashboard = new PilotDashboardControl();
+            var composition = new LivePilotCompositionResult(
+                dashboard, null, LivePilotDashboardView.Waiting(), "test-maximized");
+            using var form = new FrmLivePilot(composition);
+
+            Assert.Equal(FormWindowState.Maximized, form.WindowState);
+            Assert.False(form.ReplacesLegacyWindow);
+            Assert.False(form.SwitchesAuthority);
+            Assert.False(composition.ChangesProductionAuthority);
+        });
+
+        string root = RepositoryRoot();
+        string mainDesigner = File.ReadAllText(Path.Combine(root, "UI", "Forms",
+            "FrmMain.Designer.cs"));
+        string mainSource = File.ReadAllText(Path.Combine(root, "UI", "Forms",
+            "FrmMain.cs"));
+        string program = File.ReadAllText(Path.Combine(root, "Program.cs"));
+
+        Assert.Contains("FormBorderStyle = FormBorderStyle.FixedSingle", mainDesigner);
+        Assert.Contains("MaximizeBox = false", mainDesigner);
+        Assert.DoesNotContain("WindowState = FormWindowState.Maximized", mainDesigner + mainSource,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("LivePilotCompositionRoot", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("ComposeAsync", program, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Active_first_close_attempt_triggers_guard()
     {
         ActiveCloseScenarioResult result = RunActiveCloseScenario(1);

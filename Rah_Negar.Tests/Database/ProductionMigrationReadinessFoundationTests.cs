@@ -56,6 +56,7 @@ public sealed class ProductionMigrationReadinessFoundationTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Complete_unified_chain_is_clean_target_and_rehearsal_chain_is_idempotent()
     {
         await using var fixture = ReadinessFixture.Create();
@@ -74,6 +75,7 @@ public sealed class ProductionMigrationReadinessFoundationTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Ledger_shape_checksum_unknown_and_newer_histories_are_classified_fail_closed()
     {
         Services services = CreateServices();
@@ -101,6 +103,7 @@ public sealed class ProductionMigrationReadinessFoundationTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Known_historical_draft_is_detected_and_requires_schema_validation_review()
     {
         await using var fixture = ReadinessFixture.Create();
@@ -204,6 +207,7 @@ public sealed class ProductionMigrationReadinessFoundationTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Rehearsal_migrates_only_isolated_copy_and_preserves_legacy_evidence()
     {
         await using var fixture = ReadinessFixture.Create();
@@ -349,6 +353,7 @@ public sealed class ProductionMigrationReadinessFoundationTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public void Unified_chain_introduces_neither_RBAC_nor_a_Support_identity()
     {
         string migrationDdl = string.Join('\n', UnifiedTargetMigrationChain.Create(new Sha256ChecksumService())

@@ -1,6 +1,6 @@
 # Phase 9.5 Consolidated Manual Qualification Runbook
 
-Status: **PHASE 9.5C5 MQ-08 CLOSED - REMAINING MANUAL QUALIFICATION READY**
+Status: **PHASE 9.5C10 DPI AND MQ-12 MANUAL QUALIFICATION CLOSED - PRODUCTION SIGN-OFF ITEMS REMAIN**
 
 This runbook is isolated qualification only. It does not authorize production
 cutover, migration, restore, Target authority, or production-data mutation.
@@ -53,18 +53,18 @@ if (Test-Path -LiteralPath .\Qualification\qualification-data) { Remove-Item -Li
 
 | ID | Item and exact command | Stations | Destructive? | Readiness | Gates |
 |---|---|---|---|---|---|
-| MQ-01 | Backup/restore support command and evidence review | Rasht/Ramsar fixtures | Fixture only | READY TO EXECUTE NOW — 3/3 support passed; operator/reviewer receipt sign-off remains | DB-03, BR-02, BR-03, BR-05, BR-06 |
-| MQ-02 | Security support command and evidence review | Both fixtures | No | READY TO EXECUTE NOW — 7/7 support passed; operator/reviewer security evidence sign-off remains | SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-08 |
-| MQ-03 | Provisioning support command and manifest review | Rasht 3, Ramsar 4 | Fixture only | READY TO EXECUTE NOW — 7/7 support passed; manifest/negative-case review remains | MIG-03, MIG-04, RT-01 |
-| MQ-04 | Migration support command and receipt review | Both fixtures | Fixture only | READY TO EXECUTE NOW — 4/4 support passed; receipt review remains | MIG-02, MIG-05 |
-| MQ-05 | Activation-boundary support command and JSONL review | Both fixtures | No | READY TO EXECUTE NOW — 10/10 support passed; safe activation-readiness review remains | AUTH-03, AUTH-04, MIG-06, SEC-05 |
-| MQ-06 | Stop after successful active observation; use the station launch command | One generic disposable profile | No | READY TO EXECUTE NOW — human screenshots and hashes required | UI-02, UI-06 |
+| MQ-01 | Backup/restore support command and evidence review | Rasht/Ramsar fixtures | Fixture only | TECHNICAL/OPERATOR REVIEW PASS — independent reviewer sign-off pending | DB-03, BR-02, BR-03, BR-05, BR-06 |
+| MQ-02 | Security support command and evidence review | Both fixtures | No | TECHNICAL/OPERATOR REVIEW PASS — independent reviewer sign-off pending | SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-08 |
+| MQ-03 | Provisioning support command and manifest review | Profile-driven generic 3..5-unit boundary; Rasht 3/Ramsar 4 fixtures | Fixture only | TECHNICAL/OPERATOR REVIEW PASS — independent reviewer sign-off pending | MIG-03, MIG-04, RT-01 |
+| MQ-04 | Migration support command and receipt review | Both fixtures | Fixture only | TECHNICAL/OPERATOR REVIEW PASS — independent reviewer sign-off pending | MIG-02, MIG-05 |
+| MQ-05 | Activation-boundary support command and JSONL review | Both fixtures | No | TECHNICAL/OPERATOR REVIEW PASS — independent reviewer sign-off pending | AUTH-03, AUTH-04, MIG-06, SEC-05 |
+| MQ-06 | Stop after successful active observation; use the station launch command | One generic disposable profile | No | PASS — manual observation complete | UI-02, UI-06 |
 | MQ-07 | Active-session cancellation | N/A for human observation under disposition B | No | BLOCKED — workflows complete before Stop can be clicked; retain automated invariant evidence; no production delay | UI-03, UI-06 |
 | MQ-08 | Pilot-form close guard | One generic qualification profile | No | PASS — final C4 human same-attempt Yes close; no duplicate station observation required | UI-04, UI-06 |
-| MQ-09 | Independent 100% DPI lifecycle | One representative profile | No | READY TO EXECUTE NOW — change Windows scale and capture screenshots | UI-05, UI-06 |
-| MQ-10 | Independent 125% DPI lifecycle | One representative profile | No | READY TO EXECUTE NOW — independently observe and capture screenshots | UI-05, UI-06 |
-| MQ-11 | Independent 150% DPI lifecycle and fixed-grid check | One representative 4-unit profile | No | READY TO EXECUTE NOW — inspect 1920x1080 Grid core for forbidden horizontal scroll/header wrap | UI-05, UI-06 |
-| MQ-12 | Confirmation cancel, keyboard/RTL, fields and traceability | One generic qualification profile | No | READY TO EXECUTE NOW — human observation, screenshots and reviewer trace required | UI-06 |
+| MQ-09 | Independent 100% DPI lifecycle | One representative profile | No | PASS — 1920x1080, Windows Scale 100% | UI-05, UI-06 |
+| MQ-10 | Independent 125% DPI lifecycle | One representative profile | No | PASS — 1920x1080, Windows Scale 125% | UI-05, UI-06 |
+| MQ-11 | Independent 150% DPI lifecycle and fixed-grid check | One representative 4-unit profile | No | PASS AFTER C9 REMEDIATION — 1920x1080, Windows Scale 150% | UI-05, UI-06 |
+| MQ-12 | Confirmation cancel, keyboard/RTL, fields and traceability | One generic qualification profile | No | PASS — keyboard-only Tab + Enter and RTL/traceability verified | UI-06 |
 
 ## MQ-01 through MQ-05 - deterministic local boundary reviews
 
@@ -84,18 +84,30 @@ result. Required assertions:
   Viewer, Support, universal secret, master password, private key, or raw
   credential material in ordinary evidence.
 - MQ-03: all target routes are composed only for qualification and remain
-  disabled, Legacy-owned and non-mutating. Validate exactly 3 Rasht units and
-  4 Ramsar units, station-bound profiles, singleton ManagementCredential,
-  device/key fingerprints, baselines, allowed Events, ESD, snapshots and
-  locks. Repeat the package for `AlreadyProvisioned`; inject cross-station,
-  count, ESD, event and immutable-evidence conflicts. PASS requires no partial
-  rows and a redacted manifest.
+  disabled, Legacy-owned and non-mutating. Confirm production provisioning has
+  no `TargetStationCode`, Rasht/Ramsar support check, or station-name unit-count
+  switch. Inspect the supplied Station Profile identity and profile unit count,
+  including arbitrary synthetic 3-unit and 5-unit success proofs and 2-unit,
+  6-unit, and 35-unit rejection proofs; Rasht 3 and Ramsar 4 are fixture inputs
+  only. Validate station-bound ShiftProfiles, singleton
+  ManagementCredential, device/key fingerprints, baselines, allowed Events,
+  ESD, snapshots and locks. Repeat the package for `AlreadyProvisioned`; review
+  explicit cross-station, unit-count mismatch, ESD, Event record, immutable
+  snapshot, and immutable lock conflicts. Each rejection must show no partial
+  rows; the manifest must remain redacted.
 - MQ-04: explicit database and verified-backup paths, pre/post integrity,
   checksummed migration ledger, idempotent rerun, preservation comparison and
   unchanged original backup must be visible. Reject wrong identity/hash,
   unsupported state, lock/disk failure, cancellation and post-validation
-  failure. PASS requires `LegacyRemainsAuthoritative=true` and
-  `TargetRoutingDisabled=true` on successful receipts.
+  failure. The support evidence must additionally show the approved executor
+  using an explicit disposable copy, immutable receipt, exact final version,
+  applied migration IDs/history, deterministic contiguous chain, checksum and
+  checksum-tamper rejection, malformed/unknown/newer history rejection,
+  intermediate schema/history rollback, preservation and unchanged verified
+  backup. PASS requires `LegacyRemainsAuthoritative=true` and
+  `TargetRoutingDisabled=true` on successful receipts, with no RBAC or Support
+  identity and hostile context/backup/capacity/cancellation rejection without
+  mutation.
 - MQ-05: complete prerequisites must produce `EligibleButNotExecuted`, state
   `ApprovedForActivation`, `ActivationExecuted=false`, Target not accepted and
   Legacy authoritative. Missing/failed/stale/mismatched receipt, failed
@@ -256,8 +268,8 @@ profile-driven.
 |---|---|---:|---:|---:|---:|---|
 | MQ-01 | READY TO EXECUTE NOW | No | Yes | No | Yes | Review 3/3 TRX plus sanitized backup/restore evidence and sign off |
 | MQ-02 | READY TO EXECUTE NOW | No | Yes | No | Yes | Review 7/7 TRX plus sanitized security evidence and sign off |
-| MQ-03 | READY TO EXECUTE NOW | No | Yes | No | Yes | Review 7/7 TRX, Rasht-3/Ramsar-4 manifests and negative cases |
-| MQ-04 | READY TO EXECUTE NOW | No | Yes | No | Yes | Review 4/4 TRX plus migration receipts and sign off |
+| MQ-03 | READY FOR RENEWED HUMAN REVIEW | No | Yes | No | Yes | Review 16/16 TRX, profile-derived manifests, arbitrary 3/5 success, 2/6/35 rejection and transactional negative cases |
+| MQ-04 | READY FOR RENEWED HUMAN/OPERATOR REVIEW | No | Yes | No | Yes | Review 18/18 TRX plus migration receipts, integrity/rollback evidence and sign off |
 | MQ-05 | READY TO EXECUTE NOW | No | Yes | No | Yes | Review 10/10 TRX plus safe activation-boundary JSONL and sign off |
 | MQ-06 | READY TO EXECUTE NOW | Yes | No | No | Yes | One generic profile: Start -> Review -> Stop -> Main Form; screenshots/hashes |
 | MQ-07 | BLOCKED | Attempted but not practically exercisable | No | No | No | All five workflows finish before Stop can be clicked; retain automated invariant evidence |
@@ -274,7 +286,7 @@ production delays, or change production timing.
 
 ### MQ-01 through MQ-05 exact review rule
 
-The support results are MQ-01 3/3, MQ-02 7/7, MQ-03 7/7, MQ-04 4/4, and MQ-05
+The support results are MQ-01 3/3, MQ-02 7/7, MQ-03 16/16, MQ-04 18/18, and MQ-05
 10/10. Inspect the matching ignored TRX in
 `Qualification/qualification-evidence/`, the sanitized receipt/descriptor,
 and `readiness-manifest.json`; record operator, independent reviewer, UTC time,
@@ -340,3 +352,183 @@ cutover timestamp, and authority transition.
 **PRODUCTION CUTOVER IS NOT AUTHORIZED.**
 
 **PHASE 9.5C5 MQ-08 CLOSED - REMAINING MANUAL QUALIFICATION READY**
+
+## Phase 9.5C6 MQ-03 provisioning requalification addendum
+
+Historical note: C7 supersedes every unit-range, test-count, synthetic-proof,
+and review instruction in this C6 section. C6 correctly removed station-name
+branching and made the supplied Station Profile authoritative for unit count,
+but it independently defined the generic product boundary incorrectly as
+1 through 35. Use the C7 addendum below for current MQ-03 review.
+
+This addendum supersedes every earlier MQ-03 count, station-support statement,
+and review instruction in this runbook. During manual review of the original
+7-test MQ-03 evidence, production provisioning was found to derive support and
+unit count from `TargetStationCode.Rasht` and `TargetStationCode.Ramsar`. That
+evidence is invalid for the locked general, dynamic, profile-driven product
+architecture.
+
+The production provisioning contract now receives a Station Profile definition
+containing an opaque profile identity and its unit count. C6 incorrectly
+described the supported product range as 1 through 35 units. Validation compares the package's dynamic
+unit structure with the supplied profile count; it never derives support, unit
+count, fields, routing, or behavior from a station name. `TargetStationCode`,
+the Rasht/Ramsar support predicate, and the 3/4 unit-count switch have been
+removed from the provisioning path. The SQLite boundary was already generic
+and required no schema change.
+
+Run the consolidated support command:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Qualification\run-readiness-qualification.ps1 -SkipPreparation
+```
+
+The harness selects MQ-03 through the explicit `Qualification=MQ-03` trait.
+The superseded C6 evidence reported 12 executed, 12 passed, 0 failed, and 0
+skipped tests and included all of the following:
+
+- Rasht 3-unit and Ramsar 4-unit legacy/qualification fixtures;
+- the now-invalid station-not-named-Rasht-or-Ramsar 35-unit success proof;
+- redacted profile-derived manifest evidence, runtime baselines, singleton
+  ManagementCredential, and device/vendor-key metadata;
+- `AlreadyProvisioned` and immutable snapshot/lock preservation;
+- cross-station mapping and ESD conflict rejection;
+- explicit `unit-count-mismatch`, `event-record-conflict`,
+  `snapshot-record-conflict`, and `lock-record-conflict` rejections; and
+- transactional assertions showing zero initial mutation or rollback of a
+  deliberately inserted probe record, with the pre-existing Event, finalized
+  snapshot, and finalized lock unchanged.
+
+The operator and independent reviewer must compare the safe manifest/profile
+identity, supplied unit count, TRX test names and outcomes, and conflict
+preservation assertions. C6 automated 12/12 support was not a manual PASS and is
+now superseded by C7. No production path,
+credential, data, migration, activation, or authority transition may be used.
+
+MQ-03 current status: **READY FOR RENEWED HUMAN/OPERATOR REVIEW**.
+
+**PRODUCTION CUTOVER IS NOT AUTHORIZED.**
+
+**PHASE 9.5C6 MQ-03 REMEDIATED - RENEWED HUMAN REVIEW REQUIRED**
+
+## Phase 9.5C7 MQ-03 generic unit-count boundary addendum
+
+Renewed human review found an independent defect after C6: profile-driven does
+not mean unlimited unit count. The supplied profile remains authoritative and
+station names remain irrelevant, but `TargetStationProfileRules` now enforces
+the named generic product boundary `MinimumUnitCount = 3` and
+`MaximumUnitCount = 5`.
+
+Run the consolidated support command:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Qualification\run-readiness-qualification.ps1 -SkipPreparation
+```
+
+Inspect `Qualification/qualification-evidence/MQ-03.trx`. The C7 file must
+report exactly 16 executed, 16 passed, 0 failed, and 0 skipped tests. Confirm:
+
+- arbitrary station names with supplied 3-unit and 5-unit profiles provision;
+- supplied 2-unit, 6-unit, and 35-unit profiles are rejected with
+  `profile-unit-count-out-of-range` and leave all target tables empty;
+- Rasht 3-unit and Ramsar 4-unit shapes remain qualification fixtures only;
+- unit-count/persisted mapping, Event, finalized snapshot, finalized lock, ESD,
+  and cross-station conflicts retain their rollback/preservation evidence;
+- idempotency, manifest redaction, and inactive Target routes remain proven.
+
+The operator and independent reviewer must inspect the regenerated 16-test TRX,
+safe profile-derived evidence, boundary cases, and preserved negative cases
+before assigning a manual result. Automated remediation is not manual PASS.
+
+MQ-03 current status: **READY FOR RENEWED HUMAN/OPERATOR REVIEW**.
+
+**PRODUCTION CUTOVER IS NOT AUTHORIZED.**
+
+**PHASE 9.5C7 MQ-03 UNIT BOUNDARY REMEDIATED - RENEWED HUMAN REVIEW REQUIRED**
+
+## Phase 9.5C8 MQ-04 migration evidence closure
+
+The prior MQ-04 harness selected only
+`Phase95B6ProductionMigrationExecutorTests`, producing 4 tests and leaving the
+framework, ledger-classification, unified-chain, rollback, and no-authority
+evidence outside the generated MQ-04 TRX. The harness now selects the explicit
+`Qualification=MQ-04` trait on the minimum existing tests needed for the full
+MQ-04 boundary. No migration logic or production safeguard was changed.
+
+Run the isolated support command from the repository root:
+
+```powershell
+dotnet test .\Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore `
+  --filter "Qualification=MQ-04" `
+  --logger "trx;LogFileName=$((Resolve-Path .\Qualification\qualification-evidence).Path)\MQ-04.trx"
+```
+
+Review the regenerated `Qualification/qualification-evidence/MQ-04.trx` for
+exactly 18 executed and 18 passed tests, with no failed, skipped, error,
+timeout, aborted, inconclusive, or not-executed results. The 18 tests cover:
+
+- approved executor on an explicit disposable copy, immutable receipt, exact
+  final version, applied IDs/history, unchanged verified backup and preservation;
+- deterministic contiguous inventory, checksum validation and tamper rejection;
+- malformed ledger, checksum, unknown migration and unsupported newer-version
+  fail-closed classification;
+- idempotent rerun/no-op and migration/schema/ledger rollback after failure; and
+- Legacy authority, disabled Target routing, no RBAC/Support identity, and
+  hostile context/backup/capacity/cancellation rejection without mutation.
+
+This automated evidence supports review only. MQ-04 status is **READY FOR
+RENEWED HUMAN/OPERATOR REVIEW**, not manual PASS. The operator and independent
+reviewer must inspect the TRX and sanitized migration receipt, record fixture,
+UTC time and sign-off, and confirm that no production database, production
+backup, authority transition or cutover was used.
+
+**PRODUCTION CUTOVER IS NOT AUTHORIZED.**
+
+**PHASE 9.5C8 MQ-04 EVIDENCE COVERAGE COMPLETE - RENEWED HUMAN/OPERATOR REVIEW REQUIRED**
+
+## Phase 9.5C9 MQ-11 150% DPI Pilot Dashboard remediation
+
+MQ-11 required this remediation after manual observation at 1920x1080 with
+Windows scaling at 150%, which confirmed
+that the Pilot Dashboard was fully usable and correctly rendered when
+maximized, while its normal window size did not expose the complete dashboard
+vertically. `FrmLivePilot` now opens with `WindowState = Maximized`; Main Form,
+RTL/DPI behavior, read-only Pilot behavior, qualification isolation, and
+Legacy-authoritative behavior are unchanged.
+
+MQ-11 remains **PENDING MANUAL REQUALIFICATION** after this code change. Do
+not mark MQ-11 manual PASS automatically from the focused or full automated
+tests. Repeat the 1920x1080/150% observation and fixed-grid check using the
+Release build, and record screenshots and reviewer evidence before assigning a
+manual result.
+
+**PRODUCTION CUTOVER REMAINS NOT AUTHORIZED.**
+
+## Phase 9.5C10 DPI and MQ-12 manual closure
+
+This C10 addendum supersedes the prior pending/ready status for MQ-09 through
+MQ-12 and records the verified manual results below. It does not change
+production authority or authorize production cutover.
+
+| ID | Current result | Verified manual evidence |
+|---|---|---|
+| MQ-01 | **Technical/Operator Review PASS; Independent Reviewer Sign-off Pending** | Existing technical/operator review complete; independent reviewer sign-off remains outstanding. |
+| MQ-02 | **Technical/Operator Review PASS; Independent Reviewer Sign-off Pending** | Existing technical/operator review complete; independent reviewer sign-off remains outstanding. |
+| MQ-03 | **Technical/Operator Review PASS; Independent Reviewer Sign-off Pending** | Existing technical/operator review complete; independent reviewer sign-off remains outstanding. |
+| MQ-04 | **Technical/Operator Review PASS; Independent Reviewer Sign-off Pending** | Existing technical/operator review complete; independent reviewer sign-off remains outstanding. |
+| MQ-05 | **Technical/Operator Review PASS; Independent Reviewer Sign-off Pending** | Existing technical/operator review complete; independent reviewer sign-off remains outstanding. |
+| MQ-06 | **PASS** | Manual observation PASS. |
+| MQ-07 | **BLOCKED / MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED** | Preserve the existing disposition; do not convert MQ-07 to PASS. |
+| MQ-08 | **PASS** | Existing manual observation PASS. |
+| MQ-09 | **PASS** | 1920x1080, Windows Scale 100%; Main Form and Pilot Dashboard visually verified with no clipping, overlap, unintended horizontal scrolling, or unusable controls. |
+| MQ-10 | **PASS** | 1920x1080, Windows Scale 125%; Main Form and Pilot Dashboard visually verified; controls remained visible and usable, with no qualification-blocking DPI/layout defect. |
+| MQ-11 | **PASS AFTER C9 REMEDIATION** | 1920x1080, Windows Scale 150%; Main Form verified; Pilot Dashboard opens automatically Maximized; full dashboard, table, Blocked reasons, Warnings, and bottom buttons visible; no clipping or overlap. C9 remediation manually requalified successfully. |
+| MQ-12 | **PASS** | Keyboard-only Tab + Enter verified; No/Cancel works without mouse; RTL and visible field/status traceability verified. Esc does not dismiss the dialog, recorded as a nonblocking observation because keyboard-only No/Cancel remains fully accessible. |
+
+MQ-01 through MQ-05 remain pending only the independent reviewer sign-off.
+MQ-07 remains blocked under its documented qualification-method disposition.
+Legacy remains production authority; Target remains non-authoritative. No
+production cutover authorization is granted by these results.
+
+**PHASE 9.5C10 DPI AND MQ-12 MANUAL QUALIFICATION CLOSED - INDEPENDENT
+REVIEWER SIGN-OFF FOR MQ-01--MQ-05 AND PRODUCTION-ONLY EVIDENCE REMAIN**

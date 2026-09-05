@@ -16,6 +16,7 @@ public sealed class Phase95B6ProductionMigrationExecutorTests
     private static readonly DateTimeOffset Now = new(2026, 9, 4, 10, 0, 0, TimeSpan.Zero);
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Approved_executor_migrates_explicit_disposable_copy_and_returns_immutable_receipt()
     {
         await using TemporarySqliteDatabase database = TemporarySqliteDatabase.Create();
@@ -46,6 +47,7 @@ public sealed class Phase95B6ProductionMigrationExecutorTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task A_new_approved_context_reruns_idempotently_without_authority_change()
     {
         await using TemporarySqliteDatabase database = TemporarySqliteDatabase.Create();
@@ -68,6 +70,7 @@ public sealed class Phase95B6ProductionMigrationExecutorTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Hostile_context_backup_and_capacity_failures_reject_without_mutation()
     {
         await using TemporarySqliteDatabase database = TemporarySqliteDatabase.Create();
@@ -97,6 +100,7 @@ public sealed class Phase95B6ProductionMigrationExecutorTests
     }
 
     [Fact]
+    [Trait("Qualification", "MQ-04")]
     public async Task Cancellation_is_honored_before_execution_and_does_not_mutate_database()
     {
         await using TemporarySqliteDatabase database = TemporarySqliteDatabase.Create();
