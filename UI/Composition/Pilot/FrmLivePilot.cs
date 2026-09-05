@@ -90,8 +90,12 @@ public sealed class FrmLivePilot : BaseForm
             return;
         }
 
-        KeepOpenAfterCloseAttempt(e);
-        _ = StopThenCloseAsync();
+        // The confirmation applies to this close attempt. Stop the explicitly
+        // requested Pilot session before allowing this FormClosing event to
+        // complete; do not cancel and re-enter Close(), which would defer the
+        // close to a second event and leave a bypass flag armed.
+        StopForConfirmedClose();
+        base.OnFormClosing(e);
     }
 
     protected override void Dispose(bool disposing)
@@ -191,11 +195,9 @@ public sealed class FrmLivePilot : BaseForm
         }
     }
 
-    private async Task StopThenCloseAsync()
+    private void StopForConfirmedClose()
     {
-        await StopOnlyAsync();
-        _closingAfterStop = true;
-        Close();
+        StopOnlyAsync().GetAwaiter().GetResult();
     }
 
     private void KeepOpenAfterCloseAttempt(FormClosingEventArgs e)

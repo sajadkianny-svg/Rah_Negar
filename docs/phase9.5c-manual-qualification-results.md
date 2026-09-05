@@ -1,6 +1,6 @@
 # Phase 9.5C Consolidated Manual Qualification Results
 
-Exact current status: **PHASE 9.5C3 FIX COMPLETE — MANUAL REQUALIFICATION REQUIRED**
+Exact current status: **PHASE 9.5C4 FIX COMPLETE — MANUAL REQUALIFICATION REQUIRED**
 
 **PRODUCTION CUTOVER IS NOT AUTHORIZED.** Legacy remains authoritative. No
 production database, migration, restore, Target authority transition, commit,
@@ -39,7 +39,7 @@ requires an interactive desktop lifecycle that was unavailable.
 | MQ-05 | AUTH-03, AUTH-04, MIG-06, SEC-05 | Both fixtures | EXECUTABLE NOW | BLOCKED | `Rah_Negar.Tests/TestResults/mq-05.trx`; automated assertions passed, manual JSONL/evidence review not completed |
 | MQ-06 | UI-02, UI-06 | Rasht 3 / Ramsar 4 | BLOCKED BY LOCAL TOOLING | BLOCKED | No native desktop app surface; no manual PASS claimed |
 | MQ-07 | UI-03, UI-06 | Rasht 3 / Ramsar 4 | BLOCKED BY LOCAL TOOLING | BLOCKED | No native desktop app surface; no manual PASS claimed |
-| MQ-08 | UI-04, UI-06 | Rasht 3 / Ramsar 4 | C3 original manual FAIL | READY FOR MANUAL REQUALIFICATION | Pilot shutdown-guard defect; see `docs/phase9.5c3-pilot-shutdown-guard-fix-report.md` |
+| MQ-08 | UI-04, UI-06 | Rasht 3 / Ramsar 4 | C3 FAIL plus C4 confirmed-close defect | READY FOR MANUAL REQUALIFICATION | C4 fix validated by focused automation; no manual PASS claimed |
 | MQ-09 | UI-05, UI-06 | Rasht 3 / Ramsar 4, 100% DPI | BLOCKED BY LOCAL TOOLING | BLOCKED | DPI could not be manually exercised |
 | MQ-10 | UI-05, UI-06 | Rasht 3 / Ramsar 4, 125% DPI | BLOCKED BY LOCAL TOOLING | BLOCKED | DPI could not be manually exercised |
 | MQ-11 | UI-05, UI-06 | Rasht 3 / Ramsar 4, 150% DPI | BLOCKED BY LOCAL TOOLING | BLOCKED | DPI could not be manually exercised |
@@ -49,9 +49,9 @@ Current counts: **executed 5; PASS 0; FAIL 0; BLOCKED 12**. The five executed
 items are test commands run for qualification support; they are not promoted
 to manual PASS because the runbook requires operator evidence review.
 
-Phase 9.5C3 update: MQ-08 now records the original manual qualification FAIL
-described below. The defect fix is complete and the item is **READY FOR MANUAL
-REQUALIFICATION**; no manual PASS is claimed.
+Phase 9.5C4 update: MQ-08 remains **FAIL / requalification required** until
+the C4 manual steps are completed. The C4 fix is complete and the item is
+**READY FOR MANUAL REQUALIFICATION**; no manual PASS is claimed.
 
 ## 4. Executed items
 
@@ -78,9 +78,10 @@ in the executed automated fixtures.
 
 ## 6. Pilot residual and DPI qualification
 
-MQ-06–MQ-12 are BLOCKED. Stop, active cancellation, active shutdown,
-confirmation cancel, keyboard/RTL, field/traceability inspection, and the
-100%/125%/150% DPI lifecycles were not manually exercised. No screenshot or
+MQ-06–MQ-12 are BLOCKED except MQ-08, which is READY FOR MANUAL
+REQUALIFICATION. Stop, active cancellation, the C4 active close paths,
+keyboard/RTL, field/traceability inspection, and the 100%/125%/150% DPI
+lifecycles have not been manually requalified in this phase. No screenshot or
 manual PASS is claimed.
 
 ## 7. Backup/restore, security/recovery, provisioning, migration, activation
@@ -137,15 +138,15 @@ and routing-disabled. No authority state changed.
 
 ## 14. Validation
 
-`git diff --check`: PASS after the C3 code, test, and documentation changes.
-The focused C3 suite passed with 18/18 tests. The full Release solution build
-passed with 0 errors and 12 NU1701 compatibility warnings; the full solution
-test run passed with 690/690 tests. No production data or authority state was
-changed.
+Phase 9.5C4 validation: the focused Pilot suite passed **23/23 tests** with
+0 failures and 0 skips. `dotnet build Rah_Negar.sln -c Release` passed with
+0 errors and 6 NU1701 compatibility warnings. `dotnet test Rah_Negar.sln -c
+Release` passed with **695/695 tests**, 0 failures and 0 skips. `git diff
+--check` passed. No production data or authority state was changed.
 
 ## 15. Exact final status
 
-**PHASE 9.5C3 FIX COMPLETE — MANUAL REQUALIFICATION REQUIRED**
+**PHASE 9.5C4 FIX COMPLETE — MANUAL REQUALIFICATION REQUIRED**
 
 ## Phase 9.5C2 superseding update
 
@@ -181,3 +182,28 @@ attempts, plus completed/stopped terminal sessions and authority invariants.
 The code fix is complete; MQ-08 remains **READY FOR MANUAL REQUALIFICATION**.
 The exact requalification procedure is in the C3 fix report. No other manual
 qualification item is resumed by this update.
+
+## Phase 9.5C4 confirmed-close defect update
+
+### Second manual defect
+
+After the C3 fix, manual qualification confirmed that the Cancel/No path was
+correct: the first X warned and stayed open, and the next X warned again. A
+second defect was then observed for an active/incomplete session: selecting YES
+on the first warning did not close Pilot; a second X closed it without another
+warning and returned to Main Form. MQ-08 is therefore **NOT PASS** and remains
+**FAIL / requalification required**.
+
+### C4 disposition
+
+The YES path now performs the existing explicit stop semantics within the same
+FormClosing callback and allows that exact close event to complete. It no
+longer sets `e.Cancel` and re-enters `Close()`. This removes the re-entrant
+second-close dependency and leaves no confirmed-close bypass state. Completion
+is never recorded by this path; Legacy remains authoritative and Target stays
+inactive. Focused coverage now verifies same-attempt close, one warning, no
+completion, explicit stop behavior, authority invariants, and fresh-form state.
+
+The exact C4 manual procedures for both Rasht and Ramsar are in the runbook and
+`docs/phase9.5c4-pilot-confirmed-close-fix-report.md`. They are not marked PASS
+automatically.

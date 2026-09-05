@@ -299,6 +299,58 @@ public sealed class LivePilotPhase93Tests
     }
 
     [Fact]
+    public void Confirmed_close_closes_on_the_same_attempt()
+    {
+        ConfirmedCloseScenarioResult result = RunConfirmedCloseScenario();
+
+        Assert.True(result.FormClosed);
+        Assert.Equal(1, result.CloseAttemptCount);
+        Assert.Equal(1, result.WarningCount);
+        Assert.False(result.Cancelled);
+    }
+
+    [Fact]
+    public void Confirmed_close_does_not_require_a_second_close_or_warning()
+    {
+        ConfirmedCloseScenarioResult result = RunConfirmedCloseScenario();
+
+        Assert.True(result.FormClosed);
+        Assert.Equal(1, result.CloseAttemptCount);
+        Assert.Equal(1, result.WarningCount);
+    }
+
+    [Fact]
+    public void Confirmed_close_preserves_existing_explicit_stop_semantics_without_completion()
+    {
+        ConfirmedCloseScenarioResult result = RunConfirmedCloseScenario();
+
+        Assert.Equal(ControlledPilotOperationalLifecycle.Stopped, result.Lifecycle);
+        Assert.NotEqual(ControlledPilotOperationalLifecycle.Completed, result.Lifecycle);
+    }
+
+    [Fact]
+    public void Confirmed_close_preserves_legacy_authority_and_target_inactivity()
+    {
+        ConfirmedCloseScenarioResult result = RunConfirmedCloseScenario();
+
+        Assert.False(result.ChangesAuthority);
+        Assert.False(result.ChangesProductionAuthority);
+        Assert.False(result.TargetActivated);
+    }
+
+    [Fact]
+    public void New_pilot_form_does_not_inherit_confirmed_close_state()
+    {
+        ConfirmedCloseScenarioResult result = RunConfirmedCloseScenario();
+        Assert.True(result.FormClosed);
+
+        ActiveCloseScenarioResult newForm = RunActiveCloseScenario(1);
+
+        Assert.Equal(1, newForm.WarningCount);
+        Assert.Equal([true], newForm.CancelledAttempts);
+    }
+
+    [Fact]
     public async Task End_to_end_observation_preserves_source_database_and_legacy_authority()
     {
         await using TestPilotDatabase database = await TestPilotDatabase.CreateAsync("Ramsar Station");
@@ -363,6 +415,48 @@ public sealed class LivePilotPhase93Tests
         return result!;
     }
 
+    private static ConfirmedCloseScenarioResult RunConfirmedCloseScenario()
+    {
+        ConfirmedCloseScenarioResult? result = null;
+        RunSta(() =>
+        {
+            ControlledPilotOperationalFixture fixture = ControlledPilotOperationalFixture.Rasht();
+            using var session = new LivePilotOperatorSession(fixture.Coordinator(), Ready(fixture),
+                new FixedTimeProvider(ControlledPilotOperationalFixture.WindowStart.AddMinutes(10)));
+            session.StartObservationAsync().GetAwaiter().GetResult();
+            using var dashboard = new PilotDashboardControl();
+            var composition = new LivePilotCompositionResult(dashboard, session,
+                session.CreateView(), "test-confirmed-close");
+            int warnings = 0;
+            int closeAttempts = 0;
+            bool cancelled = true;
+            bool formClosed = false;
+            bool targetActivated = false;
+            using var form = new FrmLivePilot(composition, () =>
+            {
+                warnings++;
+                return DialogResult.Yes;
+            });
+            form.FormClosing += (_, e) =>
+            {
+                closeAttempts++;
+                cancelled = e.Cancel;
+            };
+            form.FormClosed += (_, _) =>
+            {
+                formClosed = true;
+                targetActivated = composition.ChangesProductionAuthority;
+            };
+            form.Shown += (_, _) => form.Close();
+            form.ShowDialog();
+            result = new ConfirmedCloseScenarioResult(
+                formClosed, closeAttempts, warnings, cancelled, session.Lifecycle,
+                session.ChangesAuthority, composition.ChangesProductionAuthority,
+                targetActivated);
+        });
+        return result!;
+    }
+
     private static TerminalCloseScenarioResult RunTerminalCloseScenario(bool complete)
     {
         TerminalCloseScenarioResult? result = null;
@@ -412,6 +506,16 @@ public sealed class LivePilotPhase93Tests
         ControlledPilotOperationalLifecycle Lifecycle,
         int WarningCount,
         bool Cancelled);
+
+    private sealed record ConfirmedCloseScenarioResult(
+        bool FormClosed,
+        int CloseAttemptCount,
+        int WarningCount,
+        bool Cancelled,
+        ControlledPilotOperationalLifecycle Lifecycle,
+        bool ChangesAuthority,
+        bool ChangesProductionAuthority,
+        bool TargetActivated);
 
     private static string RepositoryRoot()
     {

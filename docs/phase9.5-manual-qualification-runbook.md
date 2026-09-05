@@ -1,6 +1,6 @@
 # Phase 9.5 Consolidated Manual Qualification Runbook
 
-Status: **MQ-08 READY FOR MANUAL REQUALIFICATION** (Phase 9.5C3)
+Status: **MQ-08 READY FOR MANUAL REQUALIFICATION** (Phase 9.5C4)
 
 This runbook is isolated qualification only. It does not authorize production
 cutover, migration, restore, Target authority, or production-data mutation.
@@ -60,7 +60,7 @@ if (Test-Path -LiteralPath .\Qualification\qualification-data) { Remove-Item -Li
 | MQ-05 | Activation tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B7ActivationBoundaryTests" --logger "trx;LogFileName=mq-05.trx"` | Both fixtures | No | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | AUTH-03, AUTH-04, MIG-06, SEC-05 |
 | MQ-06 | Stop after successful active observation; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-02, UI-06 |
 | MQ-07 | Cancel during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-03, UI-06 |
-| MQ-08 | Requalify Pilot-form close guard during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | READY FOR MANUAL REQUALIFICATION — original manual FAIL recorded in results document | UI-04, UI-06 |
+| MQ-08 | Requalify Pilot-form close guard during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | READY FOR MANUAL REQUALIFICATION — C4 fix applied; no manual PASS claimed | UI-04, UI-06 |
 | MQ-09 | Independent 100% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
 | MQ-10 | Independent 125% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
 | MQ-11 | Independent 150% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
@@ -133,27 +133,53 @@ time. No destructive action; cleanup is common cleanup.
 
 ## MQ-08 - Pilot-form shutdown guard requalification
 
-This item is **READY FOR MANUAL REQUALIFICATION** because the original manual
-qualification recorded a FAIL: after declining the first unfinished-session
-warning, a second Pilot-form X closed without warning. Do not resume other
-manual items as part of this requalification.
+This item is **READY FOR MANUAL REQUALIFICATION** after the C4 confirmed-close
+fix. The historical sequence is preserved: the original manual FAIL exposed a
+cancel-path guard defect; C3 fixed that defect and the Cancel/No repeated-warning
+path passed requalification; then a second manual defect was observed when YES
+did not close on the first attempt. MQ-08 remains FAIL / requalification
+required until these steps are completed. Do not resume other manual items.
 
-For each station, use a fresh isolated fixture and initial copied-database
-hash. Enter Pilot explicitly, confirm read-only mode, start observation, and
-wait until the session is active/incomplete (`ReviewRequired` / review state).
-Click the Pilot form X and select No/cancel on the unfinished-session warning.
-Verify the Pilot form remains open and the session remains incomplete. Click X
-again and verify the same warning appears again. Repeat the cancel-and-X cycle
-at least three more times; every attempt must warn and every cancellation must
-keep the form open. Then complete the allowed stop/close path explicitly and
-verify deterministic return to Main Form, no application-wide exit, unchanged
-Legacy authority, and unchanged fixture/copied-database hashes.
+For BOTH Rasht and Ramsar, use a fresh isolated fixture and initial
+copied-database hash.
+
+### Test A - Cancel/No repeated-warning path
+
+1. Launch the qualification station.
+2. Log in.
+3. Enter Pilot explicitly.
+4. Start read-only observation.
+5. While the session is incomplete/in review state, click X.
+6. Choose Cancel/No.
+7. Verify Pilot remains open.
+8. Click X again.
+9. Verify the unfinished-session warning appears again. Repeat the cancel/X
+   cycle at least three more times; every attempt must warn and every
+   cancellation must keep Pilot open.
+
+### Test B - Confirmed-close path
+
+1. With an incomplete Pilot session, click X.
+2. Choose Yes.
+3. Verify Pilot closes immediately on this same attempt.
+4. Verify Main Form appears.
+5. Verify no second X click was required.
+6. Verify Legacy authority remained authoritative.
+7. Verify no automatic Target activation occurred.
+8. Re-enter Pilot and verify no stale confirmed-close state remains.
 
 Capture screenshots of the active state, each guard response, the repeated
-cancel state, and the final safe return, plus station, UTC time, Release
-binary hash, process-exit observation, before/after hashes, and a sanitized
-log. Record `PASS` only if the human evidence satisfies every expectation;
-otherwise record `FAIL`. No destructive action; cleanup is common cleanup.
+cancel state, the confirmed close, Main Form return, and fresh Pilot entry, plus
+station, UTC time, Release binary hash, process-exit observation,
+before/after hashes, and a sanitized log. Verify no hidden completion, no
+unintended stop beyond the existing explicit YES semantics, and no authority
+change. Record `PASS` only if the human evidence satisfies every expectation;
+otherwise record `FAIL`. Do not mark these steps PASS automatically from tests.
+No destructive action; cleanup is common cleanup.
+
+Historical sequence: original defect -> C3 fix -> Cancel/No requalification
+success -> confirmed-close defect discovery -> C4 fix pending manual
+requalification.
 
 ## MQ-09, MQ-10 and MQ-11 - 100%, 125% and 150% DPI
 
