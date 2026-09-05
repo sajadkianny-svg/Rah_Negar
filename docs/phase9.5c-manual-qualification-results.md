@@ -1,15 +1,44 @@
 # Phase 9.5C Consolidated Manual Qualification Results
 
-Exact current status: **PHASE 9.5C10 DPI AND MQ-12 MANUAL QUALIFICATION CLOSED - PRODUCTION SIGN-OFF ITEMS REMAIN**
+Exact current status: **PHASE 9.5 ALTERNATIVE GOVERNANCE CLOSED - AI-ASSISTED TECHNICAL REVIEW PASS WITH DOCUMENTED LIMITATION; PROJECT OWNER ACCEPTANCE ACCEPTED**
 
 **PRODUCTION CUTOVER IS NOT AUTHORIZED.** Legacy remains authoritative. No
 production database, migration, restore, Target authority transition, commit,
-or push was performed.
+or push was performed. Independent Human Review = **NOT PERFORMED /
+UNAVAILABLE**. AI-Assisted Technical Review is not organizationally independent.
+Project Owner Acceptance is **ACCEPTED** by Sajad Kiyani at
+**2026-09-05T21:16:42Z** under the alternative governance path.
 
 ## 1. Objective
 
 Execute the Phase 9.5 runbook items that are safe and locally exercisable,
 without treating automated tests or historical observations as manual PASS.
+
+The current alternative governance status is **PHASE 9.5 ALTERNATIVE GOVERNANCE
+CLOSED**, defined by the Phase 9.5 AI-Assisted Technical Review + Project Owner
+Acceptance path. Independent Human Review = **NOT PERFORMED / UNAVAILABLE**.
+AI-Assisted Technical Review is not organizationally independent. Project Owner
+Acceptance is **ACCEPTED** and is recorded in
+`docs/phase9.5-project-owner-acceptance.md`.
+
+| ID | Current governance status |
+|---|---|
+| MQ-01 | Technical/Operator Review PASS; TRX 3/3; AI-Assisted Technical Review PASS |
+| MQ-02 | Technical/Operator Review PASS; TRX 7/7; AI-Assisted Technical Review PASS |
+| MQ-03 | Technical/Operator Review PASS; TRX 16/16; Supported product boundary = 3-5 units inclusive; AI-Assisted Technical Review PASS |
+| MQ-04 | Technical/Operator Review PASS; TRX 18/18; AI-Assisted Technical Review PASS |
+| MQ-05 | Technical/Operator Review PASS; TRX 10/10; AI-Assisted Technical Review PASS |
+| MQ-06 | PASS |
+| MQ-07 | BLOCKED — MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED; do not convert to PASS |
+| MQ-08 | PASS |
+| MQ-09 | PASS — 1920x1080 / 100% DPI |
+| MQ-10 | PASS — 1920x1080 / 125% DPI |
+| MQ-11 | PASS AFTER C9 REMEDIATION — 1920x1080 / 150% DPI |
+| MQ-12 | PASS |
+
+The historical point-in-time inventories and reconciliation notes below remain
+unchanged as evidence. They must not be read as claims that an independent
+human review was completed.
 
 ## 2. Qualification environment
 
@@ -580,4 +609,29 @@ evidence and any production authorization remain outstanding.
 **PHASE 9.5C10 DPI AND MQ-12 MANUAL QUALIFICATION CLOSED - INDEPENDENT
 REVIEWER SIGN-OFF FOR MQ-01--MQ-05 AND PRODUCTION-ONLY EVIDENCE REMAIN**
 
-INDEPENDENT REVIEW PACKAGE PREPARED  SIGN-OFF PENDING
+INDEPENDENT REVIEW PACKAGE PREPARED  SIGN-OFF PENDING (HISTORICAL ARTIFACT;
+INDEPENDENT HUMAN REVIEW NOT PERFORMED / UNAVAILABLE)
+
+## Phase 9.5 alternative governance closure
+
+The current alternative governance path is **AI-Assisted Technical Review +
+Project Owner Acceptance**. The current technical decision is:
+
+**AI-ASSISTED TECHNICAL REVIEW: PASS WITH DOCUMENTED LIMITATION**
+
+The limitation is MQ-07 plus the absence of independent human review. MQ-07
+remains **BLOCKED — MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH
+AUTOMATED INVARIANT EVIDENCE RETAINED** and must not be converted to PASS.
+
+MQ-01 through MQ-05 retain Technical/Operator Review PASS and AI-Assisted
+Technical Review PASS with exact TRX counters of 3/3, 7/7, 16/16, 18/18 and
+10/10 respectively. **Supported product boundary = 3-5 units inclusive.**
+MQ-06 and MQ-08 are PASS; MQ-09 is PASS at 1920x1080 / 100% DPI;
+MQ-10 is PASS at 1920x1080 / 125% DPI; MQ-11 is PASS AFTER C9 REMEDIATION at
+1920x1080 / 150% DPI; and MQ-12 is PASS.
+
+Project Owner Acceptance is **ACCEPTED** by Sajad Kiyani at
+**2026-09-05T21:16:42Z** under the alternative governance path. This is a
+separate governance decision and does not authorize production activation.
+Legacy remains authoritative, Target remains non-authoritative, Target routing
+remains disabled, and production cutover remains unauthorized.

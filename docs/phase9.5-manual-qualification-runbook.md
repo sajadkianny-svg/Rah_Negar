@@ -1,10 +1,35 @@
 # Phase 9.5 Consolidated Manual Qualification Runbook
 
-Status: **PHASE 9.5C10 DPI AND MQ-12 MANUAL QUALIFICATION CLOSED - PRODUCTION SIGN-OFF ITEMS REMAIN**
+Status: **PHASE 9.5 ALTERNATIVE GOVERNANCE CLOSED - AI-ASSISTED TECHNICAL REVIEW PASS WITH DOCUMENTED LIMITATION; PROJECT OWNER ACCEPTANCE ACCEPTED**
 
 This runbook is isolated qualification only. It does not authorize production
 cutover, migration, restore, Target authority, or production-data mutation.
-Legacy remains authoritative.
+Legacy remains authoritative. Independent Human Review = **NOT PERFORMED /
+UNAVAILABLE**. AI-Assisted Technical Review is not organizationally independent.
+Project Owner Acceptance is **ACCEPTED** by Sajad Kiyani at
+**2026-09-05T21:16:42Z**; see `docs/phase9.5-ai-assisted-technical-review.md`
+and `docs/phase9.5-project-owner-acceptance.md`.
+
+The current governance overlay is authoritative for Phase 9.5 closure:
+
+| Items | Current governance status |
+|---|---|
+| MQ-01 | Technical/Operator Review PASS; TRX 3/3; AI-Assisted Technical Review PASS |
+| MQ-02 | Technical/Operator Review PASS; TRX 7/7; AI-Assisted Technical Review PASS |
+| MQ-03 | Technical/Operator Review PASS; TRX 16/16; Supported product boundary = 3-5 units inclusive; AI-Assisted Technical Review PASS |
+| MQ-04 | Technical/Operator Review PASS; TRX 18/18; AI-Assisted Technical Review PASS |
+| MQ-05 | Technical/Operator Review PASS; TRX 10/10; AI-Assisted Technical Review PASS |
+| MQ-06 | PASS |
+| MQ-07 | BLOCKED — MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED; do not convert to PASS |
+| MQ-08 | PASS |
+| MQ-09 | PASS — 1920x1080 / 100% DPI |
+| MQ-10 | PASS — 1920x1080 / 125% DPI |
+| MQ-11 | PASS AFTER C9 REMEDIATION — 1920x1080 / 150% DPI |
+| MQ-12 | PASS |
+
+Project Owner Acceptance is **ACCEPTED** for this overlay. The historical
+prepared independent-review wording below is retained as historical evidence
+and does not claim that an independent human review occurred.
 
 ## Operator rules and common setup
 
@@ -53,13 +78,13 @@ if (Test-Path -LiteralPath .\Qualification\qualification-data) { Remove-Item -Li
 
 | ID | Item and exact command | Stations | Destructive? | Readiness | Gates |
 |---|---|---|---|---|---|
-| MQ-01 | Backup/restore support command and evidence review | Rasht/Ramsar fixtures | Fixture only | TECHNICAL/OPERATOR REVIEW PASS — independent reviewer sign-off pending | DB-03, BR-02, BR-03, BR-05, BR-06 |
-| MQ-02 | Security support command and evidence review | Both fixtures | No | TECHNICAL/OPERATOR REVIEW PASS — independent reviewer sign-off pending | SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-08 |
-| MQ-03 | Provisioning support command and manifest review | Profile-driven generic 3..5-unit boundary; Rasht 3/Ramsar 4 fixtures | Fixture only | TECHNICAL/OPERATOR REVIEW PASS — independent reviewer sign-off pending | MIG-03, MIG-04, RT-01 |
-| MQ-04 | Migration support command and receipt review | Both fixtures | Fixture only | TECHNICAL/OPERATOR REVIEW PASS — independent reviewer sign-off pending | MIG-02, MIG-05 |
-| MQ-05 | Activation-boundary support command and JSONL review | Both fixtures | No | TECHNICAL/OPERATOR REVIEW PASS — independent reviewer sign-off pending | AUTH-03, AUTH-04, MIG-06, SEC-05 |
+| MQ-01 | Backup/restore support command and evidence review | Rasht/Ramsar fixtures | Fixture only | TECHNICAL/OPERATOR REVIEW PASS; AI-ASSISTED TECHNICAL REVIEW PASS; Project Owner Acceptance ACCEPTED; Independent Human Review not performed/unavailable | DB-03, BR-02, BR-03, BR-05, BR-06 |
+| MQ-02 | Security support command and evidence review | Both fixtures | No | TECHNICAL/OPERATOR REVIEW PASS; AI-ASSISTED TECHNICAL REVIEW PASS; Project Owner Acceptance ACCEPTED; Independent Human Review not performed/unavailable | SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-08 |
+| MQ-03 | Provisioning support command and manifest review | Profile-driven generic MQ-03 product boundary; Rasht 3/Ramsar 4 fixtures | Fixture only | TECHNICAL/OPERATOR REVIEW PASS; AI-ASSISTED TECHNICAL REVIEW PASS; Project Owner Acceptance ACCEPTED; Independent Human Review not performed/unavailable | MIG-03, MIG-04, RT-01 |
+| MQ-04 | Migration support command and receipt review | Both fixtures | Fixture only | TECHNICAL/OPERATOR REVIEW PASS; AI-ASSISTED TECHNICAL REVIEW PASS; Project Owner Acceptance ACCEPTED; Independent Human Review not performed/unavailable | MIG-02, MIG-05 |
+| MQ-05 | Activation-boundary support command and JSONL review | Both fixtures | No | TECHNICAL/OPERATOR REVIEW PASS; AI-ASSISTED TECHNICAL REVIEW PASS; Project Owner Acceptance ACCEPTED; Independent Human Review not performed/unavailable | AUTH-03, AUTH-04, MIG-06, SEC-05 |
 | MQ-06 | Stop after successful active observation; use the station launch command | One generic disposable profile | No | PASS — manual observation complete | UI-02, UI-06 |
-| MQ-07 | Active-session cancellation | N/A for human observation under disposition B | No | BLOCKED — workflows complete before Stop can be clicked; retain automated invariant evidence; no production delay | UI-03, UI-06 |
+| MQ-07 | Active-session cancellation | N/A for human observation under disposition B | No | BLOCKED — MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED; do not convert to PASS | UI-03, UI-06 |
 | MQ-08 | Pilot-form close guard | One generic qualification profile | No | PASS — final C4 human same-attempt Yes close; no duplicate station observation required | UI-04, UI-06 |
 | MQ-09 | Independent 100% DPI lifecycle | One representative profile | No | PASS — 1920x1080, Windows Scale 100% | UI-05, UI-06 |
 | MQ-10 | Independent 125% DPI lifecycle | One representative profile | No | PASS — 1920x1080, Windows Scale 125% | UI-05, UI-06 |
@@ -512,11 +537,11 @@ production authority or authorize production cutover.
 
 | ID | Current result | Verified manual evidence |
 |---|---|---|
-| MQ-01 | **Technical/Operator Review PASS; Independent Reviewer Sign-off Pending** | Existing technical/operator review complete; independent reviewer sign-off remains outstanding. |
-| MQ-02 | **Technical/Operator Review PASS; Independent Reviewer Sign-off Pending** | Existing technical/operator review complete; independent reviewer sign-off remains outstanding. |
-| MQ-03 | **Technical/Operator Review PASS; Independent Reviewer Sign-off Pending** | Existing technical/operator review complete; independent reviewer sign-off remains outstanding. |
-| MQ-04 | **Technical/Operator Review PASS; Independent Reviewer Sign-off Pending** | Existing technical/operator review complete; independent reviewer sign-off remains outstanding. |
-| MQ-05 | **Technical/Operator Review PASS; Independent Reviewer Sign-off Pending** | Existing technical/operator review complete; independent reviewer sign-off remains outstanding. |
+| MQ-01 | **Technical/Operator Review PASS; AI-Assisted Technical Review PASS** | TRX 3/3; Project Owner Acceptance ACCEPTED; Independent Human Review not performed/unavailable. |
+| MQ-02 | **Technical/Operator Review PASS; AI-Assisted Technical Review PASS** | TRX 7/7; Project Owner Acceptance ACCEPTED; Independent Human Review not performed/unavailable. |
+| MQ-03 | **Technical/Operator Review PASS; AI-Assisted Technical Review PASS** | TRX 16/16; supported product boundary = 3-5 units inclusive; Project Owner Acceptance ACCEPTED; Independent Human Review not performed/unavailable. |
+| MQ-04 | **Technical/Operator Review PASS; AI-Assisted Technical Review PASS** | TRX 18/18; Project Owner Acceptance ACCEPTED; Independent Human Review not performed/unavailable. |
+| MQ-05 | **Technical/Operator Review PASS; AI-Assisted Technical Review PASS** | TRX 10/10; Project Owner Acceptance ACCEPTED; Independent Human Review not performed/unavailable. |
 | MQ-06 | **PASS** | Manual observation PASS. |
 | MQ-07 | **BLOCKED / MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED** | Preserve the existing disposition; do not convert MQ-07 to PASS. |
 | MQ-08 | **PASS** | Existing manual observation PASS. |
@@ -525,12 +550,29 @@ production authority or authorize production cutover.
 | MQ-11 | **PASS AFTER C9 REMEDIATION** | 1920x1080, Windows Scale 150%; Main Form verified; Pilot Dashboard opens automatically Maximized; full dashboard, table, Blocked reasons, Warnings, and bottom buttons visible; no clipping or overlap. C9 remediation manually requalified successfully. |
 | MQ-12 | **PASS** | Keyboard-only Tab + Enter verified; No/Cancel works without mouse; RTL and visible field/status traceability verified. Esc does not dismiss the dialog, recorded as a nonblocking observation because keyboard-only No/Cancel remains fully accessible. |
 
-MQ-01 through MQ-05 remain pending only the independent reviewer sign-off.
-MQ-07 remains blocked under its documented qualification-method disposition.
-Legacy remains production authority; Target remains non-authoritative. No
+MQ-01 through MQ-05 have Technical/Operator Review PASS and AI-Assisted
+Technical Review PASS. Project Owner Acceptance is ACCEPTED. Independent
+Human Review was not performed and is unavailable; AI-Assisted Technical Review
+is not organizationally independent. MQ-07 remains blocked under its
+documented qualification-method disposition. Legacy remains production
+authority; Target remains non-authoritative and routing remains disabled. No
 production cutover authorization is granted by these results.
 
 **PHASE 9.5C10 DPI AND MQ-12 MANUAL QUALIFICATION CLOSED - INDEPENDENT
 REVIEWER SIGN-OFF FOR MQ-01--MQ-05 AND PRODUCTION-ONLY EVIDENCE REMAIN**
 
-INDEPENDENT REVIEW PACKAGE PREPARED  SIGN-OFF PENDING
+INDEPENDENT REVIEW PACKAGE PREPARED  SIGN-OFF PENDING (HISTORICAL ARTIFACT;
+INDEPENDENT HUMAN REVIEW NOT PERFORMED / UNAVAILABLE)
+
+## Phase 9.5 alternative governance closure
+
+The current alternative governance path is **AI-Assisted Technical Review +
+Project Owner Acceptance** and is **PHASE 9.5 ALTERNATIVE GOVERNANCE CLOSED**.
+The technical decision is **AI-ASSISTED TECHNICAL REVIEW: PASS WITH DOCUMENTED
+LIMITATION**. The documented limitation is MQ-07 plus the absence of independent
+human review. Project Owner Acceptance was explicitly **ACCEPTED** by Sajad
+Kiyani at **2026-09-05T21:16:42Z**.
+
+Legacy remains authoritative. Target remains non-authoritative. Target routing
+remains disabled. Production cutover remains unauthorized, and no production
+activation is authorized.

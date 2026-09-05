@@ -2,6 +2,15 @@
 
 Status: **INDEPENDENT REVIEW PACKAGE PREPARED  SIGN-OFF PENDING**
 
+> **Current governance note:** Independent Human Review was not performed and
+> is **NOT PERFORMED / UNAVAILABLE**. This checklist remains a historical/
+> prepared review artifact. The current alternative governance path is
+> documented in `phase9.5-ai-assisted-technical-review.md` and
+> `phase9.5-project-owner-acceptance.md`. Do not reinterpret this checklist as
+> a completed sign-off. AI-Assisted Technical Review is not organizationally
+> independent, and Project Owner Acceptance was **ACCEPTED** under the
+> alternative governance path by Sajad Kiyani at **2026-09-05T21:16:42Z**.
+
 Complete this checklist only as the independent reviewer. Unchecked boxes are
 intentional. This checklist does not authorize production activation or
 production cutover.

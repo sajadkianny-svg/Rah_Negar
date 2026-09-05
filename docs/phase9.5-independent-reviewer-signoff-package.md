@@ -2,6 +2,15 @@
 
 Status: **INDEPENDENT REVIEW PACKAGE PREPARED  SIGN-OFF PENDING**
 
+> **Current governance note:** Independent Human Review was not performed and
+> is **NOT PERFORMED / UNAVAILABLE**. This package remains a historical/prepared
+> review artifact. The current alternative governance path is documented in
+> `phase9.5-ai-assisted-technical-review.md` and
+> `phase9.5-project-owner-acceptance.md`. Do not reinterpret this package as a
+> completed sign-off. AI-Assisted Technical Review is not organizationally
+> independent, and Project Owner Acceptance was **ACCEPTED** under the
+> alternative governance path by Sajad Kiyani at **2026-09-05T21:16:42Z**.
+
 This package is prepared for independent review only. It does not complete an
 independent review, authorize production cutover, authorize production
 activation, or change the current authority boundary.
@@ -9,9 +18,9 @@ activation, or change the current authority boundary.
 ## 1. Qualification scope
 
 Phase 9.5 qualification covers the isolated, offline qualification surface for
-the current production scope of Rasht and Ramsar. Evidence uses disposable
-qualification fixtures and profile-driven synthetic boundary cases where
-specified. The package covers:
+the generic, dynamic, profile-driven product. Rasht and Ramsar are used only as
+disposable qualification/legacy fixtures. Evidence uses profile-driven
+synthetic boundary cases where specified. The package covers:
 
 - backup/restore/recovery safeguards;
 - security, authentication, management authorization and recovery boundaries;
