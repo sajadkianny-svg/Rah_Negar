@@ -1,6 +1,6 @@
 # Phase 9.5 Consolidated Manual Qualification Runbook
 
-Status: **MQ-08 READY FOR MANUAL REQUALIFICATION** (Phase 9.5C4)
+Status: **PHASE 9.5C5 MQ-08 CLOSED - REMAINING MANUAL QUALIFICATION READY**
 
 This runbook is isolated qualification only. It does not authorize production
 cutover, migration, restore, Target authority, or production-data mutation.
@@ -53,18 +53,18 @@ if (Test-Path -LiteralPath .\Qualification\qualification-data) { Remove-Item -Li
 
 | ID | Item and exact command | Stations | Destructive? | Readiness | Gates |
 |---|---|---|---|---|---|
-| MQ-01 | Backup/restore tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~ManagedSqliteBackupRestoreBoundaryTests" --logger "trx;LogFileName=mq-01.trx"` | Rasht, Ramsar fixtures | Fixture only | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | DB-03, BR-02, BR-03, BR-05, BR-06 |
-| MQ-02 | Security tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B4SecurityCompositionTests" --logger "trx;LogFileName=mq-02.trx"` | Both fixtures | No | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-08 |
-| MQ-03 | Provisioning tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B5ProvisioningTests" --logger "trx;LogFileName=mq-03.trx"` | Rasht 3, Ramsar 4 | Fixture only | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | MIG-03, MIG-04, RT-01 |
-| MQ-04 | Migration tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B6ProductionMigrationExecutorTests" --logger "trx;LogFileName=mq-04.trx"` | Both fixtures | Fixture only | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | MIG-02, MIG-05 |
-| MQ-05 | Activation tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B7ActivationBoundaryTests" --logger "trx;LogFileName=mq-05.trx"` | Both fixtures | No | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | AUTH-03, AUTH-04, MIG-06, SEC-05 |
-| MQ-06 | Stop after successful active observation; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-02, UI-06 |
-| MQ-07 | Cancel during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-03, UI-06 |
-| MQ-08 | Requalify Pilot-form close guard during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | READY FOR MANUAL REQUALIFICATION — C4 fix applied; no manual PASS claimed | UI-04, UI-06 |
-| MQ-09 | Independent 100% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
-| MQ-10 | Independent 125% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
-| MQ-11 | Independent 150% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
-| MQ-12 | Confirmation cancel, keyboard/RTL, fields and traceability; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-06 |
+| MQ-01 | Backup/restore support command and evidence review | Rasht/Ramsar fixtures | Fixture only | READY TO EXECUTE NOW — 3/3 support passed; operator/reviewer receipt sign-off remains | DB-03, BR-02, BR-03, BR-05, BR-06 |
+| MQ-02 | Security support command and evidence review | Both fixtures | No | READY TO EXECUTE NOW — 7/7 support passed; operator/reviewer security evidence sign-off remains | SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-08 |
+| MQ-03 | Provisioning support command and manifest review | Rasht 3, Ramsar 4 | Fixture only | READY TO EXECUTE NOW — 7/7 support passed; manifest/negative-case review remains | MIG-03, MIG-04, RT-01 |
+| MQ-04 | Migration support command and receipt review | Both fixtures | Fixture only | READY TO EXECUTE NOW — 4/4 support passed; receipt review remains | MIG-02, MIG-05 |
+| MQ-05 | Activation-boundary support command and JSONL review | Both fixtures | No | READY TO EXECUTE NOW — 10/10 support passed; safe activation-readiness review remains | AUTH-03, AUTH-04, MIG-06, SEC-05 |
+| MQ-06 | Stop after successful active observation; use the station launch command | One generic disposable profile | No | READY TO EXECUTE NOW — human screenshots and hashes required | UI-02, UI-06 |
+| MQ-07 | Active-session cancellation | N/A for human observation under disposition B | No | BLOCKED — workflows complete before Stop can be clicked; retain automated invariant evidence; no production delay | UI-03, UI-06 |
+| MQ-08 | Pilot-form close guard | One generic qualification profile | No | PASS — final C4 human same-attempt Yes close; no duplicate station observation required | UI-04, UI-06 |
+| MQ-09 | Independent 100% DPI lifecycle | One representative profile | No | READY TO EXECUTE NOW — change Windows scale and capture screenshots | UI-05, UI-06 |
+| MQ-10 | Independent 125% DPI lifecycle | One representative profile | No | READY TO EXECUTE NOW — independently observe and capture screenshots | UI-05, UI-06 |
+| MQ-11 | Independent 150% DPI lifecycle and fixed-grid check | One representative 4-unit profile | No | READY TO EXECUTE NOW — inspect 1920x1080 Grid core for forbidden horizontal scroll/header wrap | UI-05, UI-06 |
+| MQ-12 | Confirmation cancel, keyboard/RTL, fields and traceability | One generic qualification profile | No | READY TO EXECUTE NOW — human observation, screenshots and reviewer trace required | UI-06 |
 
 ## MQ-01 through MQ-05 - deterministic local boundary reviews
 
@@ -226,3 +226,117 @@ Failure or follow-up:
 
 A local PASS does not create production evidence. Any failure or missing manual
 evidence keeps the gate `CONDITIONAL` or `BLOCKED` under the readiness policy.
+
+## Phase 9.5C5 superseding runbook addendum
+
+This addendum supersedes the earlier C4 execution status and station-duplication
+instructions above. The earlier MQ-08 steps remain as historical evidence of
+what was requalified; the current result is MQ-08 **PASS**.
+
+### MQ-08 current result and history
+
+The final C4 human observation on one qualification profile passed: active/
+incomplete Pilot -> X -> Yes -> Pilot closed on the same attempt -> Main Form
+appeared. No second X was required, no Target authority activated, and Legacy
+remained authoritative. No human Ramsar observation is claimed or required.
+
+Preserve the full chain: original FAIL when Cancel/No left a guard bypass; C3
+fix; human C3 requalification passed repeated Cancel/No warnings; second FAIL
+when Yes did not close on the first attempt; C4 fix; final human C4 PASS.
+
+The close behavior is profile-independent. `FrmLivePilot` uses lifecycle state
+and dialog result, not station name or unit count. The focused tests cover both
+Rasht/3-unit and Ramsar/4-unit qualification fixtures. Rasht and Ramsar are
+qualification fixtures, not production behavior selectors; production remains
+profile-driven.
+
+### Current inventory and dispositions
+
+| ID | State | Human visual observation | Command/review only | Production-only | Ready now | Disposition |
+|---|---|---:|---:|---:|---:|---|
+| MQ-01 | READY TO EXECUTE NOW | No | Yes | No | Yes | Review 3/3 TRX plus sanitized backup/restore evidence and sign off |
+| MQ-02 | READY TO EXECUTE NOW | No | Yes | No | Yes | Review 7/7 TRX plus sanitized security evidence and sign off |
+| MQ-03 | READY TO EXECUTE NOW | No | Yes | No | Yes | Review 7/7 TRX, Rasht-3/Ramsar-4 manifests and negative cases |
+| MQ-04 | READY TO EXECUTE NOW | No | Yes | No | Yes | Review 4/4 TRX plus migration receipts and sign off |
+| MQ-05 | READY TO EXECUTE NOW | No | Yes | No | Yes | Review 10/10 TRX plus safe activation-boundary JSONL and sign off |
+| MQ-06 | READY TO EXECUTE NOW | Yes | No | No | Yes | One generic profile: Start -> Review -> Stop -> Main Form; screenshots/hashes |
+| MQ-07 | BLOCKED | Attempted but not practically exercisable | No | No | No | All five workflows finish before Stop can be clicked; retain automated invariant evidence |
+| MQ-08 | PASS | Complete on one generic profile | No | No | N/A | Final C4 same-attempt Yes close observation |
+| MQ-09 | READY TO EXECUTE NOW | Yes | No | No | Yes | 100% DPI human observation and screenshots |
+| MQ-10 | READY TO EXECUTE NOW | Yes | No | No | Yes | 125% DPI human observation and screenshots |
+| MQ-11 | READY TO EXECUTE NOW | Yes | No | No | Yes | 150% DPI human observation and fixed-grid check |
+| MQ-12 | READY TO EXECUTE NOW | Yes | No | No | Yes | Cancel/RTL/focus/fields/traceability human review |
+
+MQ-07's BLOCKED state has a concrete qualification-method blocker. Its
+defensible disposition is **MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE,
+WITH AUTOMATED INVARIANT EVIDENCE RETAINED**. Do not claim PASS, add artificial
+production delays, or change production timing.
+
+### MQ-01 through MQ-05 exact review rule
+
+The support results are MQ-01 3/3, MQ-02 7/7, MQ-03 7/7, MQ-04 4/4, and MQ-05
+10/10. Inspect the matching ignored TRX in
+`Qualification/qualification-evidence/`, the sanitized receipt/descriptor,
+and `readiness-manifest.json`; record operator, independent reviewer, UTC time,
+fixture shape and sign-off. No screenshot is required and no automated PASS is
+manual PASS. Review backup/restore integrity and rollback (MQ-01), security
+binding/no secrets (MQ-02), both provisioning shapes and negative cases (MQ-03),
+migration integrity/ledger/idempotency (MQ-04), and `EligibleButNotExecuted`,
+`ActivationExecuted=false`, blocked prerequisites and no executor/startup
+registration (MQ-05).
+
+### Remaining UI actions
+
+- MQ-06: one generic profile; Main Form -> explicit read-only Pilot -> Start ->
+  wait for Review -> Stop -> Main Form. PASS requires responsive Stop, stopped
+  reason, safe retained evidence, unchanged hashes/authority and no raw error;
+  FAIL is a hang, false completion, lost evidence, mutation or authority change.
+  Capture active/review/stopped/return screenshots.
+- MQ-07: no further human launch is required under disposition B. Retain
+  automated cancellation/invariant evidence; do not call completed workflows a
+  manual PASS.
+- MQ-09/10/11: independently observe Main Form, qualification/readiness UI,
+  Pilot dashboard, dialogs, workflow rows, grid headers, monitoring/rollback
+  fields, Stop, Complete and Return at 100%, 125% and 150%. PASS requires no
+  overlap, clipping, inaccessible buttons, truncated critical labels, unreadable
+  RTL text, broken grid/layout, forbidden horizontal failure or navigation
+  failure. One profile is sufficient; use the 4-unit shape once for density at
+  150%. At 1920x1080/150%, the fixed operational Grid core must remain usable
+  without forbidden horizontal scrolling or header wrap.
+- MQ-12: choose No/cancel, verify no session and Legacy visibility; exercise
+  keyboard-only RTL/focus; inspect identity, monitoring, rollback, stop-reason,
+  completion and traceability fields. PASS requires traceable evidence;
+  screenshots are required.
+
+### DPI settings and command
+
+Use `Settings -> System -> Display -> Scale`. Close the app before changing
+scale. Sign-out/restart is not normally required; relaunch after the setting
+applies, and sign out/restart only if Windows prompts or the scale does not take
+effect. Use the disposable 4-unit representative fixture:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Qualification\launch-qualification.ps1 -Station Ramsar -QualificationDirectory (Join-Path (Get-Location) 'Qualification\qualification-data')
+```
+
+Record scale, resolution, OS, Release hash, profile, UTC, screenshots and
+before/after hashes. Do not record DPI PASS until Windows scaling was changed
+and observed. Restore the prior scale after the batch.
+
+### Next human batch
+
+1. At the current normal scale, use one disposable launch for MQ-06 and MQ-12;
+   record MQ-07's disposition and do not repeat MQ-08.
+2. Review/sign off MQ-01 through MQ-05 from the existing ignored evidence; do
+   not commit raw TRX.
+3. Set 100%, relaunch once for MQ-09, then 125% for MQ-10, then 150% for MQ-11
+   with the fixed-grid check; close between changes and restore the prior scale.
+
+Do not begin production-only evidence collection. Production-only items include
+production DB/binary identity, real backup/restore, real migration/post-
+integrity evidence, management/GO authorization, installation evidence,
+cutover timestamp, and authority transition.
+
+**PRODUCTION CUTOVER IS NOT AUTHORIZED.**
+
+**PHASE 9.5C5 MQ-08 CLOSED - REMAINING MANUAL QUALIFICATION READY**

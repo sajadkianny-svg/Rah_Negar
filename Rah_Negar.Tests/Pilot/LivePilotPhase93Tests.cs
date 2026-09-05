@@ -338,6 +338,32 @@ public sealed class LivePilotPhase93Tests
         Assert.False(result.TargetActivated);
     }
 
+    [Theory]
+    [InlineData("Rasht", 3)]
+    [InlineData("Ramsar", 4)]
+    public void Close_guard_and_confirmed_close_are_profile_independent(
+        string station, int expectedUnitCount)
+    {
+        ActiveCloseScenarioResult cancelled = RunActiveCloseScenario(2, station);
+        Assert.Equal(expectedUnitCount, cancelled.UnitCount);
+        Assert.Equal(2, cancelled.WarningCount);
+        Assert.All(cancelled.CancelledAttempts, Assert.True);
+        Assert.All(cancelled.LifecyclesAfterCancelledAttempts,
+            lifecycle => Assert.Equal(ControlledPilotOperationalLifecycle.ReviewRequired,
+                lifecycle));
+
+        ConfirmedCloseScenarioResult confirmed = RunConfirmedCloseScenario(station);
+        Assert.Equal(expectedUnitCount, confirmed.UnitCount);
+        Assert.True(confirmed.FormClosed);
+        Assert.Equal(1, confirmed.CloseAttemptCount);
+        Assert.Equal(1, confirmed.WarningCount);
+        Assert.False(confirmed.Cancelled);
+        Assert.Equal(ControlledPilotOperationalLifecycle.Stopped, confirmed.Lifecycle);
+        Assert.False(confirmed.ChangesAuthority);
+        Assert.False(confirmed.ChangesProductionAuthority);
+        Assert.False(confirmed.TargetActivated);
+    }
+
     [Fact]
     public void New_pilot_form_does_not_inherit_confirmed_close_state()
     {
@@ -373,12 +399,13 @@ public sealed class LivePilotPhase93Tests
             new LivePilotReadScope(fixture.StationId, fixture.StationId, fixture.Scope,
                 14050601, 14050601, 14050602, 0, 2880, "1405-06", false, 0));
 
-    private static ActiveCloseScenarioResult RunActiveCloseScenario(int attempts)
+    private static ActiveCloseScenarioResult RunActiveCloseScenario(
+        int attempts, string station = "Rasht")
     {
         ActiveCloseScenarioResult? result = null;
         RunSta(() =>
         {
-            ControlledPilotOperationalFixture fixture = ControlledPilotOperationalFixture.Rasht();
+            ControlledPilotOperationalFixture fixture = Fixture(station);
             using var session = new LivePilotOperatorSession(fixture.Coordinator(), Ready(fixture),
                 new FixedTimeProvider(ControlledPilotOperationalFixture.WindowStart.AddMinutes(10)));
             session.StartObservationAsync().GetAwaiter().GetResult();
@@ -409,18 +436,19 @@ public sealed class LivePilotPhase93Tests
             };
             form.ShowDialog();
             result = new ActiveCloseScenarioResult(warnings, cancelled, lifecycles,
-                stayedOpen, session.Lifecycle, session.ChangesAuthority,
+                stayedOpen, fixture.UnitCount, session.Lifecycle, session.ChangesAuthority,
                 composition.ChangesProductionAuthority);
         });
         return result!;
     }
 
-    private static ConfirmedCloseScenarioResult RunConfirmedCloseScenario()
+    private static ConfirmedCloseScenarioResult RunConfirmedCloseScenario(
+        string station = "Rasht")
     {
         ConfirmedCloseScenarioResult? result = null;
         RunSta(() =>
         {
-            ControlledPilotOperationalFixture fixture = ControlledPilotOperationalFixture.Rasht();
+            ControlledPilotOperationalFixture fixture = Fixture(station);
             using var session = new LivePilotOperatorSession(fixture.Coordinator(), Ready(fixture),
                 new FixedTimeProvider(ControlledPilotOperationalFixture.WindowStart.AddMinutes(10)));
             session.StartObservationAsync().GetAwaiter().GetResult();
@@ -451,11 +479,18 @@ public sealed class LivePilotPhase93Tests
             form.ShowDialog();
             result = new ConfirmedCloseScenarioResult(
                 formClosed, closeAttempts, warnings, cancelled, session.Lifecycle,
-                session.ChangesAuthority, composition.ChangesProductionAuthority,
+                fixture.UnitCount, session.ChangesAuthority, composition.ChangesProductionAuthority,
                 targetActivated);
         });
         return result!;
     }
+
+    private static ControlledPilotOperationalFixture Fixture(string station) => station switch
+    {
+        "Rasht" => ControlledPilotOperationalFixture.Rasht(),
+        "Ramsar" => ControlledPilotOperationalFixture.Ramsar(),
+        _ => throw new ArgumentOutOfRangeException(nameof(station), station, "Unknown qualification fixture.")
+    };
 
     private static TerminalCloseScenarioResult RunTerminalCloseScenario(bool complete)
     {
@@ -498,6 +533,7 @@ public sealed class LivePilotPhase93Tests
         IReadOnlyList<bool> CancelledAttempts,
         IReadOnlyList<ControlledPilotOperationalLifecycle> LifecyclesAfterCancelledAttempts,
         bool FormStayedOpenAfterCancelledAttempts,
+        int UnitCount,
         ControlledPilotOperationalLifecycle FinalLifecycle,
         bool ChangesAuthority,
         bool ChangesProductionAuthority);
@@ -513,6 +549,7 @@ public sealed class LivePilotPhase93Tests
         int WarningCount,
         bool Cancelled,
         ControlledPilotOperationalLifecycle Lifecycle,
+        int UnitCount,
         bool ChangesAuthority,
         bool ChangesProductionAuthority,
         bool TargetActivated);
