@@ -53,18 +53,18 @@ if (Test-Path -LiteralPath .\Qualification\qualification-data) { Remove-Item -Li
 
 | ID | Item and exact command | Stations | Destructive? | Readiness | Gates |
 |---|---|---|---|---|---|
-| MQ-01 | Backup/restore tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~ManagedSqliteBackupRestoreBoundaryTests" --logger "trx;LogFileName=mq-01.trx"` | Rasht, Ramsar fixtures | Fixture only | READY TO EXECUTE NOW | DB-03, BR-02, BR-03, BR-05, BR-06 |
-| MQ-02 | Security tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B4SecurityCompositionTests" --logger "trx;LogFileName=mq-02.trx"` | Both fixtures | No | READY TO EXECUTE NOW | SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-08 |
-| MQ-03 | Provisioning tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B5ProvisioningTests" --logger "trx;LogFileName=mq-03.trx"` | Rasht 3, Ramsar 4 | Fixture only | READY TO EXECUTE NOW | MIG-03, MIG-04, RT-01 |
-| MQ-04 | Migration tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B6ProductionMigrationExecutorTests" --logger "trx;LogFileName=mq-04.trx"` | Both fixtures | Fixture only | READY TO EXECUTE NOW | MIG-02, MIG-05 |
-| MQ-05 | Activation tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B7ActivationBoundaryTests" --logger "trx;LogFileName=mq-05.trx"` | Both fixtures | No | READY TO EXECUTE NOW | AUTH-03, AUTH-04, MIG-06, SEC-05 |
-| MQ-06 | Stop after successful active observation; use the station launch command | Rasht 3, Ramsar 4 | No | READY TO EXECUTE NOW | UI-02, UI-06 |
-| MQ-07 | Cancel during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | READY TO EXECUTE NOW | UI-03, UI-06 |
-| MQ-08 | Close app during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | READY TO EXECUTE NOW | UI-04, UI-06 |
-| MQ-09 | Independent 100% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | READY TO EXECUTE NOW | UI-05, UI-06 |
-| MQ-10 | Independent 125% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | READY TO EXECUTE NOW | UI-05, UI-06 |
-| MQ-11 | Independent 150% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | READY TO EXECUTE NOW | UI-05, UI-06 |
-| MQ-12 | Confirmation cancel, keyboard/RTL, fields and traceability; use the station launch command | Rasht 3, Ramsar 4 | No | READY TO EXECUTE NOW | UI-06 |
+| MQ-01 | Backup/restore tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~ManagedSqliteBackupRestoreBoundaryTests" --logger "trx;LogFileName=mq-01.trx"` | Rasht, Ramsar fixtures | Fixture only | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | DB-03, BR-02, BR-03, BR-05, BR-06 |
+| MQ-02 | Security tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B4SecurityCompositionTests" --logger "trx;LogFileName=mq-02.trx"` | Both fixtures | No | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-08 |
+| MQ-03 | Provisioning tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B5ProvisioningTests" --logger "trx;LogFileName=mq-03.trx"` | Rasht 3, Ramsar 4 | Fixture only | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | MIG-03, MIG-04, RT-01 |
+| MQ-04 | Migration tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B6ProductionMigrationExecutorTests" --logger "trx;LogFileName=mq-04.trx"` | Both fixtures | Fixture only | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | MIG-02, MIG-05 |
+| MQ-05 | Activation tests: `dotnet test Rah_Negar.Tests\Rah_Negar.Tests.csproj -c Release --no-restore --filter "FullyQualifiedName~Phase95B7ActivationBoundaryTests" --logger "trx;LogFileName=mq-05.trx"` | Both fixtures | No | BLOCKED — test support passed; manual evidence review unavailable; see `docs/phase9.5c-manual-qualification-results.md` | AUTH-03, AUTH-04, MIG-06, SEC-05 |
+| MQ-06 | Stop after successful active observation; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-02, UI-06 |
+| MQ-07 | Cancel during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-03, UI-06 |
+| MQ-08 | Close app during active observation; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-04, UI-06 |
+| MQ-09 | Independent 100% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
+| MQ-10 | Independent 125% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
+| MQ-11 | Independent 150% DPI lifecycle; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-05, UI-06 |
+| MQ-12 | Confirmation cancel, keyboard/RTL, fields and traceability; use the station launch command | Rasht 3, Ramsar 4 | No | BLOCKED — native desktop surface unavailable; see results document | UI-06 |
 
 ## MQ-01 through MQ-05 - deterministic local boundary reviews
 
