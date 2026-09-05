@@ -139,4 +139,19 @@ changes. The focused suites above all passed before documentation capture.
 
 ## 15. Exact final status
 
-**PHASE 9.5C MANUAL QUALIFICATION PARTIALLY COMPLETE**
+**PHASE 9.5C2 UNBLOCKING COMPLETE — READY FOR HUMAN MANUAL QUALIFICATION**
+
+## Phase 9.5C2 superseding update
+
+The consolidated qualification harness now prepares isolated Rasht/Ramsar
+fixtures, runs MQ-01 through MQ-05 support suites, and emits sanitized TRX
+files plus `Qualification/qualification-evidence/readiness-manifest.json`.
+Those five items are READY TO EXECUTE NOW pending operator/reviewer inspection;
+their automated PASS results are not manual PASS. MQ-06 through MQ-12 are also
+READY TO EXECUTE NOW because the exact launcher path and deterministic steps are
+documented; they still require human desktop observation and screenshots.
+
+Current C2 counts: READY TO EXECUTE NOW 12; EXECUTED PASS 0; EXECUTED FAIL 0;
+BLOCKED 0. Production-only evidence remains outside these 12 items and is not
+executed. Legacy remains authoritative; Target remains inactive and routing
+disabled. **PRODUCTION CUTOVER IS NOT AUTHORIZED.**
