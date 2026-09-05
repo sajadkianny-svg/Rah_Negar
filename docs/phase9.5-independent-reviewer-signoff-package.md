@@ -124,7 +124,7 @@ recovery; and ECDSA P-256 ESD verification. Confirm ordinary evidence contains
 no RBAC role, Support identity, universal secret, master password, private key
 or raw credential material.
 
-### MQ-03 — generic profile-driven provisioning and 35-unit boundary
+### MQ-03 — generic profile-driven provisioning and 3-5-unit boundary
 
 Confirm provisioning is driven by the supplied profile rather than station
 name/code, with inactive non-mutating Target routes. Review arbitrary-name 3-
