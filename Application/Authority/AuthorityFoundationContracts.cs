@@ -71,11 +71,8 @@ public static class AuthorityStateValidator
         bool expectedLegacy = record.State is AuthorityState.LegacyAuthoritative or
             AuthorityState.ActivationPreparedNotExecuted or AuthorityState.TransitionInProgress;
         bool expectedTarget = record.State == AuthorityState.TargetAuthoritative;
-        bool expectedRoute = record.State == AuthorityState.TargetAuthoritative && record.TargetRoutingEnabled;
         if (record.LegacyAuthoritative != expectedLegacy || record.TargetAuthoritative != expectedTarget)
             issues.Add("authority-flags-contradict-state");
-        if (record.TargetRoutingEnabled != expectedRoute)
-            issues.Add("authority-route-contradicts-state");
         if (record.TargetAuthoritative && record.LegacyAuthoritative)
             issues.Add("authority-dual-authority");
         if (record.TargetRoutingEnabled && !record.TargetAuthoritative)
@@ -293,6 +290,8 @@ public static class AuthorityRoutingGuard
         AuthorityStateValidator.Validate(record).IsValid && record.State == AuthorityState.TargetAuthoritative && record.TargetRoutingEnabled;
     public static bool IsLegacyOperationalRoutingAllowed(AuthorityStateRecord record) =>
         AuthorityStateValidator.Validate(record).IsValid && record.State == AuthorityState.LegacyAuthoritative && record.LegacyAuthoritative;
+    public static bool IsTargetAuthorityReadyForRouting(AuthorityStateRecord record) =>
+        AuthorityStateValidator.Validate(record).IsValid && record.State == AuthorityState.TargetAuthoritative && record.TargetAuthoritative;
 }
 
 public enum ReconciliationStatus { NotEvaluated, Matched, Mismatched, Blocked }
@@ -418,8 +417,10 @@ public sealed record AuthorityStartupResult(
             return new(authority, transition, true, "InvalidOrCorrupt", issues);
         if (transition.Record is null) return new(authority, transition, false, "CleanIdle", issues);
         AuthorityTransitionRecord t = transition.Record;
+        bool committedTarget = t.Lifecycle == TransitionLifecycle.Committed &&
+            t.RequestedState == AuthorityState.TargetAuthoritative && authority.Record.State == AuthorityState.TargetAuthoritative;
         bool consistent = t.Generation >= authority.Record.AuthorityEpoch &&
-            t.SourceState == authority.Record.State &&
+            (t.SourceState == authority.Record.State || committedTarget) &&
             t.DeploymentScope == authority.Record.DeploymentScope && t.StationScope == authority.Record.StationScope;
         if (!consistent) return new(authority, transition, true, "AuthorityTransitionMismatch", [.. issues, "authority-transition-mismatch"]);
         if (t.Lifecycle == TransitionLifecycle.Aborted)

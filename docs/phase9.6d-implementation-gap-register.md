@@ -23,11 +23,13 @@ Reassessed after Phase 9.6D3. The current invariant remains: Legacy is AUTHORITA
 | GD-17 | Operator runbook/UI | D3 SAFE BLOCK ONLY | No cutover UI or recovery override was added; blocked startup offers exit/retry validation path | Future governance/runbook package |
 | GD-18 | Identity boundary | PRESERVED | ShiftProfile/ManagementCredential architecture unchanged | Future action binding only |
 | GD-19 | Audit retention/tamper | PARTIAL | Integrity-backed authority/audit stores and no-secret contract exist | Future retention/chain/readback governance |
-| GD-20 | Qualification isolation | D3 IMPLEMENTED | `Qualification/run-d3-qualification.ps1` writes under `Qualification/qualification-run` and independently compares Production DB SHA-256 before/after when present | Extend for future executor |
-| GD-21 | D3 qualification | D3 IMPLEMENTED | Focused tests cover reconciliation, divergence, abort, rollback safety/rehearsal, recovery, audit failure, backup evidence contract, fencing, Production rejection, and isolation | No Production cutover qualification exists |
+| GD-20 | Qualification isolation | E IMPLEMENTED | `Qualification/run-phase9.6e-rehearsal.ps1` creates disposable Rasht/Ramsar sources, captures Production pre/post existence/hash/size/timestamp, and fails on unexpected Production change | Future governed Production executor remains out of scope |
+| GD-21 | D3/E qualification | E REHEARSAL PASS | `Phase96ERehearsalTests` 5/5 plus D3 suite cover isolated handoff, restart, fencing, reconciliation/divergence, abort, rollback safety, recovery, audit failure, backup binding, and Production rejection | No Production cutover qualification exists |
 | GD-22 | Package health | EXISTING LOW | Build baseline remains six NU1701 warnings; no dependency changes made | Later compatibility review |
 | GD-23 | Historical wording | DOCUMENTATION DEBT | Historical documents retain their original claims; current D3 result is explicit | Future documentation consolidation |
 
 No CRITICAL pre-rehearsal D3 gap remains. The remaining Production executor, physical cutover, governance, and production rollback gaps are intentionally outside D3 and keep Production Activation/Cutover unauthorized.
+
+Phase 9.6E closes only the isolated rehearsal evidence gap. Production authority execution, cutover, routing enablement, physical rollback, and activation governance remain OPEN and unauthorized.
 
 MQ-07 remains exactly: **BLOCKED — MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED**.

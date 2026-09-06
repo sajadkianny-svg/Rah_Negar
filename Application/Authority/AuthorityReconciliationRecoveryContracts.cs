@@ -344,3 +344,106 @@ public static class RecoveryOperatorMessage
 
     private static string Safe(string value) => new(value.Where(c => char.IsLetterOrDigit(c) || c is '-' or '_' or ':' or ';' or ' ').ToArray());
 }
+
+public enum RehearsalTransitionStatus { Succeeded, Rejected, RecoveryRequired }
+
+public sealed record RehearsalTransitionRequest(
+    RehearsalContext Context, string CorrelationId, string DeploymentScope, string StationScope,
+    string ApplicationVersion, long ExpectedGeneration, ReconciliationStatus Reconciliation,
+    DivergenceStatus Divergence, VerifiedBackupEvidence Backup);
+
+public sealed record RehearsalTransitionResult(
+    RehearsalTransitionStatus Status, string Reason, AuthorityStateRecord Authority,
+    AuthorityTransitionRecord? Transition, bool TargetRoutingEligible, IReadOnlyList<string> AuditActions);
+
+/// <summary>
+/// Qualification-only authority handoff. Production is rejected before any store is read or written.
+/// This service is intentionally not registered by Program.cs and has no production activation path.
+/// </summary>
+public sealed class IsolatedRehearsalTransitionService
+{
+    private readonly IAuthorityStateStore _authority;
+    private readonly ITransitionStateStore _transitions;
+    private readonly IAuthorityAuditSink _audit;
+    private readonly SemaphoreSlim _mutex = new(1, 1);
+
+    public IsolatedRehearsalTransitionService(IAuthorityStateStore authority,
+        ITransitionStateStore transitions, IAuthorityAuditSink audit) =>
+        (_authority, _transitions, _audit) = (authority ?? throw new ArgumentNullException(nameof(authority)),
+            transitions ?? throw new ArgumentNullException(nameof(transitions)),
+            audit ?? throw new ArgumentNullException(nameof(audit)));
+
+    public async Task<RehearsalTransitionResult> ExecuteAsync(RehearsalTransitionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.Context == RehearsalContext.Production)
+            return Rejected("production-transition-not-permitted");
+        await _mutex.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            AuthorityLoadResult current = await _authority.LoadAsync(cancellationToken).ConfigureAwait(false);
+            if (!current.IsOperationallySafe) return Recovery(current.Record, "authority-state-unavailable");
+            if (request.Reconciliation != ReconciliationStatus.Matched || request.Divergence != DivergenceStatus.Synchronized)
+                return Rejected(current.Record, "reconciliation-or-divergence-not-safe");
+            if (!StringComparer.Ordinal.Equals(current.Record.DeploymentScope, request.DeploymentScope) ||
+                !StringComparer.Ordinal.Equals(current.Record.StationScope, request.StationScope))
+                return Rejected(current.Record, "transition-scope-mismatch");
+            if (!request.Backup.IsUsable || !StringComparer.Ordinal.Equals(request.Backup.DeploymentScope, request.DeploymentScope) ||
+                !StringComparer.Ordinal.Equals(request.Backup.CorrelationId, request.CorrelationId))
+                return Rejected(current.Record, "verified-backup-evidence-rejected");
+            if (current.Record.State != AuthorityState.LegacyAuthoritative ||
+                request.ExpectedGeneration != current.Record.AuthorityEpoch + 1 || string.IsNullOrWhiteSpace(request.CorrelationId) ||
+                string.IsNullOrWhiteSpace(request.ApplicationVersion) || request.ApplicationVersion.Any(char.IsWhiteSpace))
+                return Rejected(current.Record, "stale-or-invalid-transition-request");
+
+            var transition = new AuthorityTransitionRecord(request.CorrelationId, request.ExpectedGeneration,
+                AuthorityState.LegacyAuthoritative, AuthorityState.TargetAuthoritative,
+                TransitionLifecycle.Committing, DateTimeOffset.UtcNow, request.DeploymentScope, request.StationScope);
+            await _transitions.SaveAsync(transition, cancellationToken).ConfigureAwait(false);
+            await AuditAsync(current.Record, request, AuthorityAuditAction.CommitAttempt, "ATTEMPTED", "rehearsal-commit-started", cancellationToken).ConfigureAwait(false);
+
+            AuthorityStateRecord target = current.Record with
+            {
+                Revision = current.Record.Revision + 1, AuthorityEpoch = request.ExpectedGeneration,
+                State = AuthorityState.TargetAuthoritative, LegacyAuthoritative = false,
+                TargetAuthoritative = true, TargetRoutingEnabled = false,
+                CorrelationId = request.CorrelationId, Reason = "isolated-rehearsal-commit", RecordedAtUtc = DateTimeOffset.UtcNow
+            };
+            await _authority.SaveAsync(target, cancellationToken).ConfigureAwait(false);
+            await _transitions.SaveAsync(transition with { Lifecycle = TransitionLifecycle.Committed, RecordedAtUtc = DateTimeOffset.UtcNow }, cancellationToken).ConfigureAwait(false);
+            await AuditAsync(target, request, AuthorityAuditAction.CommitSucceeded, "COMMITTED", "isolated-rehearsal-commit-complete", cancellationToken).ConfigureAwait(false);
+            return new(RehearsalTransitionStatus.Succeeded, "isolated-rehearsal-transition-complete", target,
+                transition with { Lifecycle = TransitionLifecycle.Committed },
+                AuthorityRoutingGuard.IsTargetAuthorityReadyForRouting(target),
+                ["CommitAttempt", "CommitSucceeded"]);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException)
+        {
+            AuthorityLoadResult current = await _authority.LoadAsync(CancellationToken.None).ConfigureAwait(false);
+            try
+            {
+                AuthorityStateRecord recovery = current.Record with { State = AuthorityState.RecoveryRequired,
+                    LegacyAuthoritative = false, TargetAuthoritative = false, TargetRoutingEnabled = false,
+                    CorrelationId = request.CorrelationId, Reason = "rehearsal-commit-outcome-unknown",
+                    Revision = current.Record.Revision + 1, AuthorityEpoch = Math.Max(current.Record.AuthorityEpoch, request.ExpectedGeneration), RecordedAtUtc = DateTimeOffset.UtcNow };
+                await _authority.SaveAsync(recovery, CancellationToken.None).ConfigureAwait(false);
+                return Recovery(recovery, "rehearsal-commit-failed-recovery-required");
+            }
+            catch { return Recovery(current.Record, "rehearsal-commit-failed-recovery-persistence-failed"); }
+        }
+        finally { _mutex.Release(); }
+    }
+
+    private async Task AuditAsync(AuthorityStateRecord current, RehearsalTransitionRequest request,
+        AuthorityAuditAction action, string result, string reason, CancellationToken token) =>
+        await _audit.WriteAsync(new(request.CorrelationId, DateTimeOffset.UtcNow, request.DeploymentScope,
+            request.StationScope, request.ApplicationVersion, current.State, AuthorityState.TargetAuthoritative,
+            action, result, reason, request.Backup.BackupPath, request.ExpectedGeneration), token).ConfigureAwait(false);
+
+    private static RehearsalTransitionResult Rejected(string reason) =>
+        new(RehearsalTransitionStatus.Rejected, reason, AuthorityStateRecord.Legacy("qualification", "all"), null, false, []);
+    private static RehearsalTransitionResult Rejected(AuthorityStateRecord authority, string reason) =>
+        new(RehearsalTransitionStatus.Rejected, reason, authority, null, false, []);
+    private static RehearsalTransitionResult Recovery(AuthorityStateRecord authority, string reason) =>
+        new(RehearsalTransitionStatus.RecoveryRequired, reason, authority, null, false, ["RecoveryRequired"]);
+}
