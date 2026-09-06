@@ -35,3 +35,37 @@ Phase 9.6E closes only the isolated rehearsal evidence gap. Phase 9.6F adds fina
 Phase 9.6F disposition: GD-01/GD-02/GD-05/GD-07/GD-09/GD-10/GD-14/GD-17/GD-19 remain open for future Production governance. No additional gap is closed merely by automated qualification.
 
 MQ-07 remains exactly: **BLOCKED — MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED**.
+## Phase 9.6G reconciliation
+
+The operator runbook and handoff/governance package close only documentation
+and evidence-indexing work. They do not close implementation, Production
+execution, or final governance approval.
+
+| Gap IDs | 9.6G classification | 9.6G disposition |
+|---|---|---|
+| GD-01, GD-03, GD-04, GD-05, GD-06, GD-07, GD-08, GD-09, GD-12, GD-13, GD-15, GD-16 | TECHNICAL_IMPLEMENTATION | OPEN. Qualification/rehearsal contracts are evidenced and fail closed, but no Production authority executor, write drain/fence, physical swap, Production rollback executor, or immutable Production audit-retention chain was added. |
+| GD-17 | OPERATIONAL_PROCEDURE | DOCUMENTED FOR 9.6H REVIEW. The 9.6G runbook defines future steps, gates, stops, abort, rollback, recovery, and handoff. Procedure approval remains a governance decision. |
+| GD-10, GD-18 | GOVERNANCE | OPEN. MQ-07 treatment remains narrow; Independent Human Review and final governance approval remain unavailable/not performed. |
+| GD-02, GD-14 | PRODUCTION_EXECUTION | OPEN. No Production commit, route enablement, physical database swap, or rollback was executed or authorized. |
+| GD-11 | TECHNICAL_IMPLEMENTATION | OPEN. Existing station-scoped activation validation remains a documented inconsistency against the frozen generic Target boundary; no Rasht/Ramsar Production branching was introduced. |
+| GD-19 | EVIDENCE_RETENTION | OPEN. 9.6G indexes existing evidence but does not create immutable long-term Production audit retention/readback or invent hashes. |
+| GD-20, GD-21 | EVIDENCE_RETENTION | CLOSED only for isolated qualification/rehearsal evidence already recorded; not Production evidence. |
+| GD-22 | TECHNICAL_IMPLEMENTATION | OPEN LOW. Six existing NU1701 warnings remain; no package change was made. |
+| GD-23 | EVIDENCE_RETENTION | PARTIALLY RECONCILED. Current 9.6G documents distinguish historical “ready/pass/closed” wording from current authority; historical evidence is not rewritten. |
+
+## Phase 9.6G consistency audit
+
+Repository search identified historical or bounded references that must not be
+read as current Production claims: older Phase 9/roadmap documents describe
+Rasht/Ramsar scope; the historical C6 record preserves the superseded 1–35
+unit defect; historical phase records use their own READY/PASS/CLOSED labels;
+and `Application/Activation/ProductionActivationBoundary.cs` retains the
+station-scoped validation recorded in GD-11. These records were not rewritten
+because they are historical evidence or implementation findings. Current 9.6G
+documents state the frozen boundary, 3–5 inclusive unit rule, MQ-07 BLOCKED
+status, unavailable Independent Human Review, absence of Support/RBAC, and
+disabled Target routing explicitly.
+
+No current 9.6G document claims Target authority, enabled routing, Production
+authorization, MQ-07 PASS, completed independent review, Support identity,
+RBAC, 35-unit support, or Rasht/Ramsar Production branching.
