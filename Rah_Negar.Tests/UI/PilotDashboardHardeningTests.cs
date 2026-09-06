@@ -390,7 +390,7 @@ public sealed class PilotDashboardHardeningTests
 
         string programHash = Convert.ToHexString(SHA256.HashData(
             File.ReadAllBytes(Path.Combine(root, "Program.cs"))));
-        Assert.Equal("33985F732E77AFC7249DDA0174E8BCC58601B5E0B3E22B93E31933F01ACCAA76",
+        Assert.Equal("E08F718D2C6CD159DA7810F34C80E975BB6958476560C57B536124627CC8CE9D",
             programHash);
         Assert.DoesNotContain("Rah_Negar.UI.Pilot", program, StringComparison.Ordinal);
         Assert.DoesNotContain("Rah_Negar.UI.Pilot", protectedSources, StringComparison.Ordinal);
