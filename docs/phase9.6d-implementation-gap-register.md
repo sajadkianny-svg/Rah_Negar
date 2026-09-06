@@ -23,8 +23,8 @@ Reassessed after Phase 9.6D3. The current invariant remains: Legacy is AUTHORITA
 | GD-17 | Operator runbook/UI | D3 SAFE BLOCK ONLY | No cutover UI or recovery override was added; blocked startup offers exit/retry validation path | Future governance/runbook package |
 | GD-18 | Identity boundary | PRESERVED | ShiftProfile/ManagementCredential architecture unchanged | Future action binding only |
 | GD-19 | Audit retention/tamper | PARTIAL | Integrity-backed authority/audit stores and no-secret contract exist | Future retention/chain/readback governance |
-| GD-20 | Qualification isolation | E IMPLEMENTED | `Qualification/run-phase9.6e-rehearsal.ps1` creates disposable Rasht/Ramsar sources, captures Production pre/post existence/hash/size/timestamp, and fails on unexpected Production change | Future governed Production executor remains out of scope |
-| GD-21 | D3/E qualification | E REHEARSAL PASS | `Phase96ERehearsalTests` 5/5 plus D3 suite cover isolated handoff, restart, fencing, reconciliation/divergence, abort, rollback safety, recovery, audit failure, backup binding, and Production rejection | No Production cutover qualification exists |
+| GD-20 | Qualification isolation | E IMPLEMENTED | `Qualification/run-phase9.6e-rehearsal.ps1` refreshes only disposable Rasht/Ramsar sources, captures Production DB and authority-metadata pre/post evidence, and fails on unexpected Production change | Future governed Production executor remains out of scope |
+| GD-21 | D3/E qualification | E REHEARSAL PASS | 12 Phase 9.6E tests plus 8 D3 tests cover isolated handoff, restart, fencing, reconciliation/divergence, all pre-commit abort points, rollback safety/interruption, recovery, audit failure, backup binding, and Production rejection | No Production cutover qualification exists |
 | GD-22 | Package health | EXISTING LOW | Build baseline remains six NU1701 warnings; no dependency changes made | Later compatibility review |
 | GD-23 | Historical wording | DOCUMENTATION DEBT | Historical documents retain their original claims; current D3 result is explicit | Future documentation consolidation |
 

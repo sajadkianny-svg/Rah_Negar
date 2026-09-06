@@ -61,3 +61,11 @@ No Production cutover UI, unrestricted executor, override/waiver, RBAC, Support 
 Production authority history/executor, physical Production swap, governed Production rollback, write drain/fence/final sync, governance/runbook repair tooling, immutable audit retention/readback, and activation qualification remain open. The isolated service is not registered by `Program.cs` and rejects `RehearsalContext.Production` before state access. These are Phase 9.6F/G or later boundaries and are not authorized by this rehearsal.
 
 READY TO BEGIN PHASE 9.6F
+
+## Execution addendum — 2026-09-06T21:10:21.7460018Z
+
+The repeatable run completed with 12/12 Phase 9.6E tests and 20/20 total focused tests when the 8 D3 authority tests were included. The launcher now refreshes only the disposable rehearsal directory and records `production-pre-state.json` and `production-post-state.json`. Both show `Data/db.sys` absent and both production authority metadata files absent; the result JSON records `productionIsolationUnchanged=true`, `productionMetadataUnchanged=true`, `disposableDatabaseInputsOnly=true`, and `productionDatabaseUsedAsWritableInput=false`.
+
+This addendum supersedes the earlier 5/5 focused-test count in the historical validation bullet.
+
+Final post-change validation supersedes the historical suite count as follows: full automated suite **PASS — 741/741**, solution build **PASS — 0 errors** (the existing NU1701 compatibility warnings remain), and `git diff --check` **PASS**.

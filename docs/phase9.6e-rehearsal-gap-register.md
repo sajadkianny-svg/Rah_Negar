@@ -9,3 +9,5 @@
 | E-G05 | OPEN | Phase 9.6F confirms the isolated rehearsal is repeatable, but it does not provide Production authority/cutover, physical rollback, immutable audit retention, or independent human review. |
 
 MQ-07 remains exactly: **BLOCKED  MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED**.
+
+Execution addendum: the expanded run covers 12 Phase 9.6E tests plus 8 D3 authority tests, including pre-commit abort points and rollback interruption recovery; the launcher records disposable database and Production metadata pre/post evidence.
