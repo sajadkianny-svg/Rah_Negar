@@ -1,6 +1,9 @@
 # Phase 9.6H — Final Governance Closure
 
-Status: **GOVERNANCE REVIEW COMPLETE — PROJECT OWNER DECISION PENDING**  
+Status: **PHASE 9.6 GOVERNANCE CLOSED**
+Project Owner decision: **NOT READY FOR PRODUCTION ACTIVATION DECISION**
+Project Owner: **Sajad Kiyani**
+Decision UTC timestamp: **2026-09-06 21:34:45 UTC**
 Branch: `phase9.6-activation-readiness`  
 Reviewed HEAD: `786f6cc`
 
@@ -154,16 +157,20 @@ the Phase 9.6B aggregate is **NOT_ELIGIBLE_FOR_ACTIVATION_DECISION**.
 
 ## 10. Exact governance decision
 
-The Phase 9.6H technical/governance outcome is **NOT READY FOR PRODUCTION
-ACTIVATION DECISION**.
+The Phase 9.6 governance outcome is **PHASE 9.6 GOVERNANCE CLOSED**.
 
-This is a technical/governance recommendation only. It is not the Project
-Owner decision. Phase 9.6 is not finally closed until the Project Owner
-decision is separately recorded.
+The Project Owner decision is **NOT READY FOR PRODUCTION ACTIVATION
+DECISION**.
+
+Owner comment: **Not ready for Production Activation decision. Remaining
+technical, governance, operational, and Production cutover requirements must
+be resolved before reconsideration.**
+
+Signature/reference: **Sajad Kiyani / Project Owner / 2026-09-06 21:34:45 UTC**
 
 ## 11. Explicit non-authorization statements
 
-This document does not:
+Phase 9.6 governance closure does not:
 
 - authorize Production Activation or Production Cutover;
 - make Target authoritative or enable Target routing;
@@ -176,10 +183,7 @@ This document does not:
 
 ## 12. Required next action after Phase 9.6
 
-The Project Owner must manually select and record one of the two choices in
-`docs/phase9.6h-project-owner-decision.md`. If a future decision is recorded,
-all still-open cutover implementation, Production-bound evidence, audit,
-rollback, approval, and review requirements must be satisfied separately
-before any Production transition is considered.
-
-**RECOMMEND NOT READY FOR PRODUCTION ACTIVATION DECISION**
+The required next action is to resolve the documented remaining blockers and
+gaps, including the technical, governance, operational, and Production cutover
+requirements, before any future reconsideration of Production Activation
+readiness.
