@@ -30,6 +30,8 @@ Reassessed after Phase 9.6D3. The current invariant remains: Legacy is AUTHORITA
 
 No CRITICAL pre-rehearsal D3 gap remains. The remaining Production executor, physical cutover, governance, and production rollback gaps are intentionally outside D3 and keep Production Activation/Cutover unauthorized.
 
-Phase 9.6E closes only the isolated rehearsal evidence gap. Production authority execution, cutover, routing enablement, physical rollback, and activation governance remain OPEN and unauthorized.
+Phase 9.6E closes only the isolated rehearsal evidence gap. Phase 9.6F adds final qualification evidence and confirms the harness/isolation boundary, but does not close Production authority execution, cutover, routing enablement, physical rollback, immutable audit retention, or activation governance; these remain OPEN and unauthorized.
+
+Phase 9.6F disposition: GD-01/GD-02/GD-05/GD-07/GD-09/GD-10/GD-14/GD-17/GD-19 remain open for future Production governance. No additional gap is closed merely by automated qualification.
 
 MQ-07 remains exactly: **BLOCKED — MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED**.
