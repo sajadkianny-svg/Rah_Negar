@@ -238,11 +238,18 @@ public sealed class TransitionIntentService
     }
 }
 
-public enum AuthorityAuditAction { TransitionIntentCreated, ValidationFailed, RecoveryRequiredEntered, InvalidTransitionRejected }
+public enum AuthorityAuditAction
+{
+    TransitionIntentCreated, ValidationFailed, RecoveryRequiredEntered, InvalidTransitionRejected,
+    Prepare, CommitAttempt, CommitSucceeded, CommitFailed, Abort, RollbackEligibility,
+    RollbackAttempt, RollbackSucceeded, RollbackFailed, Reconciliation, StaleWriterRejected,
+    RoutingRejected
+}
 public sealed record AuthorityAuditEntry(
     string CorrelationId, DateTimeOffset TimestampUtc, string DeploymentScope, string StationScope,
     string ApplicationVersion, AuthorityState? PreviousState, AuthorityState? RequestedState,
-    AuthorityAuditAction Action, string Result, string Reason);
+    AuthorityAuditAction Action, string Result, string Reason,
+    string? EvidenceReference = null, long? AuthorityEpoch = null);
 
 public interface IAuthorityAuditSink { Task WriteAsync(AuthorityAuditEntry entry, CancellationToken cancellationToken = default); }
 public sealed class FileAuthorityAuditSink : IAuthorityAuditSink
@@ -323,7 +330,7 @@ public sealed class AuthorityStartupResolver
     public Task<AuthorityLoadResult> ResolveAsync(CancellationToken cancellationToken = default) => _store.LoadAsync(cancellationToken);
 }
 
-public enum TransitionLifecycle { Idle, Prepared, Committing, Committed }
+public enum TransitionLifecycle { Idle, Prepared, Committing, Committed, Aborted }
 public enum TransitionLoadStatus { Missing, Loaded, RecoveryRequired }
 
 public sealed record AuthorityTransitionRecord(
@@ -351,8 +358,13 @@ public interface ITransitionStateStore
 public sealed class FileTransitionStateStore : ITransitionStateStore
 {
     private readonly string _path;
+    private readonly Func<bool>? _failWrite;
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
-    public FileTransitionStateStore(string path) => _path = string.IsNullOrWhiteSpace(path) ? throw new ArgumentException("Path is required.", nameof(path)) : path;
+    public FileTransitionStateStore(string path, Func<bool>? failWrite = null)
+    {
+        _path = string.IsNullOrWhiteSpace(path) ? throw new ArgumentException("Path is required.", nameof(path)) : path;
+        _failWrite = failWrite;
+    }
 
     public async Task<TransitionLoadResult> LoadAsync(CancellationToken cancellationToken = default)
     {
@@ -376,6 +388,7 @@ public sealed class FileTransitionStateStore : ITransitionStateStore
 
     public async Task SaveAsync(AuthorityTransitionRecord record, CancellationToken cancellationToken = default)
     {
+        if (_failWrite?.Invoke() == true) throw new IOException("Injected transition persistence failure.");
         string payload = JsonSerializer.Serialize(record, JsonOptions);
         string text = JsonSerializer.Serialize(new TransitionEnvelope(payload, Hash(payload)), JsonOptions);
         string? directory = Path.GetDirectoryName(Path.GetFullPath(_path));
@@ -409,11 +422,14 @@ public sealed record AuthorityStartupResult(
             t.SourceState == authority.Record.State &&
             t.DeploymentScope == authority.Record.DeploymentScope && t.StationScope == authority.Record.StationScope;
         if (!consistent) return new(authority, transition, true, "AuthorityTransitionMismatch", [.. issues, "authority-transition-mismatch"]);
+        if (t.Lifecycle == TransitionLifecycle.Aborted)
+            return new(authority, transition, false, "Aborted", issues);
         return new(authority, transition, true, t.Lifecycle switch
         {
             TransitionLifecycle.Prepared => "PreparedNotCommitted",
             TransitionLifecycle.Committing => "CommitInProgress",
             TransitionLifecycle.Committed => "CommitPersisted",
+            TransitionLifecycle.Aborted => "Aborted",
             _ => "InvalidOrCorrupt"
         }, issues);
     }
@@ -423,9 +439,11 @@ public sealed class AuthorityCommitService
 {
     private readonly IAuthorityStateStore _authority;
     private readonly ITransitionStateStore _transitions;
+    private readonly IAuthorityAuditSink? _audit;
     private readonly SemaphoreSlim _mutex = new(1, 1);
-    public AuthorityCommitService(IAuthorityStateStore authority, ITransitionStateStore transitions) => (_authority, _transitions) =
-        (authority ?? throw new ArgumentNullException(nameof(authority)), transitions ?? throw new ArgumentNullException(nameof(transitions)));
+    public AuthorityCommitService(IAuthorityStateStore authority, ITransitionStateStore transitions, IAuthorityAuditSink? audit = null) =>
+        (_authority, _transitions, _audit) =
+        (authority ?? throw new ArgumentNullException(nameof(authority)), transitions ?? throw new ArgumentNullException(nameof(transitions)), audit);
 
     public async Task<AuthorityTransitionRecord> PrepareAsync(string transitionId, CancellationToken cancellationToken = default)
     {
@@ -436,10 +454,11 @@ public sealed class AuthorityCommitService
             if (!current.IsOperationallySafe) throw new InvalidOperationException("Authority state is not operationally safe.");
             TransitionLoadResult existing = await _transitions.LoadAsync(cancellationToken).ConfigureAwait(false);
             if (existing.Record is { } prior && prior.TransitionId == transitionId) return prior;
-            if (existing.Record is { Lifecycle: not TransitionLifecycle.Committed }) throw new InvalidOperationException("Another transition is active.");
+            if (existing.Record is { Lifecycle: not (TransitionLifecycle.Committed or TransitionLifecycle.Aborted) }) throw new InvalidOperationException("Another transition is active.");
             long generation = Math.Max(current.Record.AuthorityEpoch, existing.Record?.Generation ?? 0) + 1;
             var prepared = AuthorityTransitionRecord.PreparedFrom(current.Record, transitionId, generation);
             await _transitions.SaveAsync(prepared, cancellationToken).ConfigureAwait(false);
+            await WriteAuditAsync(current.Record, transitionId, AuthorityAuditAction.Prepare, "PREPARED", "transition-prepared", generation, cancellationToken).ConfigureAwait(false);
             return prepared;
         }
         finally { _mutex.Release(); }
@@ -459,16 +478,26 @@ public sealed class AuthorityCommitService
             if (t.Lifecycle == TransitionLifecycle.Committing && current.Record.AuthorityEpoch == generation)
             {
                 await _transitions.SaveAsync(t with { Lifecycle = TransitionLifecycle.Committed, RecordedAtUtc = DateTimeOffset.UtcNow }, cancellationToken).ConfigureAwait(false);
+                await WriteAuditAsync(current.Record, transitionId, AuthorityAuditAction.CommitSucceeded, "COMMITTED", "commit-retry-finalized", generation, cancellationToken).ConfigureAwait(false);
                 return true;
             }
             if (generation <= current.Record.AuthorityEpoch) throw new InvalidOperationException("Stale authority epoch fenced.");
             if (t.Lifecycle is not (TransitionLifecycle.Prepared or TransitionLifecycle.Committing)) throw new InvalidOperationException("Transition is not committable.");
+            await WriteAuditAsync(current.Record, transitionId, AuthorityAuditAction.CommitAttempt, "ATTEMPTED", "commit-started", generation, cancellationToken).ConfigureAwait(false);
             await _transitions.SaveAsync(t with { Lifecycle = TransitionLifecycle.Committing, RecordedAtUtc = DateTimeOffset.UtcNow }, cancellationToken).ConfigureAwait(false);
             // D2 commit changes only the canonical transition marker; Legacy remains authoritative and routing stays disabled.
             await _authority.SaveAsync(current.Record with { AuthorityEpoch = generation, Revision = current.Record.Revision + 1 }, cancellationToken).ConfigureAwait(false);
             await _transitions.SaveAsync(t with { Lifecycle = TransitionLifecycle.Committed, RecordedAtUtc = DateTimeOffset.UtcNow }, cancellationToken).ConfigureAwait(false);
+            await WriteAuditAsync(current.Record, transitionId, AuthorityAuditAction.CommitSucceeded, "COMMITTED", "commit-complete", generation, cancellationToken).ConfigureAwait(false);
             return true;
         }
         finally { _mutex.Release(); }
     }
+
+    private Task WriteAuditAsync(AuthorityStateRecord current, string correlationId, AuthorityAuditAction action,
+        string result, string reason, long generation, CancellationToken cancellationToken) => _audit is null
+        ? Task.CompletedTask
+        : _audit.WriteAsync(new AuthorityAuditEntry(correlationId, DateTimeOffset.UtcNow, current.DeploymentScope,
+            current.StationScope, "9.6D3", current.State, AuthorityState.ActivationPreparedNotExecuted,
+            action, result, reason, null, generation), cancellationToken);
 }
