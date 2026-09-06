@@ -246,7 +246,8 @@ public sealed record AuthorityAuditEntry(
     string CorrelationId, DateTimeOffset TimestampUtc, string DeploymentScope, string StationScope,
     string ApplicationVersion, AuthorityState? PreviousState, AuthorityState? RequestedState,
     AuthorityAuditAction Action, string Result, string Reason,
-    string? EvidenceReference = null, long? AuthorityEpoch = null);
+    string? EvidenceReference = null, long? AuthorityEpoch = null,
+    string? ActorShiftProfileId = null, string? ManagementCredentialProofResult = null);
 
 public interface IAuthorityAuditSink { Task WriteAsync(AuthorityAuditEntry entry, CancellationToken cancellationToken = default); }
 public sealed class FileAuthorityAuditSink : IAuthorityAuditSink
