@@ -1,6 +1,8 @@
 # Phase 9.8 - Independent Review Disposition
 
-Status: **INDEPENDENT HUMAN REVIEW = NOT PERFORMED / UNAVAILABLE**
+Status: **AWAITING INDEPENDENT HUMAN REVIEW**
+
+Reviewer package: [`phase9.8-independent-review-final-package.md`](phase9.8-independent-review-final-package.md)
 
 ## Evidence status
 
@@ -11,6 +13,13 @@ The Phase 9.5, Phase 9.6, and Phase 9.7 records consistently state:
 The repository contains an AI-assisted technical review and automated test and
 qualification evidence. AI-assisted review is **NOT organizationally
 independent** and is not treated as independent human review.
+
+The package was refreshed after Phase 9.7 and Phase 9.8 technical evidence
+collection. It includes the exact scope, Phase 9.7 changes, residual
+limitations, installation discovery, disposable restore receipt, audit
+qualification, runbook consistency review, focused/full test results, and an
+unselected PASS / PASS WITH LIMITATIONS / FAIL checklist. This refresh is a
+technical preparation step, not a human review.
 
 ## Disposition
 
@@ -37,5 +46,4 @@ sign-off/reference, or obtain a separately governed change to the prerequisite
 framework before reconsidering the aggregate. No such new evidence or change
 is present in this repository.
 
-**Current disposition: PRE-ACTIVATION-DECISION BLOCKER.**
-
+**Current disposition: PRE-ACTIVATION-DECISION BLOCKER; AWAITING INDEPENDENT HUMAN REVIEW.**

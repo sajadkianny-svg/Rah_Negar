@@ -1,14 +1,13 @@
 # Phase 9.8 - Final Governance Readiness Package
 
-Status: **FINAL GOVERNANCE PACKAGE - PROJECT OWNER DECISION NOT RECORDED**
+Status: **FINAL PACKAGE — PROJECT OWNER DECISION NOT RECORDED**
 
-This package closes the non-coding Phase 9.8 review only. It does not execute
-Production Activation or Production Cutover and does not record the Project
-Owner decision.
+This package reports technical evidence and open human gates. It does not
+record a Project Owner decision and does not authorize Activation or Cutover.
 
 ## Current authority boundary
 
-| Control | Current state |
+| Control | State |
 |---|---|
 | Legacy | **AUTHORITATIVE** |
 | Target | **NON-AUTHORITATIVE** |
@@ -16,58 +15,44 @@ Owner decision.
 | Production Activation | **UNAUTHORIZED** |
 | Production Cutover | **UNAUTHORIZED** |
 
-## Phase 9.7 technical resolution
+## Evidence status
 
-Phase 9.7 qualified the future authorization-disabled boundary in disposable
-scope: typed and fail-closed execution context; action/scope/version/state/
-correlation binding; local writer fencing and generation leases; deterministic
-write drain and abort; canonical authority-before-routing ordering; rollback
-eligibility and `RECOVERY_REQUIRED`; durable local audit hash-chain
-verification; and Production-path isolation. The Phase 9.7 harness recorded
-18/18 focused tests, 38/38 authority/rehearsal tests, 104/104 rejection and
-isolation tests, and a PASS result. These are not installation or authorization
-evidence.
-
-## Final evidence status
-
-| Area | Status | Meaning |
+| Area | Status | Evidence |
 |---|---|---|
-| Installation evidence | **AWAITING INSTALLATION EVIDENCE** | No actual deployment-bound DB identity, hash, size, last-write time, profile/schema/version, authority metadata, route readback, or handoff receipt is present. Qualification recorded the Production DB and relevant metadata/audit paths absent before and after. |
-| Physical restore custody | **AWAITING PHYSICAL RESTORE CUSTODY CONFIRMATION** | Isolated backup/restore support exists, but no physical Production artifact, custody holder, restore operator, or restore receipt is present. |
-| Operator/runbook approval | **AWAITING OPERATOR/RUNBOOK APPROVAL** | The Phase 9.6G runbook is prepared; no Phase 9.8 operator, supervisor, or owner approval/signature/timestamp is present. |
-| Independent Human Review | **NOT PERFORMED / UNAVAILABLE** | AI-assisted review is not organizationally independent. Under the Phase 9.7 framework this remains a pre-activation-decision blocker. |
-| MQ-07 | **BLOCKED** | Exact previously accepted residual limitation retained; no new waiver and no PASS claim. |
-| Prerequisite aggregate | **NOT_ELIGIBLE_FOR_ACTIVATION_DECISION** | PR-01, PR-04, PR-07, PR-08, PR-16, PR-17, PR-18, and PR-20 remain blocking. |
+| Installation evidence | **INCOMPLETE** | Repository/Release discovery is captured; no identified Production DB, profile, schema, Unit count, Target handoff, persisted authority/route receipt, or live fence/drain receipt |
+| Restore technical verification | **PASS — QUALIFICATION SOURCE ONLY** | Managed backup/restore passed integrity/FK/WAL checks; source remained unchanged; source is not proven Production |
+| Physical restore custody | **TECHNICAL RESTORE VERIFIED — AWAITING HUMAN CUSTODY CONFIRMATION** | `phase9.8-physical-restore-custody-record.md` |
+| Audit retention technical verification | **PASS — DISPOSABLE IMPLEMENTATION ONLY** | Append/hash-chain and tamper detection passed; installation path, immutable retention, and organizational custody absent |
+| Operator/runbook approval | **AWAITING OPERATOR/RUNBOOK APPROVAL** | Technical consistency review passed; human acknowledgements are blank |
+| Independent Human Review | **AWAITING INDEPENDENT HUMAN REVIEW** | No genuine independent human review supplied; AI-assisted review is not independent |
+| MQ-07 | **BLOCKED** | Manual observation remains not practically exercisable; automated invariant evidence retained under the existing narrow exception |
+| Prerequisite aggregate | **NOT_ELIGIBLE_FOR_ACTIVATION_DECISION** | Human and installation-bound prerequisites remain open |
+
+## Technical verification record
+
+- Focused installation/restore/audit qualification: **PASS**. The Phase 9.8
+  probe captured installation discovery, completed a disposable managed restore,
+  and proved audit append/hash-chain/tamper behavior.
+- Focused automated tests: **145/145 passed**, 0 failed, 0 skipped.
+- Full automated suite: **759/759 passed**, 0 failed, 0 skipped.
+- Normal solution build: **PASS**, 0 errors, 6 known NU1701 compatibility
+  warnings for OpenTK, OpenTK.GLControl, and SkiaSharp Windows Forms assets.
+- `git diff --check`: **PASS**.
+- Production isolation: **PASS**; no Production DB or metadata path changed.
 
 ## Remaining blockers
 
-The exact remaining blockers are installation-bound Production evidence,
-physical restore and rollback custody, approved operator/runbook evidence,
-independent human review, and a completed installation-bound governance
-decision package. Physical audit-retention custody and readback governance
-also remain unproven. The six known NU1701 warnings remain disclosed as a
-package-health limitation but are not the reason for the aggregate result.
+1. Actual Production installation identity, DB/schema/profile/Unit/data-
+   equivalence, authority/transition/routing readback, and live fence/drain
+   evidence.
+2. Physical retained-backup custody acknowledgement and human restore record.
+3. Operator and Operational Supervisor runbook approval/training evidence.
+4. Independent Human Review and unselected human disposition.
+5. Project Owner installation-bound governance decision and any later explicit
+   activation authorization.
+6. Organizational audit-retention custody/retention manifest.
 
-## Exact next action required
+The technical evidence does not close these human-required gates. No Project
+Owner decision is recorded in this package.
 
-Complete and independently verify the installation evidence package, perform
-and retain the physical restore-custody record, obtain operator/supervisor
-runbook approval, obtain the required independent human review, and then
-present the completed evidence to the Project Owner for a new two-choice
-decision. Until those steps are complete, do not create a commit intent, enable
-Target routing, change authority, activate, or cut over.
-
-## Phase 9.8 verification record
-
-Commands run at the Phase 9.8 working-tree verification:
-
-- `dotnet test Rah_Negar.sln -c Release --no-restore --nologo`: **PASS - 759/759 passed, 0 failed, 0 skipped**.
-- `dotnet build Rah_Negar.sln -c Release --no-restore --nologo`: **PASS - 0 errors, 6 warnings**. The warnings are the known NU1701 compatibility warnings for OpenTK, OpenTK.GLControl, and SkiaSharp Windows Forms assets.
-- `git diff --check`: **PASS**.
-
-No full qualification rerun was performed. No code, tests, qualification
-scripts, schema, database, authority state, or routing state was modified.
-
-## Technical recommendation
-
-**RECOMMEND NOT READY FOR PRODUCTION ACTIVATION DECISION**
+**Recommendation: RECOMMEND NOT READY FOR PRODUCTION ACTIVATION DECISION.**

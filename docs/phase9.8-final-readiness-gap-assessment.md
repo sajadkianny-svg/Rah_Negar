@@ -1,52 +1,56 @@
 # Phase 9.8 - Final Readiness Gap Assessment
 
-Status: **FINAL NON-CODING READINESS REVIEW - NOT ELIGIBLE FOR ACTIVATION-DECISION READINESS**
+Status: **FINAL NON-CODING REVIEW — NOT_ELIGIBLE_FOR_ACTIVATION_DECISION**
 
-This assessment carries forward the Phase 9.7 gap register and does not execute
-Production Activation or Production Cutover. It records only evidence found in
-the repository. Missing installation, custody, operator, reviewer, signature,
-and timestamp evidence is not inferred.
+No Production Activation, Cutover, Target authority change, Target routing
+enablement, or Production data mutation occurred.
 
 ## Current authority boundary
 
-| Control | Current state |
-|---|---|
-| Legacy | **AUTHORITATIVE** |
-| Target | **NON-AUTHORITATIVE** |
-| Target Routing | **DISABLED** |
-| Production Activation | **UNAUTHORIZED** |
-| Production Cutover | **UNAUTHORIZED** |
+Legacy = **AUTHORITATIVE**; Target = **NON-AUTHORITATIVE**; Target Routing =
+**DISABLED**; Production Activation = **UNAUTHORIZED**; Production Cutover =
+**UNAUTHORIZED**.
 
-## Remaining gaps carried forward from Phase 9.7
+## Previous blocker reassessment
 
-The resolved Phase 9.7 implementation gaps (G-97-01 through G-97-09) remain
-closed only for their qualified future/disposable boundary. The following
-items remain open or limited.
+| Blocker | Phase 9.8 result | Evidence and reason |
+|---|---|---|
+| B-01 / G-97-13 — installation-bound approval package | OPEN | Build/repository identity is captured, but no Production-bound approval, owner, scope, expiry, or authorization exists |
+| B-02 / G-97-08 — governed Production execution boundary | RESOLVED for future qualification | Phase 9.7 contract, rejection tests, and disabled verifier remain valid; no Production execution is authorized |
+| B-03 / G-97-09 — fence and handoff boundary | RESOLVED for future qualification | Fence/write-drain implementation and tests pass; no live writer/fence receipt exists |
+| B-04 / G-97-09 — authority commit/routing ordering | RESOLVED for future qualification | Commit-before-route ordering and negative tests pass |
+| B-05 / G-97-11 — physical rollback/restore custody | PARTIALLY_RESOLVED | Disposable managed backup/restore passed; no physical Production artifact, custodian, human verifier, or Production rollback receipt |
+| B-06 / G-97-10 — Production-like Target/handoff evidence | PARTIALLY_RESOLVED | Release candidate was inspected, but it is an empty build-output DB and not an identified Production/Target database |
+| B-07 / G-97-07 — audit retention/readback governance | PARTIALLY_RESOLVED | Disposable append/hash-chain/tamper verification passed; actual installation path, immutable retention location, ACL, and organizational custody are absent |
+| B-08 / G-97-12 — operator/runbook approval | PARTIALLY_RESOLVED | Technical consistency review passed; operator, supervisor, training, and approval evidence are absent |
+| B-09 / G-97-14 — Independent Human Review | OPEN | No genuine independent human review or sign-off was supplied; AI-assisted review is not independent |
+| B-10 / G-97-15 — MQ-07 manual observation limitation | PARTIALLY_RESOLVED under existing narrow exception | Manual observation remains blocked; automated invariant evidence is retained; no new waiver or PASS claim |
+| B-11 / G-97-16 — generic deployment composition/route adoption | OPEN | Supported station/unit rules are known, but no installation composition, Target route registration, or handoff exists |
+| B-12 / G-97-01/G-97-02 — final governance decision | OPEN | Project Owner decision, bounded authorization, and installation-bound decision artifact remain absent |
+| G-97-17 — six NU1701 compatibility warnings | OPEN, non-gating limitation | Release build still reports six known package compatibility warnings |
 
-| Gap ID | Description | Category | Current evidence | Missing evidence | Resolvable in documentation? | Human/manual action required? | Blocks `ELIGIBLE_FOR_ACTIVATION_DECISION`? |
-|---|---|---|---|---|---|---|---|
-| B-01 / G-97-13 | Installation-bound approval package with scope, version, expiry, owner, database, evidence, and correlation binding | GOVERNANCE | Phase 9.7 contract and rejection tests validate the shape; no real approval artifact exists | Valid future approval bound to the actual installation and evidence | Partly; the record can define the required fields, but cannot create approval | Yes - authorized owner/governance decision | Yes |
-| B-05 / G-97-11 | Governed physical Production rollback, backup/restore custody, and restore operator | RESTORE_CUSTODY | Isolated backup/restore boundary and failure tests; MQ-01 support evidence is automated/isolated | Physical artifact identity, custodian, restore receipt, recovery observation, and Production-bound verification | Partly; this record provides a blank custody form only | Yes - physical restore and custody verification | Yes |
-| B-06 / G-97-10 | Final Production-like Target data equivalence and installation-bound handoff | INSTALLATION_EVIDENCE | Disposable Phase 9.7 harness and handoff package; Production DB was absent in qualification pre/post state | Actual deployment/station, DB identity/hash/size/time, profile/schema/version, Target comparison, and handoff receipt | Partly; this assessment can specify the package, not capture values | Yes - deployment inspection and controlled evidence capture | Yes |
-| B-08 / G-97-12 | Approved versioned operator runbook, training, and evidence custody | OPERATOR_APPROVAL | `docs/phase9.6g-operator-cutover-runbook.md` is prepared and compatible with the staged boundary | Operator review, supervisor review, Project Owner acknowledgement, training/understanding evidence, and approval references | Partly; approval fields can be prepared, not signed | Yes - named reviewers must review and approve | Yes |
-| B-09 / G-97-14 | Independent Human Review | INDEPENDENT_REVIEW | Phase 9.5/9.6/9.7 records state **NOT PERFORMED / UNAVAILABLE**; AI-assisted review is not organizationally independent | Actual independent human review report and sign-off, or a new governance decision under the governing framework | No; documentation cannot truthfully create an independent review | Yes - independent reviewer or authorized governance treatment | Yes under the existing Phase 9.7 gate treatment |
-| B-10 / G-97-15 | MQ-07 manual observation limitation | RESIDUAL_LIMITATION | Exact status remains **BLOCKED - MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED**; Phase 9.6B2 accepted only this residual treatment | No new evidence is required for the already-approved narrow treatment unless contrary evidence appears | Yes - exact limitation and exception are already documented | No new action is required for the existing exception; future contradiction must be reviewed | No, solely under the existing Phase 9.6B2 exception; it is not PASS or a general waiver |
-| B-11 / G-97-16 | Future generic deployment composition and route adoption for the supported Rasht/Ramsar scope | INSTALLATION_EVIDENCE | Generic profile boundary is tested; no Production route registration or station-specific Production branch exists | Installation-specific composition, all writer binding, route readback, and scope reconciliation | Partly; the required evidence can be defined, not evidenced from this checkout | Yes - deployment composition and operational validation | Yes for a real activation-decision package |
-| B-12 / G-97-01, G-97-02 | Explicit final governance decision bound to installation and expiry | GOVERNANCE | Typed contract rejects missing decision/owner/expiry bindings; no Phase 9.8 decision is recorded | Project Owner decision for this package and a valid bounded authorization artifact if later approved | Partly; the two-choice form can be prepared, not decided | Yes - Project Owner/governance body | Yes |
-| B-07 / G-97-07 | Physical retention custody and immutable long-term audit/readback governance | RESTORE_CUSTODY | Local append-only hash-chain implementation and tamper tests are qualified; retention policy is documented | Physical retention location, access/custody confirmation, immutable readback evidence, and retention manifest | Partly; policy and fields can be documented | Yes - custody owner must establish and verify retention | Yes |
-| G-97-17 | Six known NU1701 compatibility warnings | RESIDUAL_LIMITATION | Existing Release builds pass with six known OpenTK/OpenTK.GLControl/SkiaSharp Windows Forms compatibility warnings | No new Phase 9.8 evidence; package remediation remains a separate technical-health item | Yes - limitation is already disclosed | No for this governance package | No, unless future governance makes package health a gate |
+## Technical evidence completed
 
-## Evidence conclusion
+- Installation discovery captured repository, branch, HEAD, Release assembly,
+  candidate DB metadata, missing metadata paths, supported stations, and unit
+  boundary in `phase9.8-installation-discovery.json`.
+- Disposable restore captured backup hash, receipt, SQLite integrity, FK,
+  WAL/SHM, read-only rollback copy, restored hash, and unchanged source in
+  `phase9.8-restore-verification.json`.
+- Disposable audit qualification proved append/sequence/hash-chain integrity
+  and detected a tampered copy in `phase9.8-audit-verification.json`.
+- The current installation audit path and physical retention custody remain
+  unproven. `FileTransitionStateStore` can overwrite and clear transition
+  metadata; this is a documented protection limitation, not human custody.
 
-The repository contains qualified technical boundary evidence, historical MQ
-evidence, and prepared runbook/handoff materials. It does not contain the
-installation-bound, physical-custody, operator-approval, or independent-human
-review evidence needed to close the remaining gates. The Phase 9.7
-qualification result is not Production evidence: its recorded `Data/db.sys`
-was absent before and after qualification, and its metadata/audit files were
-also absent before and after qualification.
+## Aggregate
 
-The gaps above remain blockers. No new waiver is created. The only exception
-applied is the previously approved MQ-07 residual treatment.
+**NOT_ELIGIBLE_FOR_ACTIVATION_DECISION**
 
-**Assessment:** `NOT_ELIGIBLE_FOR_ACTIVATION_DECISION`.
+The blocking human/installation items are B-01, B-05, B-06, B-07, B-08,
+B-09, B-11, and B-12. MQ-07 is not an additional aggregate blocker only under
+the previously approved, narrow Phase 9.6B2 treatment; it remains exactly
+BLOCKED. Technical evidence does not close human approval, independent review,
+physical custody, or Project Owner governance.
+
+**Recommendation: RECOMMEND NOT READY FOR PRODUCTION ACTIVATION DECISION.**

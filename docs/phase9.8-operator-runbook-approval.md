@@ -4,39 +4,45 @@ Status: **AWAITING OPERATOR/RUNBOOK APPROVAL**
 
 Reference: [`docs/phase9.6g-operator-cutover-runbook.md`](phase9.6g-operator-cutover-runbook.md)
 
-This record prepares the approval evidence for the existing future controlled
-runbook. It does not approve or execute Production Activation or Cutover.
+This record prepares human approval evidence. It does not approve or execute
+Production Activation or Cutover.
 
-## Approval fields
+## Technical consistency review
 
-| Review or acknowledgement | Reviewer/name | UTC date/time | Signature/reference | Status |
-|---|---|---|---|---|
-| Operator review | Not recorded | Not recorded | Not recorded | AWAITING |
-| Operational supervisor review | Not recorded | Not recorded | Not recorded | AWAITING |
-| Project Owner acknowledgement | Not recorded in this Phase 9.8 record | Not recorded | Not recorded | AWAITING |
+Review date: `2026-09-06`  |  Reviewer: automated repository review  |  Result: **TECHNICALLY CONSISTENT**
 
-## Required operator understanding
+| Runbook contract | Current Phase 9.7 implementation check | Result |
+|---|---|---|
+| Authority ordering | Canonical Target authority commit is verified before Target routing enablement; Legacy de-authority is checked from the committed state | PASS |
+| Fencing and write drain | `LocalSingleWriterFence` and `ProductionWriteGate` implement the documented fence/drain boundary and stale-generation checks | PASS in disposable qualification scope |
+| Authorization contract | Execution context binds action, scope, application/schema version, correlation, generation, prerequisite, governance, management proof, backup, reconciliation, and audit | PASS as contract/rejection evidence |
+| Routing ordering | Target routing is rejected until Target authority is committed and re-read | PASS |
+| Rollback eligibility | Rollback requires Target authority, matched reconciliation, synchronized divergence, verified backup, complete audit, and valid context; unsafe cases are rejected | PASS as isolated eligibility evidence |
+| `RECOVERY_REQUIRED` | Commit/routing/audit/rollback ambiguity enters recovery with routing disabled | PASS as isolated failure-path evidence |
+| Audit capture | Prepare/commit/recovery/rollback entries are written to the tamper-evident audit sink and read back | PASS as isolated implementation evidence |
 
-The reviewer must explicitly confirm each item against the referenced runbook.
+No technical inconsistency requiring a runbook correction was found. The
+review does not establish live installation composition, human understanding,
+training, or approval.
 
-- [ ] STOP conditions understood.
-- [ ] Abort procedure understood.
-- [ ] Rollback decision tree understood.
-- [ ] `RECOVERY_REQUIRED` procedure understood.
-- [ ] No manual database flag editing.
-- [ ] No bypass, hidden credential, or generic override.
-- [ ] Routing ordering understood: Target routing cannot precede committed and verified Target authority.
-- [ ] Authority handoff ordering understood: canonical authority commit precedes route enablement and Legacy de-authority verification.
-- [ ] Evidence capture, retention, and handoff responsibilities understood.
-- [ ] Current Legacy-authoritative, Target-non-authoritative, Target-routing-disabled state understood.
+## Human acknowledgement fields
 
-## Evidence limitation
+Each named person must review the complete runbook and mark each item. A filled
+field is not implied by this prepared form.
 
-The Phase 9.6G runbook is prepared and Phase 9.7 documents its technical
-compatibility. The repository contains no new operator review, supervisor
-review, training confirmation, Project Owner acknowledgement, signature, or
-approval timestamp for Phase 9.8. A prepared runbook is not an approved
-runbook.
+| Reviewer | Exact fields to complete | Required evidence | Status |
+|---|---|---|---|
+| Operator | Name, role, scope; acknowledge STOP/ABORT/ROLLBACK/`RECOVERY_REQUIRED`, no manual flag edits/bypass, routing ordering, evidence handoff, and current Legacy-authoritative state | Signature or auditable acknowledgement reference and UTC timestamp | AWAITING |
+| Operational Supervisor | Name, role; confirm runbook version, operator readiness/training, write-drain/fence responsibility, restore escalation, and evidence custody handoff | Signature or auditable approval reference and UTC timestamp | AWAITING |
+| Project Owner | Name; acknowledge residual MQ-07 wording, open evidence gaps, and that approval is not activation/cutover authorization | Separate governed decision record; no entry may be inferred here | AWAITING |
+
+Required checkbox set for the operator and supervisor:
+
+- [ ] STOP conditions and abort procedure understood.
+- [ ] Rollback decision tree and `RECOVERY_REQUIRED` procedure understood.
+- [ ] No manual database flag editing, hidden credential, bypass, or generic override.
+- [ ] Authority commit precedes Target routing; routing remains disabled until re-read confirmation.
+- [ ] Backup, restore, audit, retention, and handoff evidence responsibilities understood.
+- [ ] Legacy authoritative / Target non-authoritative / Target routing disabled state understood.
 
 **Final status: AWAITING OPERATOR/RUNBOOK APPROVAL.**
-
