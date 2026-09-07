@@ -33,7 +33,10 @@ public static class RecoveryRequiredStateStore
         DeleteMarker(databasePath);
 
     private static string MarkerPath(string databasePath) =>
-        Path.GetFullPath(databasePath) + ".recovery-required";
+        string.Equals(Path.GetFullPath(databasePath), Rah_Negar.Infrastructure.ApplicationData.ApplicationDataPaths.Default.DatabasePath,
+            StringComparison.OrdinalIgnoreCase)
+            ? Rah_Negar.Infrastructure.ApplicationData.ApplicationDataPaths.Default.RecoveryRequiredPath
+            : Path.GetFullPath(databasePath) + ".recovery-required";
 
     private static void DeleteMarker(string databasePath)
     {

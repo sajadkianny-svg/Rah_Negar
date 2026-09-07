@@ -2,7 +2,7 @@
 
 Counts in this register are open actionable product/readiness gaps; owner-deferred governance items are listed separately and are not counted as software defects.
 
-## Batch 1 closure status (2026-09-07)
+## Batch 1 and Batch 2 closure status (2026-09-07)
 
 The original finding rows below are retained as the audit baseline. Current status and evidence for this batch are:
 
@@ -15,7 +15,10 @@ The original finding rows below are retained as the audit baseline. Current stat
 | H-01 | RESOLVED | Legacy import now decrypts/stages/validates, creates a verified SQLite rollback copy, replaces atomically, validates post-replacement, and marks `RecoveryRequired` if rollback cannot be proven. |
 | H-02 | RESOLVED FOR SAFETY | Ordinary login-password maintenance bypass removed. Active settings actions fail closed; service entry points require canonical `ManagementAuthorizationProof` with action/scope/version/expiry validation and audit. |
 | H-06 | RESOLVED | Legacy Event insert/edit/delete paths use one transactional below-UI authority validator with canonical types, exact-minute uniqueness, complete-chain transitions, and rollback behavior. |
-| H-07 | OUTSIDE BATCH 1 | Full target security/report/snapshot composition remains intentionally inactive while Legacy is authoritative and target routing is disabled. |
+| H-03 | RESOLVED | `ApplicationDataPaths` centralizes ProgramData state; WAL-aware legacy migration is fail-closed and the real Inno Setup lifecycle passed. |
+| H-04 | RESOLVED | QualificationTool nested probe compilation is excluded; the clean-build Phase 9.7 wrapper completed PASS with isolated artifacts. |
+| H-05 | OPEN | Base UI policy/message hardening and automated scale invariants are present, but real desktop visual/keyboard/DPI acceptance is unavailable in this environment. |
+| H-07 | RESOLVED AS INACTIVE COMPOSITION | Explicit target operational write boundary and routing guard remain disabled; Legacy remains authoritative and Target remains non-authoritative. |
 | M-04 | RESOLVED AS PART OF BATCH 1 | Factory reset service is proof-gated, sidecar-aware, integrity-checked, and requires a separate compatible verified backup. |
 
 The production authority decision remains unchanged: Legacy is authoritative, Target is non-authoritative, target routing is disabled, and Production Activation/Cutover are unauthorized.
@@ -54,4 +57,4 @@ The production authority decision remains unchanged: Legacy is authoritative, Ta
 | D-03 | MQ-07 manual observation | Blocked with automated invariant evidence retained | NO under the recorded narrow Pilot decision |
 | D-04 | ESD effects, recovery custody, and some cutover semantics | Pending explicit owner/domain decisions | NO for current Pilot; YES for the affected final-production capability |
 
-Open actionable counts after Batch 1: CRITICAL 0, HIGH 4 (H-03, H-04, H-05, H-07), MEDIUM 7, LOW 3. All remaining CRITICAL/HIGH items are outside this batch; the product is not final-delivery-ready until those gates are separately closed.
+Open actionable counts after Batch 2: CRITICAL 0, HIGH 1 (H-05), MEDIUM 7, LOW 3. H-05 is not closed because the required native desktop observations could not be performed here.

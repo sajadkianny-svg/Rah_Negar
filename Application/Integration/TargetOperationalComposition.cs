@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Rah_Negar.Foundation.Application.Authority;
 using Rah_Negar.Foundation.Application.Security;
 
 namespace Rah_Negar.Foundation.Application.Integration;
@@ -50,6 +51,21 @@ public sealed class InactiveTargetOperationalComposition
     public bool LegacyRemainsAuthoritative => true;
     public bool ProductionMutationAllowed => false;
     public bool PreparationOperatorReachable => false;
+}
+
+/// <summary>
+/// Explicit write fence for the composed-but-inactive Target surface.
+/// </summary>
+public sealed class InactiveTargetOperationalWriteBoundary
+{
+    public bool IsEnabled => false;
+    public bool IsReachableFromLegacyOperation => false;
+
+    public void EnsureWriteIsDisabled() =>
+        throw new InvalidOperationException("Target operational routing is disabled while Legacy is authoritative.");
+
+    public static bool CanWrite(AuthorityStateRecord authority) =>
+        authority is not null && AuthorityRoutingGuard.IsTargetOperationalRoutingAllowed(authority) && false;
 }
 
 public static class TargetOperationalRouteCatalog

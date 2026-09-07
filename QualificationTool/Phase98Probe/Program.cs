@@ -93,25 +93,11 @@ static async Task InitializeAsync(string databasePath, string evidence, string a
     Directory.CreateDirectory(Path.GetDirectoryName(databasePath)!);
     Directory.CreateDirectory(appDirectory);
 
-    string fixturePath = Path.Combine(AppContext.BaseDirectory, "Data", "db.sys");
-    DeleteGenerated(fixturePath);
-    StartupSetupService.InitializeApplication(new StartupSetupData
-    {
-        StationType = StationType.Rasht,
-        StationName = "Production-Like Qualification Station",
-        ResetPassword = QualificationEnvironment.LoginPassword,
-        DataStartDateRep = QualificationEnvironment.DataStartDate,
-        EsdExtraRuntimeEnabled = true,
-        EsdExtraRuntimeHours = 1.5,
-        UnitRuntimeBases = Enumerable.Range(1, 3).Select(unit => new UnitRuntimeBase
-        {
-            UnitNo = unit,
-            BaseRuntimeHours = 100 + unit,
-            BaseRuntimeAfterOHHours = 20 + unit,
-            InitialIsRunning = false,
-            InitialStatus = "OFF"
-        }).ToList()
-    });
+    // Qualification fixtures are created through the explicit disposable environment;
+    // the production helper is intentionally never used here.
+    string fixtureRoot = Path.Combine(evidence, "fixture-seed");
+    QualificationEnvironment.Prepare(fixtureRoot);
+    string fixturePath = Path.Combine(fixtureRoot, "Rasht", "db.sys");
     await CheckpointAsync(fixturePath);
     File.Copy(fixturePath, databasePath, false);
     foreach (string suffix in new[] { "-wal", "-shm" })

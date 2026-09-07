@@ -1,5 +1,7 @@
 # Rah_Negar final performance audit
 
+Batch 2 preserved the existing grid/cache architecture and added only invariant coverage; it did not claim a performance closure. Controlled startup, repeated-navigation, grid, report/PDF, memory, and disposal baselines remain open.
+
 ## Evidence reviewed
 
 The audit reviewed `FrmRecords`, `FrmReportCenter`, `DataGridViewUiService`, the SQLite connection policy, report services, and the roadmap’s required startup/grid/report/memory checks. No source change was made during this audit.

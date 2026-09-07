@@ -15,18 +15,21 @@ Close C-01 through C-04 and H-01/H-02/H-06/H-07 together where possible:
 
 Exit gate: no unresolved CRITICAL/HIGH security, data-integrity, runtime, or authorization defects; legacy-path integration tests pass.
 
-Batch 1 implementation status (2026-09-07): C-01 through C-04 and H-01, H-02, and H-06 are resolved with focused regression coverage. H-07 remains outside this batch because the approved production decision keeps Legacy authoritative and Target routing disabled; completing the full target composition requires a separate authorized cutover/integration batch. Production activation and cutover remain unauthorized.
+Batch 1 implementation status (2026-09-07): C-01 through C-04 and H-01, H-02, and H-06 are resolved with focused regression coverage. Production activation and cutover remain unauthorized.
 
 ## Batch 2 — installability and persistence lifecycle
 
-Close H-03 and M-08:
+Close H-03, H-04, H-07, and M-08:
 
 - choose one offline x64 MSI or setup EXE technology;
 - move DB/WAL/SHM/settings/logs to a documented persistent data root and migrate existing users safely;
 - provide publisher/version/icon metadata, Start Menu shortcut, optional Desktop shortcut, uninstall/repair, and upgrade/reinstall preservation;
 - verify standard-user operation after elevated installation and interrupted install/upgrade rollback.
+- keep Target composition explicitly inactive with a below-UI write boundary and regression tests.
 
 Exit gate: fresh, upgrade, reinstall, uninstall, and rollback tests pass without user-data loss.
+
+Batch 2 implementation status (2026-09-07): H-03 and H-04 are resolved; H-07 is resolved as inactive composition. The installer lifecycle and clean qualification wrapper passed. H-05 remains open because the native desktop visual acceptance surface was unavailable.
 
 ## Batch 3 — operator UI/UX and performance polish
 
@@ -43,4 +46,4 @@ Exit gate: independent visual/operator acceptance and benchmark evidence pass; n
 
 Re-evaluate the six NU1701 instances through the rendering stack; retain them only with a reviewed compatibility rationale or upgrade in a separate tested change. Then run Release build, all tests, legacy integration/failure-injection suites, installer lifecycle, UI/DPI/RTL acceptance, backup/restore/recovery drills, relevant qualification suites, `git diff --check`, and clean ZIP/package checks only when a separately authorized release task requests packaging.
 
-The next single implementation task should be Batch 1, starting with removal of the exposed test seeding and replacement of the embedded-key legacy backup/recovery path. Do not activate or cut over Production while this work is in progress.
+The next single implementation task is the native desktop H-05 acceptance run, followed by the remaining MEDIUM/LOW UI and performance work. Do not activate or cut over Production; Legacy remains authoritative and Target routing remains disabled.

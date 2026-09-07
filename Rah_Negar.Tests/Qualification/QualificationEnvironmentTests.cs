@@ -4,6 +4,7 @@ using Rah_Negar.Infrastructure.Database.Readiness;
 using Rah_Negar.Infrastructure.Pilot;
 using Rah_Negar.Foundation.Application.Pilot.Live;
 using Rah_Negar.Qualification;
+using Rah_Negar.Infrastructure.ApplicationData;
 
 namespace Rah_Negar.Tests.Qualification;
 
@@ -65,12 +66,12 @@ public sealed class QualificationEnvironmentTests
     }
 
     [Fact]
-    public void Normal_production_database_path_is_unchanged()
+    public void Normal_production_database_path_is_canonical_and_outside_installation()
     {
         string production = SqliteDatabaseHelper.GetDatabasePath();
-        Assert.EndsWith(Path.Combine("Data", "db.sys"), production, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("RAH_NEGAR_QUALIFICATION_DB", File.ReadAllText(
-            Path.Combine(RepositoryRoot(), "Data", "SqliteDatabaseHelper.cs")), StringComparison.Ordinal);
+        Assert.Equal(ApplicationDataPaths.Default.DatabasePath, production);
+        Assert.Contains(Path.Combine("RahNegar", "Data", "db.sys"), production, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(AppContext.BaseDirectory, production, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

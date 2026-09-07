@@ -1,6 +1,7 @@
 ﻿using Rah_Negar.Services.UI;
 using System.Text;
 using System.Windows.Forms;
+using Rah_Negar.Utils;
 
 namespace Rah_Negar.Services.UI;
 
@@ -17,7 +18,7 @@ public static class UiMessageService
     /// نمایش پیام موفقیت‌آمیز.
     /// برای عملیات‌هایی مثل ذخیره موفق، ثبت موفق یا تکمیل عملیات استفاده می‌شود.
     /// </summary>
-    public static void ShowSuccess(string message, string title = "Success")
+    public static void ShowSuccess(string message, string title = "موفقیت")
     {
         ShowOk(message, title, MessageBoxIcon.Information);
     }
@@ -26,7 +27,7 @@ public static class UiMessageService
     /// نمایش پیام اطلاع‌رسانی عمومی.
     /// برای پیام‌های خنثی و غیرخطا استفاده می‌شود.
     /// </summary>
-    public static void ShowInfo(string message, string title = "Information")
+    public static void ShowInfo(string message, string title = "اطلاع")
     {
         ShowOk(message, title, MessageBoxIcon.Information);
     }
@@ -35,7 +36,7 @@ public static class UiMessageService
     /// نمایش پیام هشدار.
     /// برای ورودی نامعتبر، داده ناقص یا شرایط قابل اصلاح توسط کاربر استفاده می‌شود.
     /// </summary>
-    public static void ShowWarning(string message, string title = "Warning")
+    public static void ShowWarning(string message, string title = "هشدار")
     {
         ShowOk(message, title, MessageBoxIcon.Warning);
     }
@@ -43,7 +44,7 @@ public static class UiMessageService
     /// <summary>
     /// نمایش پیام هشدار به همراه جزئیات خطا.
     /// </summary>
-    public static void ShowWarning(string message, Exception ex, string title = "Warning")
+    public static void ShowWarning(string message, Exception ex, string title = "هشدار")
     {
         ShowOk(BuildExceptionMessage(message, ex), title, MessageBoxIcon.Warning);
     }
@@ -52,7 +53,7 @@ public static class UiMessageService
     /// نمایش پیام خطا.
     /// برای خطاهای جدی، شکست عملیات یا Exceptionهای کنترل‌شده استفاده می‌شود.
     /// </summary>
-    public static void ShowError(string message, string title = "Error")
+    public static void ShowError(string message, string title = "خطا")
     {
         ShowOk(message, title, MessageBoxIcon.Error);
     }
@@ -60,7 +61,7 @@ public static class UiMessageService
     /// <summary>
     /// نمایش پیام خطا به همراه جزئیات Exception.
     /// </summary>
-    public static void ShowError(string message, Exception ex, string title = "Error")
+    public static void ShowError(string message, Exception ex, string title = "خطا")
     {
         ShowOk(BuildExceptionMessage(message, ex), title, MessageBoxIcon.Error);
     }
@@ -69,7 +70,7 @@ public static class UiMessageService
     /// نمایش پیام توقف یا خطر جدی.
     /// برای عملیات‌های بسیار حساس مثل Factory Reset استفاده می‌شود.
     /// </summary>
-    public static void ShowStop(string message, string title = "Stop")
+    public static void ShowStop(string message, string title = "توقف")
     {
         ShowOk(message, title, MessageBoxIcon.Stop);
     }
@@ -77,7 +78,7 @@ public static class UiMessageService
     /// <summary>
     /// نمایش پیام توقف یا خطر جدی به همراه جزئیات خطا.
     /// </summary>
-    public static void ShowStop(string message, Exception ex, string title = "Stop")
+    public static void ShowStop(string message, Exception ex, string title = "توقف")
     {
         ShowOk(BuildExceptionMessage(message, ex), title, MessageBoxIcon.Stop);
     }
@@ -90,7 +91,7 @@ public static class UiMessageService
     /// </summary>
     public static bool Confirm(
         string message,
-        string title = "Confirmation")
+        string title = "تأیید")
     {
         return ShowYesNo(
             message,
@@ -105,7 +106,7 @@ public static class UiMessageService
     /// </summary>
     public static bool ConfirmWarning(
         string message,
-        string title = "Warning")
+        string title = "هشدار")
     {
         return ShowYesNo(
             message,
@@ -121,7 +122,7 @@ public static class UiMessageService
     /// </summary>
     public static bool ConfirmDanger(
         string message,
-        string title = "Danger")
+        string title = "هشدار مهم")
     {
         return ShowYesNo(
             message,
@@ -136,7 +137,7 @@ public static class UiMessageService
     /// </summary>
     public static bool ConfirmSafe(
         string message,
-        string title = "Confirmation")
+        string title = "تأیید")
     {
         return ShowYesNo(
             message,
@@ -151,7 +152,7 @@ public static class UiMessageService
     /// </summary>
     public static bool ConfirmOkCancel(
         string message,
-        string title = "Confirmation",
+        string title = "تأیید",
         MessageBoxIcon icon = MessageBoxIcon.Question)
     {
         DialogResult result = MessageBox.Show(
@@ -172,7 +173,7 @@ public static class UiMessageService
     /// </summary>
     public static void ShowValidationError(string message)
     {
-        ShowWarning(message, "Validation");
+        ShowWarning(message, "اعتبارسنجی");
     }
 
     /// <summary>
@@ -180,7 +181,7 @@ public static class UiMessageService
     /// </summary>
     public static void ShowIncompleteData(string message)
     {
-        ShowWarning(message, "Incomplete Data");
+        ShowWarning(message, "داده ناقص");
     }
 
     /// <summary>
@@ -188,7 +189,7 @@ public static class UiMessageService
     /// </summary>
     public static void ShowAccessDenied(string message = "رمز واردشده صحیح نیست")
     {
-        ShowWarning(message, "Access Denied");
+        ShowWarning(message, "عدم دسترسی");
     }
 
     /// <summary>
@@ -196,7 +197,7 @@ public static class UiMessageService
     /// </summary>
     public static void ShowOperationNotAllowed(string message)
     {
-        ShowWarning(message, "Operation Not Allowed");
+        ShowWarning(message, "عملیات غیرمجاز");
     }
 
     /// <summary>
@@ -204,7 +205,7 @@ public static class UiMessageService
     /// </summary>
     public static void ShowSaved(string message = "اطلاعات با موفقیت ذخیره شد")
     {
-        ShowSuccess(message, "Saved");
+        ShowSuccess(message, "ذخیره شد");
     }
 
     /// <summary>
@@ -212,7 +213,7 @@ public static class UiMessageService
     /// </summary>
     public static void ShowDeleted(string message = "اطلاعات با موفقیت حذف شد")
     {
-        ShowSuccess(message, "Deleted");
+        ShowSuccess(message, "حذف شد");
     }
 
     /// <summary>
@@ -220,7 +221,7 @@ public static class UiMessageService
     /// </summary>
     public static void ShowExported(string message = "خروجی با موفقیت ایجاد شد")
     {
-        ShowSuccess(message, "Export");
+        ShowSuccess(message, "خروجی");
     }
 
     /// <summary>
@@ -228,7 +229,7 @@ public static class UiMessageService
     /// </summary>
     public static void ShowImported(string message = "بازیابی اطلاعات با موفقیت انجام شد")
     {
-        ShowSuccess(message, "Import");
+        ShowSuccess(message, "بازیابی");
     }
 
     // ================= Text Builder Helpers =================
@@ -328,12 +329,9 @@ public static class UiMessageService
     /// </summary>
     private static string BuildExceptionMessage(string message, Exception ex)
     {
-        if (ex == null)
-            return message;
-
-        return Paragraphs(
-            message,
-            ex.Message);
+        if (ex is not null)
+            ErrorLogger.Log(ex, "ui-message");
+        return message;
     }
 
     /// <summary>

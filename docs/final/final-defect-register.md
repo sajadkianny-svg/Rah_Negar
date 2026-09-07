@@ -2,7 +2,7 @@
 
 Confirmed defects are separated from unproven risks. The original rows below remain the finding baseline; the Batch 1 status ledger records evidence-backed closure without changing unrelated scope.
 
-## Batch 1 status ledger (2026-09-07)
+## Batch 1 and Batch 2 status ledger (2026-09-07)
 
 | ID | Current status | Evidence |
 |---|---|---|
@@ -13,7 +13,9 @@ Confirmed defects are separated from unproven risks. The original rows below rem
 | D-05 | RESOLVED | Import performs integrity/FK/schema identity checks, verified rollback capture, staged atomic replacement, post-check, and fail-closed recovery marking. |
 | D-06 | RESOLVED | Factory reset requires ManagementCredential proof, a separate compatible verified backup, integrity validation, and sidecar cleanup. |
 | D-08 | RESOLVED FOR SAFETY | Ordinary-password confirmation and unsafe UI calls were removed; protected service entry points require canonical proof and fail closed. |
-| D-07, D-09, D-10 | OUTSIDE BATCH 1 | Installer/data-root, qualification-runner, and real UI acceptance remain open. |
+| D-07 | RESOLVED | Canonical ProgramData root, WAL-aware retained-source migration, Inno Setup installer, payload audit, and lifecycle preservation harness pass. |
+| D-09 | RESOLVED | QualificationTool build boundary is explicit; clean Phase 9.7 wrapper run passes with isolated artifacts. |
+| D-10 | OPEN | Common UI RTL/control/message policy and automated DPI invariants were added, but native desktop visual/keyboard acceptance remains unavailable. |
 
 The production authority decision remains Legacy authoritative / Target non-authoritative / target routing disabled / Production Activation and Cutover unauthorized.
 
@@ -34,4 +36,4 @@ The production authority decision remains Legacy authoritative / Target non-auth
 | D-13 | MEDIUM | `AppSettingsService.GetDataStartDate` | Debug `MessageBox.Show(... "NULL")` exposes internal state on invalid settings. | Remove debug dialog and use structured localized error handling. | Malformed settings/readonly directory tests. |
 | D-14 | LOW | `FrmRecovery.Designer` dead handler; stale TODOs | Unwired handler throws `NotImplementedException`; stale TODOs suggest unfinished paths. | Delete or implement; add static unfinished-code gate. | Static scan plus form event wiring test. |
 
-Current unresolved CRITICAL/HIGH items are D-07, D-09, and D-10 plus the intentionally deferred target-composition integration represented by H-07; these are outside Batch 1.
+Current unresolved CRITICAL/HIGH item is D-10/H-05: native desktop visual/keyboard/DPI acceptance. Target composition is intentionally inactive by owner decision; its disabled write boundary is tested and does not authorize activation or cutover.

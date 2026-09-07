@@ -23,6 +23,10 @@ task.txt
 # Disposable Phase 9.4C qualification artifacts only
 Qualification/qualification-data/
 Qualification/qualification-run/
+Installer/publish/
+Delivery/Installer/*.exe
+Delivery/Installer/*.sha256
+Qualification/installer-validation/
 
 desktop.ini
 

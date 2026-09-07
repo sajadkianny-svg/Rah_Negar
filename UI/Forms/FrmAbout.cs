@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace Rah_Negar.UI.Forms
 {
-    public partial class FrmAbout : Form
+    public partial class FrmAbout : Rah_Negar.UI.Forms.Base.BaseForm
     {
         public FrmAbout()
         {

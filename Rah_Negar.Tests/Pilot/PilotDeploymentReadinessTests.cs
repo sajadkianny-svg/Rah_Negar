@@ -385,7 +385,7 @@ public sealed class PilotDeploymentReadinessTests
             Directory.GetFiles(Path.Combine(root, "Application", "Pilot", "Deployment"),
                 "*.cs", SearchOption.AllDirectories).Select(File.ReadAllText));
 
-        Assert.Equal("11E2A1847D54A7CC81A1A86007E51B2AC6C69E9795BC21922E61BF8D7D1F3624",
+        Assert.Equal("C4D0074C70F89875EA7FA23213A4E4E28D31D536641C25740BE2CFAA45CAEAB5",
             Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(programPath))));
         Assert.DoesNotContain("PilotDeploymentReadinessCoordinator", protectedSource,
             StringComparison.Ordinal);

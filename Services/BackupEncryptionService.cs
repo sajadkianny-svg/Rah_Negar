@@ -159,8 +159,7 @@ internal sealed class WindowsProtectedBackupKeyCustody : IBackupKeyCustody
     {
         lock (_sync)
         {
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "RahNegar", "backup.key.dpapi");
+            string path = Rah_Negar.Infrastructure.ApplicationData.ApplicationDataPaths.Default.BackupKeyPath;
             string? directory = Path.GetDirectoryName(path);
             if (string.IsNullOrWhiteSpace(directory))
                 throw new InvalidOperationException("مسیر امن کلید بک اپ مشخص نیست");

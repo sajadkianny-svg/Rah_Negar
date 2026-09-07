@@ -1,12 +1,12 @@
 # Rah_Negar final test coverage gap analysis
 
-## Batch 1 coverage update (2026-09-07)
+## Batch 1 and Batch 2 coverage update (2026-09-07)
 
-Batch 1 verification: 765/765 tests passed, zero failed/skipped, Release build 0 errors, and six known NU1701 warning identities. Focused Batch 1 security/integrity tests pass 5/5; qualification-named tests pass 16/16. New regression coverage proves removal of production seed/demo entry points, authenticated/versioned backup tamper rejection, canonical Event duplicate/transition/non-minute rejection, active runtime fail-closed behavior, and durable `RecoveryRequired` marker clearing. Existing managed SQLite boundary tests continue to cover staged restore failure injection, rollback, checksum, and restart-safe evidence. The qualification runner infrastructure defect remains open and is not represented as a product pass.
+Batch 2 adds data-root migration, inactive Target write-boundary, UI policy/DPI, payload, and installer lifecycle coverage. The clean Release build and full suite are rerun after these changes. Real desktop UI acceptance remains intentionally unclaimed because no native WinForms surface is available in this environment.
 
 ## Current evidence
 
-Release baseline: 759/759 tests passed, zero failed/skipped, build 0 errors, and six known NU1701 warning identities (repeated across the two solution projects). The MQ-01…MQ-05 readiness support suites also passed: 3, 7, 16, 18, and 10 tests respectively. A real offline launch reached the Startup Wizard and initialized an isolated database on the prior package smoke test.
+Release baseline: 774/774 tests passed, zero failed/skipped, build 0 errors, and six known NU1701 warning identities (repeated across the two solution projects). The MQ-01…MQ-05 readiness support suites also passed: 3, 7, 16, 18, and 10 tests respectively. A real offline launch reached the Startup Wizard and initialized an isolated database on the prior package smoke test.
 
 The full test suite is strongest in deterministic domain rules, target SQLite boundaries, provisioning, reporting contracts, target security, authority rejection, and pilot safety. Passing tests do not prove that the legacy WinForms path, installer, or manual operator experience is complete.
 
@@ -34,8 +34,8 @@ The full test suite is strongest in deterministic domain rules, target SQLite bo
 
 ## Qualification runner result
 
-`Qualification/run-phase9.7-final-qualification.ps1` was executed without touching Production state. It failed in its first step because `QualificationTool` compiles both `QualificationTool/Program.cs` and nested `QualificationTool/Phase98Probe/Program.cs`, producing CS8802 and duplicate generated assembly attributes. The script recorded unchanged Production pre/post state and disposable database inputs, but no Phase 9.7 step passed. This is a confirmed qualification infrastructure defect, not a product test pass.
+`Qualification/run-phase9.7-final-qualification.ps1` now builds `QualificationTool` explicitly before running it and excludes the nested probe sources from the parent project. A clean execution completed PASS with isolated artifacts and no Production database access. The earlier CS8802/duplicate-attribute failure is resolved.
 
 ## Coverage conclusion
 
-The 765 passing tests establish a stronger Batch 1 service/contract baseline and no known regression. They do not establish complete product coverage. Final product acceptance still needs installer lifecycle, qualification-runner repair, UI/manual, performance, and upgrade evidence; the target-composition gate remains intentionally outside this batch.
+The passing suite and qualification run establish the automated Batch 2 baseline. They do not establish complete product coverage: native UI/manual acceptance, performance baselines, and remaining MEDIUM/LOW work remain open. Target composition is intentionally inactive and is covered only by its safety boundary, not by activation or cutover tests.

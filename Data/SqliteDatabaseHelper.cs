@@ -9,7 +9,7 @@ public static class SqliteDatabaseHelper
 {
     public static string GetDataDirectoryPath()
     {
-        return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
+        return Rah_Negar.Infrastructure.ApplicationData.ApplicationDataPaths.Default.DataDirectory;
     }
 
     public static string GetDatabasePath()
@@ -19,10 +19,7 @@ public static class SqliteDatabaseHelper
 
     public static void EnsureDataDirectoryExists()
     {
-        string path = GetDataDirectoryPath();
-
-        if (!Directory.Exists(path))
-            Directory.CreateDirectory(path);
+        Rah_Negar.Infrastructure.ApplicationData.ApplicationDataPaths.Default.EnsureDirectories();
     }
 
     public static SqliteConnection CreateConnection()

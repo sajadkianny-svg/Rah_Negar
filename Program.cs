@@ -4,6 +4,8 @@ using Rah_Negar.Infrastructure.Database.Readiness;
 using Rah_Negar.Services;
 using Rah_Negar.UI.Forms;
 using Rah_Negar.UI.Startup;
+using Rah_Negar.Infrastructure.ApplicationData;
+using Rah_Negar.Utils;
 
 namespace Rah_Negar
 {
@@ -12,11 +14,16 @@ namespace Rah_Negar
         [STAThread]
         static void Main()
         {
-            ApplicationConfiguration.Initialize();
-            SQLitePCL.Batteries.Init();
+            try
+            {
+                ApplicationConfiguration.Initialize();
+                SQLitePCL.Batteries.Init();
 
-            string authorityPath = Path.Combine(AppContext.BaseDirectory, "DataFiles", "authority-state.json");
-            string transitionPath = Path.Combine(AppContext.BaseDirectory, "DataFiles", "authority-transition.json");
+            ApplicationDataPaths paths = ApplicationDataPaths.Default;
+            ApplicationDataMigrationService.EnsureReady(paths, AppContext.BaseDirectory);
+
+            string authorityPath = paths.AuthorityStatePath;
+            string transitionPath = paths.AuthorityTransitionPath;
             AuthorityStartupResult startup = new AuthorityStartupResolver(new FileAuthorityStateStore(authorityPath))
                 .ResolveCanonicalAsync(new FileTransitionStateStore(transitionPath)).GetAwaiter().GetResult();
             if (startup.RoutingBlocked)
@@ -41,6 +48,14 @@ namespace Rah_Negar
                 Application.Run(new FrmLogin());
             else
                 Application.Run(new FrmStartup());
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.Log(ex, "startup");
+                MessageBox.Show(
+                    "داده‌های عملیاتی قابل دسترسی نیستند. مجوز پوشه داده را بررسی کنید یا با مسئول سیستم تماس بگیرید.",
+                    "خطا در راه‌اندازی", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

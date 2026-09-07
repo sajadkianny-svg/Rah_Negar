@@ -10,6 +10,10 @@
 
 F-01 and F-02 are resolved: production seeding is absent, and the public runtime path now validates complete canonical Event chains before calculation. F-03 and F-04 are resolved by the transactional below-UI Event authority validator, canonical START/NSD/ESD/OH enforcement, exact-minute rejection, and fail-closed malformed-time handling. F-05 is resolved for safety: active protected maintenance controls no longer use ordinary login password or call unsafe lower-level operations; they fail closed until canonical ManagementCredential proof is available. F-08 is resolved in the maintenance service with proof-gated, sidecar-aware, integrity-checked reset requiring a separate compatible backup. Focused Batch 1 regressions and the full suite pass.
 
+## Batch 2 status update (2026-09-07)
+
+The normal runtime now uses the canonical ProgramData data root with fail-closed legacy migration. Target operational composition has an explicit disabled write boundary and remains unreachable from Legacy-authoritative operation. Qualification and installer lifecycle checks pass in disposable environments. No activation, cutover, or Target operational write routing is enabled.
+
 | ID | Severity | Finding | Evidence / failure scenario |
 |---|---|---|---|
 | F-01 | CRITICAL | Production Records screen exposes test-data seeding. | `FrmRecords` handlers call `TestDataSeederService.CopyTemplateDayToFullMonth` and `CopyTemplateDayToFullYear` with fixed 1405 values. An operator can overwrite/create synthetic history from the normal form. |
@@ -28,4 +32,4 @@ No evidence supports adding a future universal platform, cloud service, updater,
 
 ## Functional conclusion
 
-The Pilot can launch with the Batch 1 safety defects contained and resolved in the active legacy paths, but installer/data-root work, the qualification runner, real UI acceptance, and full target composition remain open. Production authority/routing remains unchanged and no activation or cutover is authorized.
+The Pilot can launch with Batch 1 safety defects contained and Batch 2 persistence/installer/qualification boundaries implemented. Real UI acceptance and remaining visual/performance work remain open. Production authority/routing remains unchanged and no activation or cutover is authorized.

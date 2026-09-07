@@ -15,10 +15,8 @@ public static class ErrorLogger
     {
         try
         {
-            string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
-
-            if (!Directory.Exists(logDir))
-                Directory.CreateDirectory(logDir);
+            string logDir = Rah_Negar.Infrastructure.ApplicationData.ApplicationDataPaths.Default.LogsDirectory;
+            Directory.CreateDirectory(logDir);
 
             string filePath = Path.Combine(logDir, $"log_{DateTime.Now:yyyyMMdd}.txt");
 

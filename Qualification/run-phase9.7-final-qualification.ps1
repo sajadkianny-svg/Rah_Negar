@@ -15,6 +15,9 @@ if (-not $run.StartsWith($qualificationRoot, [StringComparison]::OrdinalIgnoreCa
     $run.IndexOf('\Data\', [StringComparison]::OrdinalIgnoreCase) -ge 0) { throw 'Unsafe qualification output path.' }
 if ($run.Equals($qualificationRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Evidence directory cannot be Qualification itself.' }
 New-Item -ItemType Directory -Path $run -Force | Out-Null
+$toolProject = Join-Path $repo 'QualificationTool\QualificationTool.csproj'
+& dotnet build $toolProject -c Release --no-restore --nologo 2>&1 | Tee-Object -FilePath (Join-Path $run 'qualification-tool-build.log') | Out-Host
+if ($LASTEXITCODE -ne 0) { throw "QualificationTool build failed with exit code $LASTEXITCODE." }
 
 function Get-FileEvidence([string]$path) {
     if (-not (Test-Path -LiteralPath $path)) { return [ordered]@{ path = $path; exists = $false } }
@@ -42,7 +45,7 @@ $steps = [System.Collections.Generic.List[object]]::new()
 $testProject = Join-Path $repo 'Rah_Negar.Tests\Rah_Negar.Tests.csproj'
 $qualificationData = Join-Path $run 'databases'
 try {
-    $steps.Add((Invoke-Step 'qualification-environment' { dotnet run --project (Join-Path $repo 'QualificationTool\QualificationTool.csproj') -c Release --no-restore -- $qualificationData }))
+    $steps.Add((Invoke-Step 'qualification-environment' { dotnet run --project $toolProject -c Release --no-build --no-restore -- $qualificationData }))
     $steps.Add((Invoke-Step 'phase9.7-focused-tests' { dotnet test $testProject -c Release --no-restore --filter 'FullyQualifiedName~Phase97ProductionExecutionTests|FullyQualifiedName~AuthorityD3Tests|FullyQualifiedName~Phase96ERehearsalTests' --logger "trx;LogFileName=$(Join-Path $run 'phase9.7-focused.trx')" }))
     $steps.Add((Invoke-Step 'production-rejection-and-isolation-tests' { dotnet test $testProject -c Release --no-restore --filter 'FullyQualifiedName~ProductionActivation|FullyQualifiedName~QualificationEnvironmentTests|FullyQualifiedName~ProductionSecurityReadinessFoundationTests' --logger "trx;LogFileName=$(Join-Path $run 'phase9.7-rejection.trx')" }))
 }

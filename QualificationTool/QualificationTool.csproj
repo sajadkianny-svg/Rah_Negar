@@ -6,5 +6,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Phase98Probe is a separate executable and must not be pulled into this project. -->
+    <Compile Remove="Phase98Probe\**\*.cs" />
+    <EmbeddedResource Remove="Phase98Probe\**\*" />
+    <None Remove="Phase98Probe\**\*" />
+  </ItemGroup>
   <ItemGroup><ProjectReference Include="..\Rah_Negar.csproj" /></ItemGroup>
 </Project>

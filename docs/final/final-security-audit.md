@@ -12,7 +12,11 @@
 
 SEC-01 through SEC-05 are resolved in the active code paths. Legacy deterministic recovery was removed and managed recovery now enforces expiry plus durable fail-closed recovery state. Backups use versioned authenticated encryption with operator-bound DPAPI key custody. Restore is staged, integrity/FK/identity validated, rollback-backed, atomic where supported, post-validated, and recovery-marked when outcome is uncertain. Protected maintenance entry points require canonical ManagementCredential proof; the legacy Settings UI has no ordinary-password or unsafe lower-level fallback. The production authority state remains Legacy authoritative, Target non-authoritative, target routing disabled, and Activation/Cutover unauthorized.
 
-SEC-06 is also retired from the active product path with removal of the legacy recovery service; SEC-07 remains a separate logging/data-root issue for a later batch.
+SEC-06 is also retired from the active product path with removal of the legacy recovery service; SEC-07 is resolved for the active data-root/logging path by the Batch 2 canonical provider.
+
+## Batch 2 status update (2026-09-07)
+
+Mutable database, authority metadata, transition/recovery metadata, audit files, backups, and logs are centralized under `%ProgramData%\RahNegar\` through `ApplicationDataPaths`. Legacy executable-side database migration is WAL-aware, source-preserving, audited, and fails closed on conflict or corruption. The explicit inactive Target operational write boundary remains disabled; no installer or startup path grants Target authority.
 
 ## Confirmed security defects/gaps
 
