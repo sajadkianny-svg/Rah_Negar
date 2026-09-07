@@ -1,51 +1,44 @@
 # Phase 9.8 - Project Owner Decision Record
 
-Status: **AWAITING PROJECT OWNER DECISION**
+Status: **APPROVED FOR PILOT / PRE-PRODUCTION RELEASE - NOT PRODUCTION ACTIVATION OR CUTOVER**
 
-This record presents the two permitted choices after the Phase 9.8 readiness
-review. No choice is preselected. Completing this record would still not, by
-itself, authorize Production Activation or Production Cutover.
+This record documents the Project Owner decision for the bounded Pilot /
+Pre-Production release. It does not authorize Production Activation or
+Production Cutover.
 
-## Decision choices
+## Decision
 
-- [ ] **A. READY FOR EXPLICIT PRODUCTION ACTIVATION DECISION**
-- [ ] **B. NOT READY FOR PRODUCTION ACTIVATION DECISION**
+Project Owner: **Sajad Kiyani**
 
-## Required acknowledgements
+Decision: **APPROVED FOR PILOT / PRE-PRODUCTION RELEASE**
 
-The Project Owner must acknowledge each statement when making a decision:
+UTC timestamp: `2026-09-07T00:36:25Z`
 
-- [ ] MQ-07 remains **BLOCKED - MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED**.
-- [ ] The MQ-07 residual limitation was previously accepted and this is the only exception applied.
-- [ ] Independent Human Review is **NOT PERFORMED / UNAVAILABLE**; AI-assisted review is not organizationally independent.
-- [ ] Installation-bound evidence status is **AWAITING INSTALLATION EVIDENCE**.
-- [ ] Physical restore custody status is **AWAITING PHYSICAL RESTORE CUSTODY CONFIRMATION**.
-- [ ] Operator/runbook approval status is **AWAITING OPERATOR/RUNBOOK APPROVAL**.
-- [ ] A READY choice does not authorize Production Activation.
-- [ ] A READY choice does not authorize Production Cutover.
-- [ ] Legacy remains **AUTHORITATIVE**.
-- [ ] Target remains **NON-AUTHORITATIVE**.
-- [ ] Target routing remains **DISABLED**.
-- [ ] Production Activation remains **UNAUTHORIZED** until separate explicit action.
-- [ ] Production Cutover remains **UNAUTHORIZED** until separate explicit action.
+Repository HEAD: `d807881`
 
-## Decision details
+Auditable decision reference:
+`PH9.8-OWNER-DECISION-SAJAD-KIYANI-d807881-2026-09-07T00:36:25Z`
 
-Decision: ________________________________________________
+No handwritten signature is asserted.
 
-UTC timestamp: ___________________________________________
+## Explicit boundaries and acknowledgements
 
-Owner comment: ___________________________________________
+- [x] NOT approved for Production Activation.
+- [x] NOT approved for Production Cutover.
+- [x] Legacy remains **AUTHORITATIVE**.
+- [x] Target remains **NON-AUTHORITATIVE**.
+- [x] Target Routing remains **DISABLED**.
+- [x] Real Production installation evidence is still unavailable.
+- [x] Independent Human Review remains **NOT PERFORMED / UNAVAILABLE**.
+- [x] Independent verification remains open where required.
+- [x] MQ-07 remains **BLOCKED - MANUAL OBSERVATION NOT PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED**, with the accepted residual limitation.
+- [x] Pilot / Pre-Production approval must not be interpreted as Production authorization.
 
-Signature/reference: _____________________________________
+## Decision effect
 
-## Boundary confirmation
+The decision resolves the Project Owner Pilot / Pre-Production gate only. It
+does not close the remaining real-Production installation, backup/custody,
+Independent Human Review, or Independent Verifier requirements. Production
+Activation readiness remains **NOT_ELIGIBLE_FOR_ACTIVATION_DECISION**.
 
-This form does not record a decision until a Project Owner/governance body
-completes the fields above. The historical Phase 9.6H decision concerned the
-Phase 9.6 package and the narrow MQ-07 treatment; it is not silently reused as
-a Phase 9.8 installation-bound decision. No owner approval, signature, or
-timestamp is asserted here.
-
-**Final status: AWAITING PROJECT OWNER DECISION.**
-
+**Final status: PROJECT OWNER PILOT / PRE-PRODUCTION DECISION RESOLVED.**

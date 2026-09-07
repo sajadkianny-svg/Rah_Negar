@@ -1,15 +1,20 @@
 # Phase 9.8 - Operator Runbook Approval Record
 
-Status: **AWAITING EXPLICIT OPERATOR/SUPERVISOR/PROJECT OWNER ACKNOWLEDGEMENT OR APPROVAL**
+Status: **OPERATOR AND OPERATIONAL SUPERVISOR APPROVAL RECORDED FOR PILOT /
+PRE-PRODUCTION RELEASE ONLY**
 
 Reference: [`docs/phase9.6g-operator-cutover-runbook.md`](phase9.6g-operator-cutover-runbook.md)
 
-This record prepares human approval evidence. It does not approve or execute
-Production Activation or Cutover.
+This record documents bounded human acknowledgement and approval. It does not
+approve or execute Production Activation or Production Cutover.
 
 Independent Human Review: **NOT PERFORMED / UNAVAILABLE**. Sajad Kiyani is
-not an Independent Verifier, and these role assignments do not represent
-self-verification or independent verification.
+not an Independent Verifier or Independent Human Reviewer, and these role
+assignments do not represent self-verification or independent verification.
+
+Approval records below are auditable textual records tied to the authoritative
+human identity, repository HEAD, and current UTC timestamp. No handwritten
+signature is asserted.
 
 ## Technical consistency review
 
@@ -25,31 +30,58 @@ Review date: `2026-09-06`  |  Reviewer: automated repository review  |  Result: 
 | `RECOVERY_REQUIRED` | Commit/routing/audit/rollback ambiguity enters recovery with routing disabled | PASS as isolated failure-path evidence |
 | Audit capture | Prepare/commit/recovery/rollback entries are written to the tamper-evident audit sink and read back | PASS as isolated implementation evidence |
 
-No technical inconsistency requiring a runbook correction was found. The
-review does not establish live installation composition, human understanding,
-training, or approval.
+## Operator acknowledgement
 
-## Human acknowledgement fields
+| Field | Auditable record |
+|---|---|
+| Name and role | **Sajad Kiyani - Named ShiftProfile Operator** |
+| Scope | **PILOT / PRE-PRODUCTION RELEASE** |
+| Repository HEAD | `d807881` |
+| UTC timestamp | `2026-09-07T00:36:25Z` |
+| Approval reference | `PH9.8-OPERATOR-ACK-SAJAD-KIYANI-d807881-2026-09-07T00:36:25Z` |
 
-Each named person must review the complete runbook and mark each item. A filled
-field is not implied by this prepared form.
+Sajad Kiyani acknowledges the following items already technically verified by
+the current runbook and qualification evidence:
 
-| Reviewer | Exact fields to complete | Required evidence | Status |
-|---|---|---|---|
-| Operator — Sajad Kiyani | Name, role, scope; acknowledge STOP/ABORT/ROLLBACK/`RECOVERY_REQUIRED`, no manual flag edits/bypass, routing ordering, evidence handoff, and current Legacy-authoritative state | Signature or auditable acknowledgement reference and UTC timestamp | AWAITING EXPLICIT ACKNOWLEDGEMENT |
-| Operational Supervisor — Sajad Kiyani | Name, role; confirm runbook version, operator readiness/training, write-drain/fence responsibility, restore escalation, and evidence custody handoff | Signature or auditable approval reference and UTC timestamp | AWAITING EXPLICIT ACKNOWLEDGEMENT/APPROVAL |
-| Project Owner — Sajad Kiyani | Name; acknowledge residual MQ-07 wording, open evidence gaps, and that approval is not activation/cutover authorization | Separate governed decision record; no entry may be inferred here | AWAITING EXPLICIT ACKNOWLEDGEMENT/DECISION |
+- [x] Authority ordering is understood.
+- [x] Target routing must remain disabled until explicitly authorized.
+- [x] STOP / ABORT behavior is understood.
+- [x] Rollback eligibility requirements are understood.
+- [x] `RECOVERY_REQUIRED` behavior is understood.
+- [x] Fencing and writer write-drain controls must not be bypassed.
+- [x] Evidence handoff responsibility is understood.
+- [x] This acknowledgement does not authorize Production Activation or Production Cutover.
 
-The names above record the assigned roles only. No signature, timestamp,
-acknowledgement, training confirmation, or approval is being inferred.
+Operator acknowledgement: **ACKNOWLEDGED FOR PILOT / PRE-PRODUCTION RELEASE
+ONLY**.
 
-Required checkbox set for the operator and supervisor:
+## Operational Supervisor approval
 
-- [ ] STOP conditions and abort procedure understood.
-- [ ] Rollback decision tree and `RECOVERY_REQUIRED` procedure understood.
-- [ ] No manual database flag editing, hidden credential, bypass, or generic override.
-- [ ] Authority commit precedes Target routing; routing remains disabled until re-read confirmation.
-- [ ] Backup, restore, audit, retention, and handoff evidence responsibilities understood.
-- [ ] Legacy authoritative / Target non-authoritative / Target routing disabled state understood.
+| Field | Auditable record |
+|---|---|
+| Name and role | **Sajad Kiyani - Operational Supervisor** |
+| Scope | **PILOT / PRE-PRODUCTION RELEASE ONLY** |
+| Runbook version | Current `phase9.6g-operator-cutover-runbook.md` at repository HEAD `d807881` |
+| UTC timestamp | `2026-09-07T00:36:25Z` |
+| Approval reference | `PH9.8-SUPERVISOR-APPROVAL-SAJAD-KIYANI-d807881-2026-09-07T00:36:25Z` |
 
-**Final status: AWAITING EXPLICIT OPERATOR/SUPERVISOR/PROJECT OWNER ACKNOWLEDGEMENT OR APPROVAL.**
+Sajad Kiyani explicitly approves, for Pilot / Pre-Production use only:
+
+- [x] The current runbook version.
+- [x] Operator readiness for Pilot / Pre-Production use.
+- [x] Writer fence and write-drain responsibility.
+- [x] The restore escalation path.
+- [x] Evidence custody responsibility.
+
+Operational Supervisor approval: **APPROVED FOR PILOT / PRE-PRODUCTION RELEASE
+ONLY**. This is not Production Activation approval and is not Production
+Cutover approval.
+
+## Persistent boundary
+
+Legacy remains **AUTHORITATIVE**. Target remains **NON-AUTHORITATIVE**. Target
+routing remains **DISABLED**. Production Activation and Production Cutover are
+not authorized by either acknowledgement in this record.
+
+**Final status: OPERATOR AND OPERATIONAL SUPERVISOR APPROVAL RESOLVED FOR PILOT /
+PRE-PRODUCTION RELEASE; PRODUCTION ACTIVATION NOT AUTHORIZED.**

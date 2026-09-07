@@ -1,10 +1,14 @@
 # Phase 9.8 - Final Governance Readiness Package
 
-Status: **NOT_ELIGIBLE_FOR_ACTIVATION_DECISION - PROJECT OWNER DECISION NOT RECORDED**
+| Readiness gate | Status |
+|---|---|
+| PILOT / PRE-PRODUCTION RELEASE READINESS | **APPROVED** |
+| PRODUCTION ACTIVATION READINESS | **NOT_ELIGIBLE_FOR_ACTIVATION_DECISION** |
 
 This package reports an isolated **PRODUCTION-LIKE QUALIFICATION DEPLOYMENT -
-NOT PRODUCTION**. It does not record a Project Owner decision and does not
-authorize Production Activation or Production Cutover.
+NOT PRODUCTION** and the bounded human approvals recorded for Pilot /
+Pre-Production use. It does not authorize Production Activation or Production
+Cutover.
 
 REAL PRODUCTION INSTALLATION EVIDENCE: **NOT AVAILABLE**.
 
@@ -29,11 +33,13 @@ REAL PRODUCTION INSTALLATION EVIDENCE: **NOT AVAILABLE**.
 | Fence/write-drain | **PASS FOR PRODUCTION-LIKE QUALIFICATION** | Isolated writer drained; no writer survived; restart acquired without orphaned writer |
 | Backup/restore | **PASS - QUALIFICATION SOURCE ONLY** | WAL/SHM, integrity, FK, rollback artifact, and source unchanged |
 | Audit retention technical verification | **PASS - QUALIFICATION PATH ONLY** | Append/hash-chain/tamper/restart passed; organizational custody not claimed |
-| Physical restore custody | **TECHNICAL QUALIFICATION VERIFIED - HUMAN CUSTODY OPEN** | `phase9.8-physical-restore-custody-record.md` |
-| Operator/supervisor approval | **OPEN** | Human actions required |
-| Independent Human Review | **OPEN** | No genuine independent human review supplied |
+| Physical restore custody | **TECHNICAL QUALIFICATION VERIFIED - INDEPENDENT VERIFIER AND REAL PRODUCTION CUSTODY OPEN** | `phase9.8-physical-restore-custody-record.md` |
+| Operator approval | **RESOLVED FOR PILOT / PRE-PRODUCTION RELEASE** | `phase9.8-operator-runbook-approval.md`; Sajad Kiyani acknowledgement tied to HEAD `d807881` and UTC timestamp |
+| Operational Supervisor approval | **RESOLVED FOR PILOT / PRE-PRODUCTION RELEASE** | `phase9.8-operator-runbook-approval.md`; bounded approval only, not Activation/Cutover approval |
+| Project Owner decision | **RESOLVED FOR PILOT / PRE-PRODUCTION RELEASE** | `phase9.8-project-owner-decision.md`; Sajad Kiyani decision tied to HEAD `d807881` and UTC timestamp |
+| Independent Human Review | **OPEN - NOT PERFORMED / UNAVAILABLE** | No genuine independent human review supplied |
 | MQ-07 | **BLOCKED** | Manual observation remains impractical; automated invariant evidence retained |
-| Prerequisite aggregate | **NOT_ELIGIBLE_FOR_ACTIVATION_DECISION** | Real Production and human gates remain open |
+| Production Activation prerequisite aggregate | **NOT_ELIGIBLE_FOR_ACTIVATION_DECISION** | Independent review/verification and real Production evidence remain open |
 
 ## Technical verification record
 
@@ -46,10 +52,9 @@ REAL PRODUCTION INSTALLATION EVIDENCE: **NOT AVAILABLE**.
 ## Remaining human and real-Production blockers
 
 1. Real Production installation identity, DB/schema/profile/Unit/data-equivalence, authority/transition/routing readback, and live fence/drain receipt.
-2. Physical retained-backup custody and human restore record.
-3. Operator and Operational Supervisor approval/training.
-4. Independent Human Review and disposition.
-5. Project Owner governance decision and any later explicit activation authorization.
-6. Organizational audit-retention custody and retention manifest.
+2. Physical retained-backup custody, real Production backup evidence, and an Independent Verifier where required.
+3. Independent Human Review and disposition.
+4. Organizational audit-retention custody and retention manifest.
+5. Any later explicit Production Activation/Cutover authorization; the Pilot / Pre-Production decision is not such authorization.
 
-**Recommendation: RECOMMEND NOT READY FOR PRODUCTION ACTIVATION DECISION.**
+**Recommendation: PILOT / PRE-PRODUCTION RELEASE APPROVED; PRODUCTION ACTIVATION NOT ELIGIBLE FOR AN ACTIVATION DECISION.**
