@@ -23,36 +23,15 @@ public static class EventInitialStateService
 
         foreach (string unit in profile.Units)
         {
-            EventLogItem? lastStart = LoadLastEventBeforeDate(conn, unit, "START", dateFrom);
-            EventLogItem? lastNSD = LoadLastEventBeforeDate(conn, unit, "NSD", dateFrom);
-            EventLogItem? lastESD = LoadLastEventBeforeDate(conn, unit, "ESD", dateFrom);
-            EventLogItem? lastOH = LoadLastEventBeforeDate(conn, unit, "OH", dateFrom);
-
-            bool hasAnyEvent =
-                lastStart != null ||
-                lastNSD != null ||
-                lastESD != null ||
-                lastOH != null;
-
-            DateTime? lastStopTime =
-                MaxDateTime(lastNSD?.EventDateTime, lastESD?.EventDateTime);
-
-            bool isRunning;
-
-            if (!hasAnyEvent)
+            EventLogItem? lastEvent = LoadLastEventBeforeDate(conn, unit, dateFrom);
+            bool hasAnyEvent = lastEvent is not null;
+            bool isRunning = lastEvent?.EventType switch
             {
-                isRunning =
-                    initialRunningMap.TryGetValue(unit, out bool initialRunning) &&
-                    initialRunning;
-            }
-            else
-            {
-                isRunning =
-                    lastStart != null &&
-                    (!lastStopTime.HasValue || lastStart.EventDateTime > lastStopTime.Value);
-            }
-
-            bool hasSeenOH = lastOH != null;
+                "START" => true,
+                "NSD" or "ESD" or "OH" => false,
+                _ => !hasAnyEvent && initialRunningMap.TryGetValue(unit, out bool initialRunning) && initialRunning
+            };
+            bool hasSeenOH = lastEvent?.EventType == "OH";
 
             // طبق منطق جدید:
             // اگر واحد در ابتدای بازه روشن باشد، RuntimeAfterOH هم باید باز باشد
@@ -104,7 +83,6 @@ public static class EventInitialStateService
     private static EventLogItem? LoadLastEventBeforeDate(
         SqliteConnection conn,
         string unit,
-        string eventType,
         long dateFrom)
     {
         using SqliteCommand cmd = conn.CreateCommand();
@@ -113,14 +91,13 @@ public static class EventInitialStateService
             SELECT date_rep, unit, event_type, event_time, remark
             FROM tbl_events
             WHERE unit = $unit
-              AND event_type = $eventType
+              AND UPPER(TRIM(event_type)) IN ('START', 'NSD', 'ESD', 'OH')
               AND date_rep < $dateFrom
-            ORDER BY date_rep DESC, event_time DESC
+            ORDER BY date_rep DESC, event_time DESC, id DESC
             LIMIT 1;
             """;
 
         cmd.Parameters.AddWithValue("$unit", unit);
-        cmd.Parameters.AddWithValue("$eventType", eventType);
         cmd.Parameters.AddWithValue("$dateFrom", dateFrom);
 
         using SqliteDataReader reader = cmd.ExecuteReader();
@@ -186,12 +163,11 @@ public static class EventInitialStateService
     {
         string text = (value ?? string.Empty).Trim();
 
-        if (string.IsNullOrWhiteSpace(text))
-            return "00:00";
-
-        return TimeSpan.TryParse(text, out TimeSpan ts)
-            ? ts.ToString(@"hh\:mm")
-            : "00:00";
+        if (TimeSpan.TryParse(text, System.Globalization.CultureInfo.InvariantCulture,
+                out TimeSpan ts) && ts >= TimeSpan.Zero && ts < TimeSpan.FromDays(1) &&
+                ts.Ticks % TimeSpan.TicksPerMinute == 0)
+            return ts.ToString(@"hh\:mm");
+        throw new InvalidDataException("Stored Event time is invalid.");
     }
 
     /// <summary>

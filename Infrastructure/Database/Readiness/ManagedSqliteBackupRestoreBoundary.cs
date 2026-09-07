@@ -270,6 +270,7 @@ public sealed class ManagedSqliteBackupRestoreBoundary : IManagedSqliteBackupRes
                 managementProof.InitiatingShiftProfileId, backup, destination, rollback,
                 expectedBackupSha256, destinationBeforeSha256, rollbackSha256, destinationAfterSha256,
                 destinationSidecars, true, true, true, SqliteBoundaryFailure.None);
+            RecoveryRequiredStateStore.ClearAfterVerifiedRecovery(destination);
             return new(true, SqliteBoundaryFailure.None, receipt, Array.Empty<string>());
         }
         catch (InjectedRestoreFailureException ex)
@@ -321,6 +322,8 @@ public sealed class ManagedSqliteBackupRestoreBoundary : IManagedSqliteBackupRes
         }
         SqliteBoundaryFailure finalFailure = recovered ? failure : SqliteBoundaryFailure.RecoveryFailed;
         string finalError = recovered ? error : "RestoreRecoveryFailed";
+        if (!recovered)
+            RecoveryRequiredStateStore.MarkRequired(destination, finalError);
         var receipt = CreateRestoreReceipt(now, correlationId, scope, shiftProfileId, backup, destination,
             rollback, expectedBackupSha256, destinationBeforeSha256, rollbackSha256, destinationAfterSha256,
             sidecars, true, false, false, finalFailure);

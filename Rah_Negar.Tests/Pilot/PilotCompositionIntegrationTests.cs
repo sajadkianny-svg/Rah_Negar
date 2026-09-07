@@ -367,7 +367,7 @@ public sealed class PilotCompositionIntegrationTests
                     .Concat(Directory.GetFiles(Path.Combine(root, "UI", "Forms"), "*.cs",
                         SearchOption.AllDirectories)).Select(File.ReadAllText));
 
-        Assert.Equal("BC954DDFFE68A4DDAC3AAAC38B548D2621D6175BF367F39C0CF00AC6E9282F97",
+        Assert.Equal("11E2A1847D54A7CC81A1A86007E51B2AC6C69E9795BC21922E61BF8D7D1F3624",
             Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(programPath))));
         Assert.DoesNotContain("PilotSurfaceComposer", productionSource, StringComparison.Ordinal);
         Assert.DoesNotContain("IPilotDashboardStateProvider", productionSource,

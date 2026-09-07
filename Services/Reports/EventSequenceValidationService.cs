@@ -40,22 +40,30 @@ public static class EventSequenceValidationService
         long dateRep,
         List<DailyEventRowModel> dailyEvents)
     {
-        List<DailyEventRowModel> normalizedEvents = dailyEvents
-            .Where(x =>
-                !string.IsNullOrWhiteSpace(x.Unit) &&
-                !string.IsNullOrWhiteSpace(x.EventType) &&
-                !string.IsNullOrWhiteSpace(x.EventTime))
-            .Select(x => new DailyEventRowModel
-            {
-                DateRep = dateRep,
-                Unit = NormalizeUnit(x.Unit),
-                EventType = NormalizeEventType(x.EventType),
-                EventTime = NormalizeTime(x.EventTime),
-                Remark = x.Remark ?? string.Empty
-            })
-            .OrderBy(x => x.EventTime)
-            .ThenBy(x => x.Unit)
-            .ToList();
+        List<DailyEventRowModel> normalizedEvents;
+        try
+        {
+            normalizedEvents = dailyEvents
+                .Where(x =>
+                    !string.IsNullOrWhiteSpace(x.Unit) &&
+                    !string.IsNullOrWhiteSpace(x.EventType) &&
+                    !string.IsNullOrWhiteSpace(x.EventTime))
+                .Select(x => new DailyEventRowModel
+                {
+                    DateRep = dateRep,
+                    Unit = NormalizeUnit(x.Unit),
+                    EventType = NormalizeEventType(x.EventType),
+                    EventTime = NormalizeTime(x.EventTime),
+                    Remark = x.Remark ?? string.Empty
+                })
+                .OrderBy(x => x.EventTime)
+                .ThenBy(x => x.Unit)
+                .ToList();
+        }
+        catch (InvalidDataException)
+        {
+            return EventSequenceValidationResult.Fail("ساعت رویداد باید در قالب معتبر و با دقت دقیق دقیقه ثبت شود.");
+        }
 
         EventSequenceValidationResult sameTimeCheck =
             ValidateSameTimeEvents(normalizedEvents);
@@ -209,6 +217,7 @@ public static class EventSequenceValidationService
             "U2" => 2,
             "U3" => 3,
             "U4" => 4,
+            "U5" => 5,
             _ => 0
         };
     }
@@ -442,12 +451,12 @@ public static class EventSequenceValidationService
     {
         string text = (value ?? string.Empty).Trim();
 
-        if (string.IsNullOrWhiteSpace(text))
-            return "00:00";
+        if (!TimeSpan.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out TimeSpan ts) ||
+            ts < TimeSpan.Zero || ts >= TimeSpan.FromDays(1) ||
+            ts.Ticks % TimeSpan.TicksPerMinute != 0)
+            throw new InvalidDataException("Stored Event time is invalid.");
 
-        return TimeSpan.TryParse(text, out TimeSpan ts)
-            ? ts.ToString(@"hh\:mm")
-            : "00:00";
+        return ts.ToString(@"hh\:mm");
     }
 
     private static string FormatPersianDate(long dateRep)

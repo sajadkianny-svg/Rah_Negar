@@ -3,6 +3,7 @@ using Rah_Negar.Core;
 using Rah_Negar.Data;
 using Rah_Negar.Models;
 using Rah_Negar.Services;
+using Rah_Negar.Services.UI;
 using Rah_Negar.Utils;
 using System;
 using System.Collections.Generic;
@@ -663,70 +664,14 @@ LIMIT 1;";
         /// </summary>
         private void btnRepairDatabase_Click(object? sender, EventArgs e)
         {
-            try
-            {
-                if (!ConfirmLoginPassword())
-                    return;
-
-                DatabaseMaintenanceService.RepairIndexes();
-
-                MessageBox.Show(
-                    "بهینه‌سازی دیتابیس با موفقیت انجام شد",
-                    "Repair Database",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    "خطا در بهینه‌سازی دیتابیس: " + ex.Message,
-                    "خطا",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
+            ShowProtectedMaintenanceUnavailable();
         }
         /// <summary>
         /// خروجی گرفتن از فایل دیتابیس در مسیر انتخاب‌شده.
         /// </summary>
         private void btnExportDatabase_Click(object? sender, EventArgs e)
         {
-            try
-            {
-                if (!ConfirmLoginPassword())
-                    return;
-
-                AppSettingsModel? settings = AppSettingsService.GetSettings();
-
-                string stationName = settings?.StationName ?? "UnknownStation";
-                string safeStationName = MakeSafeFileNamePart(stationName);
-
-                using SaveFileDialog dialog = new()
-                {
-                    Title = "Export Database",
-                    Filter = "Rah Negar Backup (*.rngbak)|*.rngbak",
-                    DefaultExt = "rngbak",
-                    AddExtension = true,
-                    OverwritePrompt = true,
-                    FileName = $"RahNegar_{safeStationName}_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.rngbak"
-                };
-
-                if (dialog.ShowDialog(this) != DialogResult.OK)
-                    return;
-
-                DatabaseMaintenanceService.ExportDatabase(dialog.FileName);
-
-                MessageBox.Show(
-                    "فایل پشتیبان با موفقیت صادر شد",
-                    "Export",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-
-                LoadDatabaseDetails();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "خطا", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            ShowProtectedMaintenanceUnavailable();
         }
 
         private static string MakeSafeFileNamePart(string value)
@@ -751,121 +696,20 @@ LIMIT 1;";
 
         private void btnImportDatabase_Click(object? sender, EventArgs e)
         {
-            try
-            {
-                if (!ConfirmLoginPassword())
-                    return;
-
-                DialogResult confirm = MessageBox.Show(
-                    "با انجام این عملیات، اطلاعات فعلی برنامه با فایل پشتیبان انتخاب‌شده جایگزین می‌شود" +
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    "قبل از ادامه، مطمئن شوید از دیتابیس فعلی نسخه پشتیبان تهیه کرده‌اید" +
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    "ادامه می‌دهید؟",
-                    "Import",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning);
-
-                if (confirm != DialogResult.Yes)
-                    return;
-
-                using OpenFileDialog dialog = new()
-                {
-                    Title = "Import Database",
-                    Filter = "Rah Negar Backup (*.rngbak)|*.rngbak",
-                    CheckFileExists = true,
-                    Multiselect = false
-                };
-
-                if (dialog.ShowDialog(this) != DialogResult.OK)
-                    return;
-
-                DatabaseMaintenanceService.ImportDatabase(dialog.FileName);
-
-                MessageBox.Show(
-                    "بازیابی اطلاعات با موفقیت انجام شد. برنامه بسته می‌شود",
-                    "Success",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-
-                Application.Exit();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "خطا", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            ShowProtectedMaintenanceUnavailable();
         }
 
         // ================= Security Methods =================
 
-        /// <summary>
-        /// فرم تأیید رمز را نمایش می‌دهد و در صورت صحیح بودن، true برمی‌گرداند.
-        /// </summary>
-        private bool ConfirmLoginPassword()
+        private void ShowProtectedMaintenanceUnavailable()
         {
-            using FrmPasswordConfirm frm = new();
-
-            if (frm.ShowDialog(this) != DialogResult.OK)
-                return false;
-
-            string password = frm.Password;
-
-            if (string.IsNullOrWhiteSpace(password))
-                return false;
-
-            bool isValid = AppSettingsService.VerifyLoginPassword(password);
-
-            if (!isValid)
-            {
-                MessageBox.Show(
-                    "رمز واردشده صحیح نیست",
-                    "خطا",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
-                return false;
-            }
-
-            return true;
+            UiMessageService.ShowWarning(
+                "این عملیات تا زمان فراهم بودن ManagementCredential و ثبت ممیزی مدیریت‌شده در دسترس نیست.",
+                "دسترسی ایمن در دسترس نیست");
         }
         private void btnResetFactory_Click(object sender, EventArgs e)
         {
-            try
-            {
-                if (!ConfirmLoginPassword())
-                    return;
-
-                DialogResult confirm = MessageBox.Show(
-                    "تمام اطلاعات برنامه حذف خواهد شد" +
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    "قبل از ادامه، حتماً از دیتابیس نسخه پشتیبان تهیه کنید" +
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    "ادامه می‌دهید؟",
-                    "Factory Reset",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning);
-
-                if (confirm != DialogResult.Yes)
-                    return;
-
-                DatabaseMaintenanceService.FactoryReset();
-
-                MessageBox.Show(
-                    "ریست انجام شد. برنامه بسته می‌شود",
-                    "Done",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-
-                Environment.Exit(0);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "خطا", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            ShowProtectedMaintenanceUnavailable();
         }
 
         private void btnAbout_Click(object sender, EventArgs e)
@@ -878,52 +722,7 @@ LIMIT 1;";
         /// </summary>
         private void btnSave_Click(object? sender, EventArgs e)
         {
-            try
-            {
-                if (!double.TryParse(txtEsdExtraHours.Text, out double hours))
-                {
-                    MessageBox.Show(
-                        "مقدار ساعت اضافه معتبر نیست",
-                        "خطا",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-
-                    txtEsdExtraHours.Focus();
-                    return;
-                }
-
-                if (hours < 0)
-                {
-                    MessageBox.Show(
-                        "مقدار ساعت اضافه نمی‌تواند منفی باشد",
-                        "خطا",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-
-                    txtEsdExtraHours.Focus();
-                    return;
-                }
-
-                AppSettingsService.SaveNsdRuntimeSettings(
-                    ChAddHoursAfterEsd.Checked,
-                    hours);
-
-                MessageBox.Show(
-                    "تنظیمات کارکرد واحد ذخیره شد",
-                    "تنظیمات",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    "خطا در ذخیره تنظیمات کارکرد واحد:" +
-                    Environment.NewLine +
-                    ex.Message,
-                    "خطا",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
+            ShowProtectedMaintenanceUnavailable();
         }
 
     }

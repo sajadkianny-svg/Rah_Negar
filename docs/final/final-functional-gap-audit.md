@@ -2,9 +2,13 @@
 
 ## End-to-end trace
 
-`Program.cs` initializes the application. An empty database enters `FrmStartup`; a configured database enters `FrmLogin`; successful login opens `FrmMain`. Main navigation opens records, reports, settings, and the read-only Pilot surface. Records use the legacy repositories/services for daily data, unique values, Events, and locks. Report Center uses legacy report services and exports/finalizes reports. Settings calls legacy maintenance, password, recovery, and reset services. This trace is important because the newer target contracts are not automatically evidence that the reachable legacy path is correct.
+`Program.cs` initializes the application. An empty database enters `FrmStartup`; a configured database enters `FrmLogin`; successful login opens `FrmMain`. Main navigation opens records, reports, settings, and the read-only Pilot surface. Records use the legacy repositories/services for daily data, unique values, Events, and locks. Report Center uses legacy report services and exports/finalizes reports. Settings exposes password/user controls, while protected maintenance, recovery, reset, and ESD-setting actions fail closed unless the canonical management proof composition is available. This trace is important because the newer target contracts are not automatically evidence that the reachable legacy path is correct.
 
 ## Confirmed functional findings
+
+## Batch 1 status update (2026-09-07)
+
+F-01 and F-02 are resolved: production seeding is absent, and the public runtime path now validates complete canonical Event chains before calculation. F-03 and F-04 are resolved by the transactional below-UI Event authority validator, canonical START/NSD/ESD/OH enforcement, exact-minute rejection, and fail-closed malformed-time handling. F-05 is resolved for safety: active protected maintenance controls no longer use ordinary login password or call unsafe lower-level operations; they fail closed until canonical ManagementCredential proof is available. F-08 is resolved in the maintenance service with proof-gated, sidecar-aware, integrity-checked reset requiring a separate compatible backup. Focused Batch 1 regressions and the full suite pass.
 
 | ID | Severity | Finding | Evidence / failure scenario |
 |---|---|---|---|
@@ -24,4 +28,4 @@ No evidence supports adding a future universal platform, cloud service, updater,
 
 ## Functional conclusion
 
-The Pilot can launch and the target safety foundations can be qualified, but the reachable product still contains a destructive test feature and legacy correctness/security paths that must be replaced or removed before it can be called a complete industrial product.
+The Pilot can launch with the Batch 1 safety defects contained and resolved in the active legacy paths, but installer/data-root work, the qualification runner, real UI acceptance, and full target composition remain open. Production authority/routing remains unchanged and no activation or cutover is authorized.

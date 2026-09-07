@@ -1,6 +1,21 @@
 # Rah_Negar final defect register
 
-Confirmed defects are separated from unproven risks. No CRITICAL or HIGH defect is considered closed by the 759 passing tests because the missing tests are part of the evidence gap.
+Confirmed defects are separated from unproven risks. The original rows below remain the finding baseline; the Batch 1 status ledger records evidence-backed closure without changing unrelated scope.
+
+## Batch 1 status ledger (2026-09-07)
+
+| ID | Current status | Evidence |
+|---|---|---|
+| D-01 | RESOLVED | Seeder service and Records entry points removed; static production-assembly regression test passes. |
+| D-02 | RESOLVED | Public runtime calculator validates complete canonical chains and uses the state-machine projection; invalid-chain regression test passes. |
+| D-03 | RESOLVED | Legacy deterministic recovery service removed; managed recovery expiry and durable recovery-required blocking are covered. |
+| D-04 | RESOLVED | Backup encryption is versioned AES-GCM with DPAPI-protected operator key custody and tamper tests. |
+| D-05 | RESOLVED | Import performs integrity/FK/schema identity checks, verified rollback capture, staged atomic replacement, post-check, and fail-closed recovery marking. |
+| D-06 | RESOLVED | Factory reset requires ManagementCredential proof, a separate compatible verified backup, integrity validation, and sidecar cleanup. |
+| D-08 | RESOLVED FOR SAFETY | Ordinary-password confirmation and unsafe UI calls were removed; protected service entry points require canonical proof and fail closed. |
+| D-07, D-09, D-10 | OUTSIDE BATCH 1 | Installer/data-root, qualification-runner, and real UI acceptance remain open. |
+
+The production authority decision remains Legacy authoritative / Target non-authoritative / target routing disabled / Production Activation and Cutover unauthorized.
 
 | ID | Severity | File / class / method | Evidence and failure scenario | Required correction | Test required |
 |---|---|---|---|---|---|
@@ -19,4 +34,4 @@ Confirmed defects are separated from unproven risks. No CRITICAL or HIGH defect 
 | D-13 | MEDIUM | `AppSettingsService.GetDataStartDate` | Debug `MessageBox.Show(... "NULL")` exposes internal state on invalid settings. | Remove debug dialog and use structured localized error handling. | Malformed settings/readonly directory tests. |
 | D-14 | LOW | `FrmRecovery.Designer` dead handler; stale TODOs | Unwired handler throws `NotImplementedException`; stale TODOs suggest unfinished paths. | Delete or implement; add static unfinished-code gate. | Static scan plus form event wiring test. |
 
-The unresolved CRITICAL/HIGH items above mean the software is not complete-product ready even though the Pilot baseline is approved.
+Current unresolved CRITICAL/HIGH items are D-07, D-09, and D-10 plus the intentionally deferred target-composition integration represented by H-07; these are outside Batch 1.

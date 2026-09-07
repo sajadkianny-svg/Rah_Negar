@@ -45,7 +45,6 @@
             tabPage1 = new TabPage();
             pnl8 = new Panel();
             pnlDate = new Panel();
-            button1 = new Button();
             pnlDateText = new Panel();
             lblDate = new Label();
             dgvData = new DataGridView();
@@ -282,23 +281,12 @@
             // pnlDate
             // 
             pnlDate.BorderStyle = BorderStyle.FixedSingle;
-            pnlDate.Controls.Add(button1);
             pnlDate.Controls.Add(pnlDateText);
             pnlDate.ForeColor = SystemColors.ActiveCaptionText;
             pnlDate.Location = new Point(6, 10);
             pnlDate.Name = "pnlDate";
             pnlDate.Size = new Size(853, 25);
             pnlDate.TabIndex = 1;
-            // 
-            // button1
-            // 
-            button1.Location = new Point(681, 1);
-            button1.Name = "button1";
-            button1.Size = new Size(163, 23);
-            button1.TabIndex = 16;
-            button1.Text = "fake database";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
             // 
             // pnlDateText
             // 
@@ -934,6 +922,5 @@
         private Panel pnl8;
         private Label lbl_Date;
         private Button btnCancelEdit;
-        private Button button1;
     }
 }

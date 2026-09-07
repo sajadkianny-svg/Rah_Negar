@@ -135,13 +135,11 @@ public static class EventReportQueryService
     {
         string text = (value ?? string.Empty).Trim();
 
-        if (string.IsNullOrWhiteSpace(text))
-            return "00:00";
-
-        if (TimeSpan.TryParse(text, out TimeSpan ts))
+        if (TimeSpan.TryParse(text, System.Globalization.CultureInfo.InvariantCulture,
+                out TimeSpan ts) && ts >= TimeSpan.Zero && ts < TimeSpan.FromDays(1) &&
+                ts.Ticks % TimeSpan.TicksPerMinute == 0)
             return ts.ToString(@"hh\:mm");
-
-        return "00:00";
+        throw new InvalidDataException("Stored Event time is invalid.");
     }
 
     /// <summary>

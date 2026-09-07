@@ -1,5 +1,4 @@
 ﻿using Rah_Negar.Core;
-using Rah_Negar.Services;
 using Rah_Negar.Services.UI;
 using Rah_Negar.UI.Forms.Base;
 using Rah_Negar.Utils;
@@ -8,11 +7,6 @@ namespace Rah_Negar.UI.Forms;
 
 public partial class FrmRecovery : BaseForm
 {
-    /// <summary>
-    /// نام ایستگاه فعلی برای ساخت و اعتبارسنجی کد بازیابی
-    /// </summary>
-    private readonly string _stationName;
-
     /// <summary>
     /// سازنده پیش‌فرض برای Designer
     /// </summary>
@@ -28,8 +22,6 @@ public partial class FrmRecovery : BaseForm
         InitializeComponent();
 
         ApplyTheme();
-
-        _stationName = stationName;
 
         InitializeRecoveryForm();
         AcceptButton = btnVerify;
@@ -60,34 +52,9 @@ public partial class FrmRecovery : BaseForm
     /// </summary>
     private void btnGenerate_Click(object sender, EventArgs e)
     {
-        try
-        {
-            AppSettingsModel? settings = AppSettingsService.GetSettings();
-            string stationName = settings?.StationName ?? "Unknown";
-            if (string.IsNullOrWhiteSpace(stationName))
-            {
-                UiMessageService.ShowError("نام ایستگاه مشخص نیستی", "خطا");
-                return;
-            }
-
-            string requestId = RecoveryService.CreateRecoveryRequest(stationName);
-
-            txtRequestId.Text = requestId;
-            UiMessageService.ShowInfo(
-                UiMessageService.Paragraphs(
-                    "شناسه بازیابی ایجاد شد",
-                     "این کد را به ادمین اعلام کنید"
-                    ),
-                 "بازیابی رمز عبور");
-
-            txtRecoveryCode.Clear();
-            txtRecoveryCode.Focus();
-        }
-        catch (Exception ex)
-        {
-            ErrorLogger.Log(ex, "FrmRecovery.btnGenerate_Click");
-            UiMessageService.ShowError("خطا در ایجاد شناسه بازیابی", ex, "خطا");
-        }
+        UiMessageService.ShowWarning(
+            "بازیابی خودکار غیرفعال است. برای تغییر رمز، فرایند مدیریت‌شده و مجاز را اجرا کنید.",
+            "بازیابی در دسترس نیست");
     }
 
     /// <summary>
@@ -95,56 +62,9 @@ public partial class FrmRecovery : BaseForm
     /// </summary>
     private void btnVerify_Click(object sender, EventArgs e)
     {
-        AppSettingsModel? settings = AppSettingsService.GetSettings();
-        string stationName = settings?.StationName ?? "Unknown";
-        try
-        {
-            string requestId = txtRequestId.Text.Trim();
-            string code = txtRecoveryCode.Text.Trim();
-
-            if (string.IsNullOrWhiteSpace(requestId))
-            {
-                UiMessageService.ShowWarning("ابتدا شناسه بازیابی را تولید کنید", "اعتبارسنجی");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(code))
-            {
-                UiMessageService.ShowWarning("لطفاً کد بازیابی را وارد کنید", "اعتبارسنجی");
-                txtRecoveryCode.Focus();
-                return;
-            }
-
-            bool isValid = RecoveryService.ValidateRecoveryCode(
-                stationName,
-                requestId,
-                code);
-
-            if (!isValid)
-            {
-                UiMessageService.ShowWarning("کد بازیابی نامعتبر است", "اعتبارسنجی");
-                txtRecoveryCode.SelectAll();
-                txtRecoveryCode.Focus();
-                return;
-            }
-
-            using (FrmChangePassword frm = new FrmChangePassword(ChangePasswordMode.Recovery))
-            {
-                DialogResult result = frm.ShowDialog();
-
-                if (result == DialogResult.OK)
-                {
-                    this.DialogResult = DialogResult.OK;
-                }
-            }
-
-            Close();
-        }
-        catch (Exception ex)
-        {
-            ErrorLogger.Log(ex, "FrmRecovery.btnVerify_Click");
-            UiMessageService.ShowError("خطا در بررسی کد بازیابی", ex, "خطا");
-        }
+        UiMessageService.ShowWarning(
+            "کد بازیابی محلی قابل قبول نیست. این عملیات بدون مدرک مدیریت‌شده انجام نمی‌شود.",
+            "بازیابی رد شد");
     }
 
     private void ApplyTheme()

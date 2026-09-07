@@ -2,6 +2,24 @@
 
 Counts in this register are open actionable product/readiness gaps; owner-deferred governance items are listed separately and are not counted as software defects.
 
+## Batch 1 closure status (2026-09-07)
+
+The original finding rows below are retained as the audit baseline. Current status and evidence for this batch are:
+
+| ID | Status | Batch 1 evidence |
+|---|---|---|
+| C-01 | RESOLVED | Production seeder service, handlers, and controls removed; `Batch1SecurityAndIntegrityTests.Production_assembly_contains_no_seed_or_deterministic_recovery_entry_point`. |
+| C-02 | RESOLVED | Public runtime calculation now validates complete canonical Event chains before the state-machine projection; invalid-chain regression coverage added. |
+| C-03 | RESOLVED | Deterministic legacy recovery entry point removed; managed recovery request expiry and durable recovery blocking are enforced and tested. |
+| C-04 | RESOLVED | Versioned `RNBK` AES-GCM backup format with Windows DPAPI key custody, atomic output, tamper rejection, and round-trip tests. |
+| H-01 | RESOLVED | Legacy import now decrypts/stages/validates, creates a verified SQLite rollback copy, replaces atomically, validates post-replacement, and marks `RecoveryRequired` if rollback cannot be proven. |
+| H-02 | RESOLVED FOR SAFETY | Ordinary login-password maintenance bypass removed. Active settings actions fail closed; service entry points require canonical `ManagementAuthorizationProof` with action/scope/version/expiry validation and audit. |
+| H-06 | RESOLVED | Legacy Event insert/edit/delete paths use one transactional below-UI authority validator with canonical types, exact-minute uniqueness, complete-chain transitions, and rollback behavior. |
+| H-07 | OUTSIDE BATCH 1 | Full target security/report/snapshot composition remains intentionally inactive while Legacy is authoritative and target routing is disabled. |
+| M-04 | RESOLVED AS PART OF BATCH 1 | Factory reset service is proof-gated, sidecar-aware, integrity-checked, and requires a separate compatible verified backup. |
+
+The production authority decision remains unchanged: Legacy is authoritative, Target is non-authoritative, target routing is disabled, and Production Activation/Cutover are unauthorized.
+
 | ID | Area | Description | Severity | Evidence | Required fix | Test required | Blocks final delivery |
 |---|---|---|---|---|---|---|---|
 | C-01 | Data safety | Production Records exposes month/year test-data seeders. | CRITICAL | `FrmRecords.Designer.cs:293-301`; `FrmRecords.cs:3315-3343` | Remove from production UI/assembly and isolate test fixture tooling. | Static composition + disposable data-integrity test. | YES |
@@ -36,4 +54,4 @@ Counts in this register are open actionable product/readiness gaps; owner-deferr
 | D-03 | MQ-07 manual observation | Blocked with automated invariant evidence retained | NO under the recorded narrow Pilot decision |
 | D-04 | ESD effects, recovery custody, and some cutover semantics | Pending explicit owner/domain decisions | NO for current Pilot; YES for the affected final-production capability |
 
-Open actionable counts: CRITICAL 4, HIGH 7, MEDIUM 8, LOW 3. There are 10 unresolved CRITICAL/HIGH rows; the product is not final-delivery-ready.
+Open actionable counts after Batch 1: CRITICAL 0, HIGH 4 (H-03, H-04, H-05, H-07), MEDIUM 7, LOW 3. All remaining CRITICAL/HIGH items are outside this batch; the product is not final-delivery-ready until those gates are separately closed.

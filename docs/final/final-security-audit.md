@@ -8,6 +8,12 @@
 - No Support login, RBAC surface, or master-password login was found in the target design. Production authority and routing remain disabled.
 - Qualification fixtures use synthetic profiles/credentials and the qualification scripts assert no Production DB/authority mutation.
 
+## Batch 1 status update (2026-09-07)
+
+SEC-01 through SEC-05 are resolved in the active code paths. Legacy deterministic recovery was removed and managed recovery now enforces expiry plus durable fail-closed recovery state. Backups use versioned authenticated encryption with operator-bound DPAPI key custody. Restore is staged, integrity/FK/identity validated, rollback-backed, atomic where supported, post-validated, and recovery-marked when outcome is uncertain. Protected maintenance entry points require canonical ManagementCredential proof; the legacy Settings UI has no ordinary-password or unsafe lower-level fallback. The production authority state remains Legacy authoritative, Target non-authoritative, target routing disabled, and Activation/Cutover unauthorized.
+
+SEC-06 is also retired from the active product path with removal of the legacy recovery service; SEC-07 remains a separate logging/data-root issue for a later batch.
+
 ## Confirmed security defects/gaps
 
 | ID | Severity | Finding | Evidence | Disposition |

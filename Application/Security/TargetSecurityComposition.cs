@@ -437,6 +437,8 @@ public sealed record ManagementRecoveryResult(bool Succeeded, ManagementRecovery
 
 public sealed class TargetManagementRecoveryService
 {
+    private static readonly TimeSpan MaximumRequestAge = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan AllowedFutureSkew = TimeSpan.FromMinutes(1);
     private readonly IManagementCredentialRepository _credentials;
     private readonly IManagementCredentialRecoveryBoundary _boundary;
     private readonly IClock _clock;
@@ -463,6 +465,11 @@ public sealed class TargetManagementRecoveryService
             string.IsNullOrWhiteSpace(request.CorrelationId) || string.IsNullOrWhiteSpace(request.Reason) ||
             request.Reason.Length > 200 || request.Reason.Any(char.IsControl))
             return new(false, ManagementRecoveryFailure.InvalidRequest, null);
+        DateTimeOffset now = _clock.UtcNow.ToUniversalTime();
+        DateTimeOffset requestedAt = request.RequestedAtUtc.ToUniversalTime();
+        if (request.RequestedAtUtc.Offset != TimeSpan.Zero ||
+            requestedAt > now.Add(AllowedFutureSkew) || now - requestedAt > MaximumRequestAge)
+            return new(false, ManagementRecoveryFailure.InvalidRequest, null);
         if (!IsSafeReference(request.ManagementApproverReference) ||
             !IsSafeReference(request.SecurityReviewerReference))
             return new(false, ManagementRecoveryFailure.ApprovalReferenceInvalid, null);
@@ -476,7 +483,6 @@ public sealed class TargetManagementRecoveryService
         if (current is not { IsCurrent: true })
             return new(false, ManagementRecoveryFailure.CredentialUnavailable, null);
 
-        DateTimeOffset now = _clock.UtcNow.ToUniversalTime();
         byte[] salt = RandomNumberGenerator.GetBytes(16);
         byte[] verifier = Pbkdf2TargetPasswordVerifier.CreateVerifier(oneTimeSecret.ToString(), salt);
         ManagementCredentialRecord replacement = new(checked(current.CredentialVersion + 1),

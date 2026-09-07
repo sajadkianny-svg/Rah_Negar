@@ -1,6 +1,8 @@
 ﻿using Rah_Negar.Core.Reports;
 using Rah_Negar.Models.Reports;
 
+using Rah_Negar.Core.Event;
+
 namespace Rah_Negar.Services.Reports;
 
 /// <summary>
@@ -23,9 +25,11 @@ public static class EventRuntimeCalculationService
         bool esdExtraEnabled,
         double esdExtraHours)
     {
-        return CalculateLegacyCore(
+        ValidateCompleteEventChains(profile, events, initialStates, dateFrom, dateTo);
+        return CalculateStateMachineCore(
             profile,
             events,
+            dateFrom,
             dateFrom,
             dateTo,
             baseRuntimeHours,
@@ -33,6 +37,51 @@ public static class EventRuntimeCalculationService
             initialStates,
             esdExtraEnabled,
             esdExtraHours);
+    }
+
+    private static void ValidateCompleteEventChains(
+        ReportStationProfile profile,
+        IReadOnlyList<EventLogItem> events,
+        IReadOnlyDictionary<string, UnitInitialEventState> initialStates,
+        long dateFrom,
+        long dateTo)
+    {
+        DateTime periodStart = ConvertPersianDateTimeToGregorian(dateFrom, "00:00");
+        DateTime periodEnd = ConvertPersianDateTimeToGregorian(GetNextPersianDate(dateTo), "00:00");
+        foreach (IGrouping<string, EventLogItem> group in events
+            .Where(x => profile.Units.Contains(x.Unit, StringComparer.Ordinal))
+            .GroupBy(x => x.Unit, StringComparer.Ordinal))
+        {
+            EventOperationalState state = initialStates.TryGetValue(group.Key, out UnitInitialEventState? initial) &&
+                initial.IsRunningAtPeriodStart
+                ? EventOperationalState.Running
+                : initial is { HasSeenOHBeforePeriod: true }
+                    ? EventOperationalState.StoppedAfterOh
+                    : EventOperationalState.Stopped;
+            long? previousMinute = null;
+            foreach (EventLogItem item in group.OrderBy(x => x.EventDateTime))
+            {
+                if (item.EventDateTime < periodStart || item.EventDateTime >= periodEnd)
+                    continue;
+                if (item.EventDateTime.Ticks % TimeSpan.TicksPerMinute != 0)
+                    throw new InvalidDataException("An Event timestamp must be exact to the minute.");
+                string type = NormalizeEventType(item.EventType);
+                if (!IsSupportedEventType(type))
+                    throw new InvalidDataException("The database contains a non-canonical Event type.");
+                long minute = item.EventDateTime.Ticks / TimeSpan.TicksPerMinute;
+                if (previousMinute == minute)
+                    throw new InvalidDataException("A unit contains duplicate Event minutes.");
+                state = (state, type) switch
+                {
+                    (EventOperationalState.Stopped, "START") => EventOperationalState.Running,
+                    (EventOperationalState.Stopped, "OH") => EventOperationalState.StoppedAfterOh,
+                    (EventOperationalState.Running, "NSD" or "ESD" or "OH") => EventOperationalState.Stopped,
+                    (EventOperationalState.StoppedAfterOh, "START") => EventOperationalState.Running,
+                    _ => throw new InvalidDataException("The database contains an invalid Event transition.")
+                };
+                previousMinute = minute;
+            }
+        }
     }
 
     private static EventReportResult CalculateLegacyCore(

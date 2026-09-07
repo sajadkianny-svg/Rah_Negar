@@ -1,4 +1,6 @@
 using Rah_Negar.Foundation.Application.Authority;
+using Rah_Negar.Data;
+using Rah_Negar.Infrastructure.Database.Readiness;
 using Rah_Negar.Services;
 using Rah_Negar.UI.Forms;
 using Rah_Negar.UI.Startup;
@@ -24,6 +26,14 @@ namespace Rah_Negar
                     "راه‌نگار",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (RecoveryRequiredStateStore.IsRequired(SqliteDatabaseHelper.GetDatabasePath()))
+            {
+                MessageBox.Show(
+                    "وضعیت بازیابی دیتابیس قابل اثبات نیست. تا اجرای بازیابی تأییدشده، ورود به عملیات عادی مسدود است.",
+                    "Recovery Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 

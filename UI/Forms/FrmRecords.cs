@@ -2000,8 +2000,7 @@ ORDER BY unit_no;";
                     CommonRecordPersistenceService.DeleteExistingUnique(conn, tx, dateRep);
                     CommonRecordPersistenceService.InsertUnique(conn, tx, uniqueModel);
 
-                    CommonRecordPersistenceService.DeleteExistingEvents(conn, tx, dateRep);
-                    CommonRecordPersistenceService.InsertEvents(conn, tx, eventsModel);
+                    CommonRecordPersistenceService.ReplaceEvents(conn, tx, dateRep, eventsModel);
 
                     tx.Commit();
                 }
@@ -3312,35 +3311,5 @@ ORDER BY unit_no;";
 
         #endregion
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                string result = TestDataSeederService.CopyTemplateDayToFullMonth(
-                    templateDateRep: 14050101,
-                    targetYear: 1405,
-                    targetMonth: 1);
-
-                MessageBox.Show(result);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void button11_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                string result = TestDataSeederService.CopyTemplateDayToFullYear(14050101, 1405);
-
-                MessageBox.Show(result);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
     }
 }

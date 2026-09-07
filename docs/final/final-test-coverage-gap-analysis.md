@@ -1,5 +1,9 @@
 # Rah_Negar final test coverage gap analysis
 
+## Batch 1 coverage update (2026-09-07)
+
+Batch 1 verification: 765/765 tests passed, zero failed/skipped, Release build 0 errors, and six known NU1701 warning identities. Focused Batch 1 security/integrity tests pass 5/5; qualification-named tests pass 16/16. New regression coverage proves removal of production seed/demo entry points, authenticated/versioned backup tamper rejection, canonical Event duplicate/transition/non-minute rejection, active runtime fail-closed behavior, and durable `RecoveryRequired` marker clearing. Existing managed SQLite boundary tests continue to cover staged restore failure injection, rollback, checksum, and restart-safe evidence. The qualification runner infrastructure defect remains open and is not represented as a product pass.
+
 ## Current evidence
 
 Release baseline: 759/759 tests passed, zero failed/skipped, build 0 errors, and six known NU1701 warning identities (repeated across the two solution projects). The MQ-01…MQ-05 readiness support suites also passed: 3, 7, 16, 18, and 10 tests respectively. A real offline launch reached the Startup Wizard and initialized an isolated database on the prior package smoke test.
@@ -34,4 +38,4 @@ The full test suite is strongest in deterministic domain rules, target SQLite bo
 
 ## Coverage conclusion
 
-The 759 passing tests establish a strong service/contract baseline. They do not establish complete product coverage. Final product acceptance needs legacy-path integration, installer lifecycle, failure-injection, UI/manual, performance, backup/recovery, and upgrade tests before any claim of complete industrial readiness.
+The 765 passing tests establish a stronger Batch 1 service/contract baseline and no known regression. They do not establish complete product coverage. Final product acceptance still needs installer lifecycle, qualification-runner repair, UI/manual, performance, and upgrade evidence; the target-composition gate remains intentionally outside this batch.

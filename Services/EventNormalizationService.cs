@@ -30,6 +30,14 @@ public static class EventNormalizationService
             "UNIT3" => "U3",
             "UNIT 3" => "U3",
 
+            "U4" => "U4",
+            "UNIT4" => "U4",
+            "UNIT 4" => "U4",
+
+            "U5" => "U5",
+            "UNIT5" => "U5",
+            "UNIT 5" => "U5",
+
             _ => string.Empty
         };
     }

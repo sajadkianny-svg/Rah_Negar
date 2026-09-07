@@ -1,5 +1,9 @@
 # Rah_Negar final master requirement matrix
 
+## Batch 1 evidence update (2026-09-07)
+
+The following matrix evidence is now implemented and regression-tested: R-09 Event canonical types/exact-minute authority; R-10 authoritative complete-chain runtime calculation; R-14 protected-action proof separation and fail-closed behavior; R-15 expiry/action/scope/version-bound authorization preservation; R-17 authenticated backup plus staged atomic restore/recovery; R-19 durable recovery-required startup blocking and rollback behavior; and R-21 transactional Event persistence with integrity/FK/WAL-aware restore handling. R-13 remains partial because the approved active production identity is still the legacy operational path; H-07 target composition is intentionally deferred while Legacy remains authoritative and Target routing remains disabled. No Production Activation/Cutover authorization changed.
+
 Audit date: 2026-09-07
 Source commit: `706bef09e35e3e2ad403fb870cd4c3b2517a853e` (`v9.9.0-rc1`)
 Owner: Sajad Kiyani

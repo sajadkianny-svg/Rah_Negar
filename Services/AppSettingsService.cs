@@ -1,11 +1,13 @@
 ﻿using Microsoft.Data.Sqlite;
 using Rah_Negar.Core;
 using Rah_Negar.Data;
+using Rah_Negar.Foundation.Application.Security;
 using Rah_Negar.Models;
 using Rah_Negar.Utils;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 
 namespace Rah_Negar.Services;
 
@@ -75,9 +77,23 @@ LIMIT 1;";
     /// <summary>
     /// ذخیره تنظیمات مربوط به افزودن ساعت کارکرد بعد از NSD.
     /// </summary>
-    public static void SaveNsdRuntimeSettings(bool enabled, double extraHours)
+    public static void SaveNsdRuntimeSettings(bool enabled, double extraHours,
+        ManagementAuthorizationProof managementProof, int currentManagementCredentialVersion)
     {
+        if (extraHours < 0 || !double.IsFinite(extraHours))
+            throw new ArgumentOutOfRangeException(nameof(extraHours));
+        ArgumentNullException.ThrowIfNull(managementProof);
+
+        string scope = $"legacy-esd-adjustment|enabled={enabled}|hours={extraHours.ToString("G17", CultureInfo.InvariantCulture)}";
+        ManagementProofValidationResult validation = ManagementAuthorizationProofValidator.Validate(
+            managementProof, managementProof.InitiatingShiftProfileId,
+            ProtectedAction.ChangeEsdAdjustment, scope, managementProof.CorrelationId,
+            currentManagementCredentialVersion, DateTimeOffset.UtcNow);
+        if (!validation.IsValid)
+            throw new UnauthorizedAccessException("ManagementCredential proof is invalid or expired.");
+
         using SqliteConnection conn = SqliteDatabaseHelper.CreateConnection();
+        using SqliteTransaction transaction = conn.BeginTransaction();
 
         const string sql = @"
 UPDATE app_settings
@@ -91,12 +107,16 @@ WHERE id = (
 );";
 
         using SqliteCommand cmd = conn.CreateCommand();
+        cmd.Transaction = transaction;
         cmd.CommandText = sql;
 
         cmd.Parameters.AddWithValue("@enabled", enabled ? 1 : 0);
         cmd.Parameters.AddWithValue("@hours", extraHours);
 
         cmd.ExecuteNonQuery();
+        LegacySecurityAuditService.Write(conn, transaction, managementProof,
+            ProtectedAction.ChangeEsdAdjustment, scope, true);
+        transaction.Commit();
     }
     /// <summary>
     /// بروزرسانی هش و Salt رمز عبور در جدول app_settings

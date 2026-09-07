@@ -82,6 +82,7 @@ VALUES
     public static void DeleteExistingEvents(SqliteConnection conn, SqliteTransaction tx, long dateRep)
     {
         MonthlyLockService.EnsureDateIsEditable(conn, tx, dateRep);
+        HashSet<string> affectedUnits = LegacyEventAuthorityValidator.ReadUnitsOnDate(conn, tx, dateRep);
 
         const string sql = @"
 DELETE FROM tbl_events
@@ -93,6 +94,28 @@ WHERE date_rep = @date_rep;";
         };
 
         SqliteCommandHelper.ExecuteNonQuery(conn, sql, parameters, tx);
+
+        foreach (string unit in affectedUnits)
+            LegacyEventAuthorityValidator.ValidateCurrentUnit(conn, tx, unit);
+    }
+
+    /// <summary>
+    /// Replaces one day's Events as one validated mutation. The transaction is
+    /// left to the caller so station data, unique data, and Events commit together.
+    /// </summary>
+    public static void ReplaceEvents(SqliteConnection conn, SqliteTransaction tx,
+        long dateRep, IReadOnlyCollection<DailyEventRowModel> events)
+    {
+        MonthlyLockService.EnsureDateIsEditable(conn, tx, dateRep);
+        HashSet<string> affectedUnits = LegacyEventAuthorityValidator.ReadUnitsOnDate(conn, tx, dateRep);
+        foreach (DailyEventRowModel item in events)
+            affectedUnits.Add(item.Unit);
+        SqliteCommandHelper.ExecuteNonQuery(conn,
+            "DELETE FROM tbl_events WHERE date_rep = @date_rep;",
+            [SqliteCommandHelper.Param("@date_rep", dateRep)], tx);
+        InsertEvents(conn, tx, events.ToList());
+        foreach (string unit in affectedUnits)
+            LegacyEventAuthorityValidator.ValidateCurrentUnit(conn, tx, unit);
     }
 
     /// <summary>
@@ -100,8 +123,13 @@ WHERE date_rep = @date_rep;";
     /// </summary>
     public static void InsertEvents(SqliteConnection conn, SqliteTransaction tx, List<DailyEventRowModel> eventsList)
     {
+        ArgumentNullException.ThrowIfNull(eventsList);
         foreach (long dateRep in eventsList.Select(x => x.DateRep).Distinct())
             MonthlyLockService.EnsureDateIsEditable(conn, tx, dateRep);
+
+        long validationDate = eventsList.Count == 0 ? 0 : eventsList[0].DateRep;
+        if (eventsList.Count > 0)
+            LegacyEventAuthorityValidator.ValidateReplacement(conn, tx, validationDate, eventsList);
 
         const string sql = @"
 INSERT INTO tbl_events

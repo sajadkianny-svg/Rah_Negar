@@ -15,6 +15,8 @@ Close C-01 through C-04 and H-01/H-02/H-06/H-07 together where possible:
 
 Exit gate: no unresolved CRITICAL/HIGH security, data-integrity, runtime, or authorization defects; legacy-path integration tests pass.
 
+Batch 1 implementation status (2026-09-07): C-01 through C-04 and H-01, H-02, and H-06 are resolved with focused regression coverage. H-07 remains outside this batch because the approved production decision keeps Legacy authoritative and Target routing disabled; completing the full target composition requires a separate authorized cutover/integration batch. Production activation and cutover remain unauthorized.
+
 ## Batch 2 — installability and persistence lifecycle
 
 Close H-03 and M-08:

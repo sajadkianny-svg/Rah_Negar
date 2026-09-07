@@ -119,6 +119,21 @@ public sealed class Phase95B4SecurityCompositionTests
     }
 
     [Fact]
+    public async Task Management_recovery_request_expires_and_cannot_be_replayed_late()
+    {
+        var fixture = Fixture.Create();
+        ManagementRecoveryRequest expired = new("shift-1", "Rasht", "corr-recovery-expired",
+            "approved rotation", "approval-1", "review-1", Now.AddMinutes(-16));
+
+        ManagementRecoveryResult result = await fixture.Recovery.RotateAsync(
+            Session(), expired, "NewManagePass1!".AsMemory());
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(ManagementRecoveryFailure.InvalidRequest, result.Failure);
+        Assert.Null(fixture.RecoveryBoundary.Replacement);
+    }
+
+    [Fact]
     public async Task SQLite_recovery_boundary_commits_new_credential_and_audit_as_one_transaction()
     {
         await using TemporarySqliteDatabase db = TemporarySqliteDatabase.Create();
