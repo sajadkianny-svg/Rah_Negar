@@ -118,7 +118,7 @@
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(98, 26);
             btnLoad.TabIndex = 2;
-            btnLoad.Text = "Load";
+            btnLoad.Text = "بارگذاری";
             btnLoad.UseVisualStyleBackColor = false;
             btnLoad.Click += btnLoad_Click;
             // 
@@ -132,7 +132,7 @@
             btnPaste.Name = "btnPaste";
             btnPaste.Size = new Size(98, 26);
             btnPaste.TabIndex = 3;
-            btnPaste.Text = "Paste";
+            btnPaste.Text = "چسباندن";
             btnPaste.UseVisualStyleBackColor = false;
             btnPaste.Click += btnPaste_Click;
             // 
@@ -146,7 +146,7 @@
             btnEdit.Name = "btnEdit";
             btnEdit.Size = new Size(98, 26);
             btnEdit.TabIndex = 4;
-            btnEdit.Text = "Edit";
+            btnEdit.Text = "ویرایش";
             btnEdit.UseVisualStyleBackColor = false;
             btnEdit.Click += btnEdit_Click;
             // 
@@ -160,7 +160,7 @@
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(98, 26);
             btnSave.TabIndex = 5;
-            btnSave.Text = "Register";
+            btnSave.Text = "ثبت";
             btnSave.UseVisualStyleBackColor = false;
             btnSave.Click += btnSave_Click;
             // 
@@ -193,7 +193,7 @@
             btnCancelEdit.Name = "btnCancelEdit";
             btnCancelEdit.Size = new Size(75, 26);
             btnCancelEdit.TabIndex = 15;
-            btnCancelEdit.Text = "Cancel";
+            btnCancelEdit.Text = "انصراف";
             btnCancelEdit.UseVisualStyleBackColor = false;
             btnCancelEdit.Click += btnCancelEdit_Click;
             // 
@@ -208,7 +208,7 @@
             btnSaveEdit.Name = "btnSaveEdit";
             btnSaveEdit.Size = new Size(75, 26);
             btnSaveEdit.TabIndex = 14;
-            btnSaveEdit.Text = "Save";
+            btnSaveEdit.Text = "ذخیره";
             btnSaveEdit.UseVisualStyleBackColor = false;
             btnSaveEdit.Click += btnSaveEdit_Click;
             // 
@@ -222,7 +222,7 @@
             btnMissing.Name = "btnMissing";
             btnMissing.Size = new Size(98, 26);
             btnMissing.TabIndex = 7;
-            btnMissing.Text = "Miss Days";
+            btnMissing.Text = "روزهای ناقص";
             btnMissing.UseVisualStyleBackColor = false;
             btnMissing.Click += btnMissing_Click;
             // 
@@ -236,7 +236,7 @@
             btnReset.Name = "btnReset";
             btnReset.Size = new Size(98, 26);
             btnReset.TabIndex = 6;
-            btnReset.Text = "Reset";
+            btnReset.Text = "پاک‌سازی";
             btnReset.UseVisualStyleBackColor = false;
             btnReset.Click += btnReset_Click;
             // 
@@ -268,7 +268,7 @@
             tabPage1.Padding = new Padding(3);
             tabPage1.Size = new Size(876, 426);
             tabPage1.TabIndex = 0;
-            tabPage1.Text = "Operational Parameters  ";
+            tabPage1.Text = "پارامترهای عملیاتی";
             tabPage1.UseVisualStyleBackColor = true;
             // 
             // pnl8
@@ -308,7 +308,7 @@
             lblDate.Name = "lblDate";
             lblDate.Size = new Size(34, 15);
             lblDate.TabIndex = 13;
-            lblDate.Text = "Date:";
+            lblDate.Text = "تاریخ:";
             // 
             // dgvData
             // 
@@ -332,7 +332,7 @@
             tabPage2.Padding = new Padding(3);
             tabPage2.Size = new Size(876, 426);
             tabPage2.TabIndex = 1;
-            tabPage2.Text = "Fuel & Flow & Events    ";
+            tabPage2.Text = "سوخت، جریان و رویدادها";
             tabPage2.UseVisualStyleBackColor = true;
             // 
             // pnlBodyEvents
@@ -366,7 +366,7 @@
             label17.Name = "label17";
             label17.Size = new Size(45, 13);
             label17.TabIndex = 29;
-            label17.Text = "Events";
+            label17.Text = "رویدادها";
             // 
             // pnlOperation
             // 
@@ -395,7 +395,7 @@
             btnEndSelection.Name = "btnEndSelection";
             btnEndSelection.Size = new Size(110, 26);
             btnEndSelection.TabIndex = 33;
-            btnEndSelection.Text = "Clear Selection";
+            btnEndSelection.Text = "پاک کردن انتخاب";
             btnEndSelection.UseVisualStyleBackColor = true;
             btnEndSelection.Click += btnEndSelection_Click;
             // 
@@ -407,7 +407,7 @@
             btnDeleteItem.Name = "btnDeleteItem";
             btnDeleteItem.Size = new Size(110, 26);
             btnDeleteItem.TabIndex = 7;
-            btnDeleteItem.Text = "Delete";
+            btnDeleteItem.Text = "حذف";
             btnDeleteItem.UseVisualStyleBackColor = true;
             btnDeleteItem.Click += btnDeleteItem_Click;
             // 
@@ -419,7 +419,7 @@
             btnAdd.Name = "btnAdd";
             btnAdd.Size = new Size(110, 26);
             btnAdd.TabIndex = 6;
-            btnAdd.Text = "Add";
+            btnAdd.Text = "افزودن";
             btnAdd.UseVisualStyleBackColor = true;
             btnAdd.Click += btnAdd_Click;
             // 
@@ -431,7 +431,7 @@
             label15.Name = "label15";
             label15.Size = new Size(51, 14);
             label15.TabIndex = 32;
-            label15.Text = "Remark:";
+            label15.Text = "شرح:";
             // 
             // txtRemark
             // 
@@ -453,7 +453,7 @@
             label12.Name = "label12";
             label12.Size = new Size(33, 14);
             label12.TabIndex = 21;
-            label12.Text = "Unit:";
+            label12.Text = "واحد:";
             // 
             // label14
             // 
@@ -463,7 +463,7 @@
             label14.Name = "label14";
             label14.Size = new Size(38, 14);
             label14.TabIndex = 23;
-            label14.Text = "Time:";
+            label14.Text = "ساعت:";
             // 
             // cmbType
             // 
@@ -482,7 +482,7 @@
             label13.Name = "label13";
             label13.Size = new Size(39, 14);
             label13.TabIndex = 22;
-            label13.Text = "Type:";
+            label13.Text = "نوع:";
             // 
             // cmbUnits
             // 
@@ -578,7 +578,7 @@
             // 
             // colUnit
             // 
-            colUnit.HeaderText = "Unit";
+            colUnit.HeaderText = "واحد";
             colUnit.MinimumWidth = 6;
             colUnit.Name = "colUnit";
             colUnit.ReadOnly = true;
@@ -588,7 +588,7 @@
             // 
             // colEventType
             // 
-            colEventType.HeaderText = "Type";
+            colEventType.HeaderText = "نوع";
             colEventType.MinimumWidth = 6;
             colEventType.Name = "colEventType";
             colEventType.ReadOnly = true;
@@ -598,7 +598,7 @@
             // 
             // colEventTime
             // 
-            colEventTime.HeaderText = "Time";
+            colEventTime.HeaderText = "ساعت";
             colEventTime.MinimumWidth = 6;
             colEventTime.Name = "colEventTime";
             colEventTime.ReadOnly = true;
@@ -608,7 +608,7 @@
             // 
             // colRemark
             // 
-            colRemark.HeaderText = "Remark";
+            colRemark.HeaderText = "شرح";
             colRemark.MinimumWidth = 6;
             colRemark.Name = "colRemark";
             colRemark.ReadOnly = true;
@@ -659,7 +659,7 @@
             label16.Name = "label16";
             label16.Size = new Size(58, 13);
             label16.TabIndex = 29;
-            label16.Text = "Flow Fuel";
+            label16.Text = "سوخت و جریان";
             // 
             // label6
             // 
@@ -668,7 +668,7 @@
             label6.Name = "label6";
             label6.Size = new Size(49, 15);
             label6.TabIndex = 9;
-            label6.Text = "VentGas";
+            label6.Text = "گاز تخلیه";
             // 
             // label11
             // 
@@ -678,7 +678,7 @@
             label11.Name = "label11";
             label11.Size = new Size(44, 13);
             label11.TabIndex = 14;
-            label11.Text = "MMSCM";
+            label11.Text = "میلیون مترمکعب";
             // 
             // txt_Flow
             // 
@@ -698,7 +698,7 @@
             label10.Name = "label10";
             label10.Size = new Size(44, 13);
             label10.TabIndex = 13;
-            label10.Text = "MMSCM";
+            label10.Text = "میلیون مترمکعب";
             // 
             // label3
             // 
@@ -707,7 +707,7 @@
             label3.Name = "label3";
             label3.Size = new Size(76, 15);
             label3.TabIndex = 1;
-            label3.Text = "Turbine Flow";
+            label3.Text = "جریان توربین";
             // 
             // label9
             // 
@@ -746,7 +746,7 @@
             label4.Name = "label4";
             label4.Size = new Size(104, 15);
             label4.TabIndex = 3;
-            label4.Text = "Non-Turbine Flow";
+            label4.Text = "جریان غیرتوربینی";
             // 
             // label7
             // 
@@ -773,7 +773,7 @@
             lblGenFuel.Name = "lblGenFuel";
             lblGenFuel.Size = new Size(78, 15);
             lblGenFuel.TabIndex = 5;
-            lblGenFuel.Text = "Gas Gen. Fuel";
+            lblGenFuel.Text = "سوخت ژنراتور گازی";
             // 
             // txt_Vent
             // 
@@ -798,7 +798,7 @@
             label18.Name = "label18";
             label18.Size = new Size(76, 15);
             label18.TabIndex = 7;
-            label18.Text = "Turbine  Fuel";
+            label18.Text = "سوخت توربین";
             // 
             // pnl_Date
             // 
@@ -820,7 +820,7 @@
             lbl_Date.Name = "lbl_Date";
             lbl_Date.Size = new Size(31, 15);
             lbl_Date.TabIndex = 31;
-            lbl_Date.Text = "Date";
+            lbl_Date.Text = "تاریخ";
             // 
             // FrmRecords
             // 
@@ -833,7 +833,7 @@
             MaximizeBox = false;
             Name = "FrmRecords";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Records";
+            Text = "ثبت داده‌ها";
             Load += FrmRecords_Load;
             pnlButtom.ResumeLayout(false);
             tabControl1.ResumeLayout(false);

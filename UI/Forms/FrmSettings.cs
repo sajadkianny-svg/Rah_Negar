@@ -27,6 +27,15 @@ namespace Rah_Negar.UI.Forms
         public FrmSettings()
         {
             InitializeComponent();
+            CancelButton = btnClose;
+
+            // Factory reset is intentionally unavailable until the managed
+            // recovery workflow is composed; make that state explicit in the UI.
+            btnResetFactory.Enabled = false;
+            btnResetFactory.Text = "بازنشانی کارخانه‌ای (غیرفعال)";
+            btnResetFactory.AccessibleName = "بازنشانی کارخانه‌ای؛ در دسترس نیست";
+            btnResetFactory.Width = 200;
+            btnResetFactory.Left = 403;
 
             LoadSettingsForm();
             //ConfigureThemeRadioButtonsLayout();
@@ -375,13 +384,8 @@ LIMIT 1;";
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "خطا در ذخیره تاریخ مبنای داده‌ها" +
-                    Environment.NewLine +
-                    ex.Message,
-                    "خطا",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                ErrorLogger.Log(ex, "FrmSettings.SaveDataStartDate");
+                UiMessageService.ShowError("ذخیره تاریخ مبنای داده‌ها انجام نشد. ورودی‌ها و دسترسی داده را بررسی کنید.", "خطا");
             }
         }
 

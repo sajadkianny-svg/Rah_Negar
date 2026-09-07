@@ -4,6 +4,8 @@ using Rah_Negar.Services;
 using Rah_Negar.UI.Controls;
 using Rah_Negar.UI.Forms;
 using Rah_Negar.UI.Forms.Base;
+using Rah_Negar.Services.UI;
+using Rah_Negar.Utils;
 
 namespace Rah_Negar.UI.Startup
 {
@@ -33,6 +35,8 @@ namespace Rah_Negar.UI.Startup
         public FrmStartup()
         {
             InitializeComponent();
+            AcceptButton = btnSave;
+            CancelButton = btnCancel;
             LoadMonths();
             LoadYears();
 
@@ -76,13 +80,8 @@ namespace Rah_Negar.UI.Startup
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "خطا در مقداردهی اولیه فرم راه‌اندازی" +
-                    Environment.NewLine +
-                    ex.Message,
-                    "خطا",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                ErrorLogger.Log(ex, "FrmStartup.Initialize");
+                UiMessageService.ShowError("آماده‌سازی فرم راه‌اندازی انجام نشد. تنظیمات دسترسی داده را بررسی کنید.", "خطا");
             }
         }
 
@@ -197,13 +196,8 @@ namespace Rah_Negar.UI.Startup
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "خطا در تغییر پروفایل ایستگاه" +
-                    Environment.NewLine +
-                    ex.Message,
-                    "خطا",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                ErrorLogger.Log(ex, "FrmStartup.StationProfile");
+                UiMessageService.ShowError("تغییر پروفایل ایستگاه انجام نشد. ورودی‌ها و دسترسی داده را بررسی کنید.", "خطا");
             }
         }
 
@@ -406,13 +400,8 @@ namespace Rah_Negar.UI.Startup
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "خطا در انجام راه‌اندازی اولیه" +
-                    Environment.NewLine +
-                    ex.Message,
-                    "خطا",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                ErrorLogger.Log(ex, "FrmStartup.InitializeApplication");
+                UiMessageService.ShowError("راه‌اندازی اولیه انجام نشد. ورودی‌ها و دسترسی پوشه داده را بررسی کنید.", "خطا");
             }
         }
 

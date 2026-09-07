@@ -21,6 +21,16 @@ public static class ReportStationProfileProvider
     /// <returns>پروفایل گزارش‌گیری ایستگاه.</returns>
     public static ReportStationProfile GetProfile(string stationName)
     {
+        if (GenericProfileIdentity.TryGetUnitCount(stationName, out int genericUnitCount))
+        {
+            return new ReportStationProfile
+            {
+                StationName = stationName,
+                Units = Enumerable.Range(1, genericUnitCount).Select(i => $"U{i}").ToArray(),
+                Parameters = ReportParameterRegistry.GetGenericParameters(genericUnitCount)
+            };
+        }
+
         return stationName switch
         {
             "Rasht Station" => CreateRashtProfile(),

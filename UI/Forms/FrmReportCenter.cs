@@ -64,13 +64,30 @@ namespace Rah_Negar.UI.Forms
         /// آخرین نتیجه گزارش رویدادها برای استفاده در لاگ و تغییر حالت نمایش.
         /// </summary>
         private EventReportResult? _currentEventReportResult;
+        private readonly Label _mostFrequentCombinationLabel = new();
 
         public FrmReportCenter()
         {
             InitializeComponent();
+            ConfigureMostFrequentCombinationLabel();
 
             KeyPreview = true;
             KeyDown += Frm_KeyDown;
+        }
+
+        private void ConfigureMostFrequentCombinationLabel()
+        {
+            _mostFrequentCombinationLabel.Name = "lblMostFrequentCombination";
+            _mostFrequentCombinationLabel.Dock = DockStyle.Top;
+            _mostFrequentCombinationLabel.Height = 30;
+            _mostFrequentCombinationLabel.AutoEllipsis = true;
+            _mostFrequentCombinationLabel.AutoSize = false;
+            _mostFrequentCombinationLabel.Padding = new Padding(8, 4, 8, 4);
+            _mostFrequentCombinationLabel.TextAlign = ContentAlignment.MiddleRight;
+            _mostFrequentCombinationLabel.RightToLeft = RightToLeft.Yes;
+            _mostFrequentCombinationLabel.Text = "پرتکرارترین ترکیب واحدها: داده‌ای ثبت نشده است";
+            pnlServiceBottom.Controls.Add(_mostFrequentCombinationLabel);
+            _mostFrequentCombinationLabel.BringToFront();
         }
         private void FrmReportCenter_Load_1(object sender, EventArgs e)
         {
@@ -99,7 +116,6 @@ namespace Rah_Negar.UI.Forms
             _currentThemeIndex = settings.ThemeIndex;
             AppThemeManager.LoadThemeByIndex(_currentThemeIndex);
 
-            // TODO: بعداً اینا رو وصل می‌کنیم به DB واقعی
             LoadMonths();
             LoadYears();
 
@@ -112,6 +128,8 @@ namespace Rah_Negar.UI.Forms
             ConfigureServiceDaysGrid();
             ConfigureEventLogGrid();
             ConfigureServiceCombinationGrid();
+
+            ApplyPersianCaptions();
 
 
             InitializeSummaryGridRows();
@@ -126,6 +144,52 @@ namespace Rah_Negar.UI.Forms
             _isThemeApplied = false;
             ApplyThemeToReportForm();
 
+        }
+
+        private void ApplyPersianCaptions()
+        {
+            Text = "مرکز گزارش";
+            lblTitle.Text = "مرکز گزارش و تحلیل";
+            label1.Text = "سال:";
+            label2.Text = "ماه:";
+            btnGenerateReport.Text = "تولید گزارش";
+            btnPDF.Text = "صدور PDF";
+            btnFinalizeMonthlyReport.Text = "نهایی‌سازی ماه";
+            btnSummaryPage.Text = "نمای کلی";
+            btnEventsPage.Text = "خلاصه رویدادها";
+            btnServicePage.Text = "تحلیل سرویس";
+            btnLogPage.Text = "لاگ رویدادها";
+
+            SetHeader(dgvSummary, "colParameter", "پارامتر");
+            SetHeader(dgvSummary, "colMin", "کمینه");
+            SetHeader(dgvSummary, "colMax", "بیشینه");
+            SetHeader(dgvSummary, "colAvg", "میانگین");
+            SetHeader(dgvUniqueSummary, "colItem", "پارامتر");
+            SetHeader(dgvUniqueSummary, "colValue", "مقدار");
+            SetHeader(dgvEventSummary, "colMetric", "شاخص");
+            SetHeader(dgvEventSummary, "colTotal", "مجموع");
+            SetHeader(dgvServiceDays, "colUnit", "واحد");
+            SetHeader(dgvServiceDays, "colUnitDays", "روز");
+            SetHeader(dgvServiceDays, "colCombination", "ترکیب");
+            SetHeader(dgvServiceDays, "colCombinationDays", "روز");
+            SetHeader(dgvServiceCombination, "colCombination", "ترکیب");
+            SetHeader(dgvServiceCombination, "colDate", "تاریخ");
+            SetHeader(dgvServiceCombination, "colUnits", "واحدهای در سرویس");
+            SetHeader(dgvEventLog, "colGroup", "گروه");
+            SetHeader(dgvEventLog, "colDate", "تاریخ");
+            SetHeader(dgvEventLog, "colItem", "رویداد");
+            SetHeader(dgvEventLog, "colTime", "ساعت");
+            SetHeader(dgvEventLog, "colRemark", "شرح");
+            SetHeader(dgvExtremeDates, "colGroup", "پارامتر");
+            SetHeader(dgvExtremeDates, "colDate", "تاریخ");
+            SetHeader(dgvExtremeDates, "colType", "نوع");
+            SetHeader(dgvExtremeDates, "colValue", "مقدار");
+        }
+
+        private static void SetHeader(DataGridView grid, string name, string text)
+        {
+            if (grid.Columns.Contains(name))
+                grid.Columns[name].HeaderText = text;
         }
         /// <summary>
         /// سال‌های موجود در جدول tbl_unique را از روی فیلد date_rep خوانده
@@ -292,6 +356,10 @@ namespace Rah_Negar.UI.Forms
 
             pnlFilterCard.BackColor = palette.CardBackColor;
             pnlNavigation.BackColor = palette.ContentBackColor;
+
+            _mostFrequentCombinationLabel.BackColor = palette.CardBackColor;
+            _mostFrequentCombinationLabel.ForeColor = palette.TextPrimaryColor;
+            _mostFrequentCombinationLabel.Font = UiScaleService.GetBoldFont(this, 8.5f);
 
             lblTitle.ForeColor = palette.TextOnAccentColor;
 
@@ -515,6 +583,12 @@ namespace Rah_Negar.UI.Forms
         {
             ConfigureReportGridBase(dgvSummary);
 
+            const string cacheKey = "report-summary";
+            if (TryRestoreReportGridColumns(dgvSummary, cacheKey))
+                return;
+            if (dgvSummary.Columns.Count > 0)
+                return;
+
             dgvSummary.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "colParameter",
@@ -559,6 +633,7 @@ namespace Rah_Negar.UI.Forms
             });
 
             dgvSummary.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            CacheReportGridColumns(dgvSummary, cacheKey);
         }
 
         /// <summary>
@@ -567,6 +642,12 @@ namespace Rah_Negar.UI.Forms
         private void ConfigureUniqueSummaryGrid()
         {
             ConfigureReportGridBase(dgvUniqueSummary);
+
+            const string cacheKey = "report-unique-summary";
+            if (TryRestoreReportGridColumns(dgvUniqueSummary, cacheKey))
+                return;
+            if (dgvUniqueSummary.Columns.Count > 0)
+                return;
 
             dgvUniqueSummary.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -594,6 +675,7 @@ namespace Rah_Negar.UI.Forms
             });
 
             dgvUniqueSummary.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            CacheReportGridColumns(dgvUniqueSummary, cacheKey);
         }
 
         /// <summary>
@@ -623,16 +705,16 @@ namespace Rah_Negar.UI.Forms
         {
             dgvUniqueSummary.Rows.Clear();
 
-            dgvUniqueSummary.Rows.Add("Gas Generator Fuel", "");
-            dgvUniqueSummary.Rows.Add("Turbine Fuel", "");
-            dgvUniqueSummary.Rows.Add("Total Fuel", "");
+            dgvUniqueSummary.Rows.Add("سوخت ژنراتور گازی", "");
+            dgvUniqueSummary.Rows.Add("سوخت توربین", "");
+            dgvUniqueSummary.Rows.Add("مجموع سوخت", "");
 
-            dgvUniqueSummary.Rows.Add("Turbine Flow", "");
-            dgvUniqueSummary.Rows.Add("Non-Turbine Flow", "");
-            dgvUniqueSummary.Rows.Add("Total Flow", "");
+            dgvUniqueSummary.Rows.Add("جریان توربین", "");
+            dgvUniqueSummary.Rows.Add("جریان غیرتوربینی", "");
+            dgvUniqueSummary.Rows.Add("مجموع جریان", "");
 
-            dgvUniqueSummary.Rows.Add("Vent", "");
-            dgvUniqueSummary.Rows.Add("Recyle Change", "");
+            dgvUniqueSummary.Rows.Add("تخلیه گاز", "");
+            dgvUniqueSummary.Rows.Add("تغییر چرخه", "");
 
             dgvUniqueSummary.ClearSelection();
             dgvUniqueSummary.CurrentCell = null;
@@ -643,7 +725,6 @@ namespace Rah_Negar.UI.Forms
         /// </summary>
         private static void ConfigureReportGridBase(DataGridView dgv)
         {
-            dgv.Columns.Clear();
             dgv.Rows.Clear();
 
             dgv.AllowUserToAddRows = false;
@@ -684,6 +765,31 @@ namespace Rah_Negar.UI.Forms
             dgv.CurrentCell = null;
         }
 
+        private static bool TryRestoreReportGridColumns(DataGridView grid, string cacheKey)
+        {
+            if (!DataGridViewDefinitionCache.TryGet(cacheKey,
+                    out IReadOnlyList<DataGridViewColumnDefinition>? definitions) || definitions is null)
+                return false;
+
+            DataGridViewDefinitionCache.EnsureColumns(grid, cacheKey, definitions);
+            return true;
+        }
+
+        private static void CacheReportGridColumns(DataGridView grid, string cacheKey)
+        {
+            DataGridViewColumnDefinition[] definitions = grid.Columns
+                .Cast<DataGridViewColumn>()
+                .Select(column => new DataGridViewColumnDefinition(
+                    column.Name,
+                    column.HeaderText,
+                    column.Width,
+                    column.ReadOnly,
+                    column.DefaultCellStyle.Alignment,
+                    column.DefaultCellStyle.BackColor))
+                .ToArray();
+            DataGridViewDefinitionCache.GetOrAdd(cacheKey, definitions);
+        }
+
         /// <summary>
         /// ساختار و ظاهر گرید خلاصه رویدادها را بر اساس واحدهای پروفایل فعال تنظیم می‌کند.
         /// ستون‌های واحدها به‌صورت داینامیک ساخته می‌شوند.
@@ -691,6 +797,12 @@ namespace Rah_Negar.UI.Forms
         private void ConfigureEventSummaryGrid()
         {
             ConfigureReportGridBase(dgvEventSummary);
+
+            string cacheKey = "report-event-summary|" + string.Join(",", _reportProfile.Units);
+            if (TryRestoreReportGridColumns(dgvEventSummary, cacheKey))
+                return;
+            if (dgvEventSummary.Columns.Count > 0)
+                return;
 
             dgvEventSummary.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -734,6 +846,7 @@ namespace Rah_Negar.UI.Forms
             dgvEventSummary.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
 
             ApplyThemeToReportForm();
+            CacheReportGridColumns(dgvEventSummary, cacheKey);
         }
 
         /// <summary>
@@ -743,20 +856,20 @@ namespace Rah_Negar.UI.Forms
         {
             dgvEventSummary.Rows.Clear();
 
-            dgvEventSummary.Rows.Add("Runtime Hours");
-            dgvEventSummary.Rows.Add("Runtime After OH");
-            dgvEventSummary.Rows.Add("Total Events");
-            dgvEventSummary.Rows.Add("Start Count");
-            dgvEventSummary.Rows.Add("N.S.D Count");
-            dgvEventSummary.Rows.Add("E.S.D Count");
-            dgvEventSummary.Rows.Add("E.S.D Extra Hours");
-            dgvEventSummary.Rows.Add("Max Runtime");
-            dgvEventSummary.Rows.Add("Day Start");
-            dgvEventSummary.Rows.Add("Night Start");
-            dgvEventSummary.Rows.Add("Day N.S.D");
-            dgvEventSummary.Rows.Add("Night N.S.D");
-            dgvEventSummary.Rows.Add("Day E.S.D");
-            dgvEventSummary.Rows.Add("Night E.S.D");
+            dgvEventSummary.Rows.Add("ساعت کارکرد");
+            dgvEventSummary.Rows.Add("کارکرد بعد از اورهال");
+            dgvEventSummary.Rows.Add("تعداد کل رویدادها");
+            dgvEventSummary.Rows.Add("تعداد شروع");
+            dgvEventSummary.Rows.Add("تعداد NSD");
+            dgvEventSummary.Rows.Add("تعداد ESD");
+            dgvEventSummary.Rows.Add("ساعت اضافه ESD");
+            dgvEventSummary.Rows.Add("بیشترین کارکرد");
+            dgvEventSummary.Rows.Add("شروع روز");
+            dgvEventSummary.Rows.Add("شروع شب");
+            dgvEventSummary.Rows.Add("NSD روز");
+            dgvEventSummary.Rows.Add("NSD شب");
+            dgvEventSummary.Rows.Add("ESD روز");
+            dgvEventSummary.Rows.Add("ESD شب");
 
             dgvEventSummary.ClearSelection();
             dgvEventSummary.CurrentCell = null;
@@ -770,7 +883,11 @@ namespace Rah_Negar.UI.Forms
         {
             ConfigureReportGridBase(dgvServiceDays);
 
-            dgvServiceDays.Columns.Clear();
+            const string cacheKey = "report-service-days";
+            if (TryRestoreReportGridColumns(dgvServiceDays, cacheKey))
+                return;
+            if (dgvServiceDays.Columns.Count > 0)
+                return;
 
             dgvServiceDays.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -825,6 +942,7 @@ namespace Rah_Negar.UI.Forms
             dgvServiceDays.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             ApplyThemeToReportForm();
+            CacheReportGridColumns(dgvServiceDays, cacheKey);
         }
 
         /// <summary>
@@ -833,6 +951,12 @@ namespace Rah_Negar.UI.Forms
         private void ConfigureEventLogGrid()
         {
             ConfigureReportGridBase(dgvEventLog);
+
+            const string cacheKey = "report-event-log";
+            if (TryRestoreReportGridColumns(dgvEventLog, cacheKey))
+                return;
+            if (dgvEventLog.Columns.Count > 0)
+                return;
 
             dgvEventLog.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -880,6 +1004,7 @@ namespace Rah_Negar.UI.Forms
             });
 
             dgvEventLog.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            CacheReportGridColumns(dgvEventLog, cacheKey);
         }
 
         /// <summary>
@@ -889,6 +1014,12 @@ namespace Rah_Negar.UI.Forms
         private void ConfigureServiceCombinationGrid()
         {
             ConfigureReportGridBase(dgvServiceCombination);
+
+            const string cacheKey = "report-service-combination";
+            if (TryRestoreReportGridColumns(dgvServiceCombination, cacheKey))
+                return;
+            if (dgvServiceCombination.Columns.Count > 0)
+                return;
 
             dgvServiceCombination.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -918,6 +1049,7 @@ namespace Rah_Negar.UI.Forms
             });
 
             dgvServiceCombination.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            CacheReportGridColumns(dgvServiceCombination, cacheKey);
         }
 
         /// <summary>
@@ -927,6 +1059,12 @@ namespace Rah_Negar.UI.Forms
         private void ConfigureExtremeDatesGrid()
         {
             ConfigureReportGridBase(dgvExtremeDates);
+
+            const string cacheKey = "report-extreme-dates";
+            if (TryRestoreReportGridColumns(dgvExtremeDates, cacheKey))
+                return;
+            if (dgvExtremeDates.Columns.Count > 0)
+                return;
 
             dgvExtremeDates.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -978,6 +1116,7 @@ namespace Rah_Negar.UI.Forms
 
             dgvExtremeDates.ClearSelection();
             dgvExtremeDates.CurrentCell = null;
+            CacheReportGridColumns(dgvExtremeDates, cacheKey);
         }
 
         //==========================================================================================================
@@ -1328,7 +1467,7 @@ namespace Rah_Negar.UI.Forms
             try
             {
                 btnGenerateReport.Enabled = false;
-                btnGenerateReport.Text = "Generating...";
+                btnGenerateReport.Text = "در حال تولید...";
 
                 ClearGeneratedReportCache();
 
@@ -1469,7 +1608,7 @@ namespace Rah_Negar.UI.Forms
                 if (formUpdateStarted)
                     EndFormUpdate();
 
-                btnGenerateReport.Text = "Generate Report";
+                btnGenerateReport.Text = "تولید گزارش";
                 UpdateReportActionButtonsState();
             }
         }
@@ -1566,14 +1705,14 @@ namespace Rah_Negar.UI.Forms
                     if (!map.TryGetValue(unit, out UnitEventSummary? summary))
                         continue;
 
-                    dgvEventSummary.Rows[0].Cells[$"col{unit}"].Value = summary.RuntimeHours;
-                    dgvEventSummary.Rows[1].Cells[$"col{unit}"].Value = summary.RuntimeAfterOH;
+                    dgvEventSummary.Rows[0].Cells[$"col{unit}"].Value = summary.RuntimeHours.ToString("F2");
+                    dgvEventSummary.Rows[1].Cells[$"col{unit}"].Value = summary.RuntimeAfterOH.ToString("F2");
                     dgvEventSummary.Rows[2].Cells[$"col{unit}"].Value = summary.TotalEvents;
                     dgvEventSummary.Rows[3].Cells[$"col{unit}"].Value = summary.StartCount;
                     dgvEventSummary.Rows[4].Cells[$"col{unit}"].Value = summary.NSDCount;
                     dgvEventSummary.Rows[5].Cells[$"col{unit}"].Value = summary.ESDCount;
-                    dgvEventSummary.Rows[6].Cells[$"col{unit}"].Value = summary.EsdExtraHoursTotal;
-                    dgvEventSummary.Rows[7].Cells[$"col{unit}"].Value = summary.LongestRunHours;
+                    dgvEventSummary.Rows[6].Cells[$"col{unit}"].Value = summary.EsdExtraHoursTotal.ToString("F2");
+                    dgvEventSummary.Rows[7].Cells[$"col{unit}"].Value = summary.LongestRunHours.ToString("F2");
 
                     dgvEventSummary.Rows[8].Cells[$"col{unit}"].Value = summary.DayStartCount;
                     dgvEventSummary.Rows[9].Cells[$"col{unit}"].Value = summary.NightStartCount;
@@ -1634,7 +1773,7 @@ namespace Rah_Negar.UI.Forms
         /// <summary>
         /// روزهای سرویس هر واحد و تعداد روزهای همزمانی واحدها را در یک گرید چهار ستونه نمایش می‌دهد.
         /// ستون‌های اول و دوم مربوط به Service Days واحدها هستند.
-        /// ستون‌های سوم و چهارم مربوط به تعداد روزهای Single / Two Units / Three Units و ... هستند.
+        /// ستون‌های سوم و چهارم مربوط به تعداد روزهای ترکیب‌های یک تا چند واحد هستند.
         /// </summary>
         private void BindServiceDaysGrid(EventReportResult result)
         {
@@ -1767,7 +1906,7 @@ namespace Rah_Negar.UI.Forms
                 dgvEventLog.Rows.Clear();
 
                 dgvEventLog.Columns["colItem"].HeaderText =
-                    rdoLogByUnit.Checked ? "Event" : "Unit";
+                    rdoLogByUnit.Checked ? "رویداد" : "واحد";
 
                 List<EventLogItem> sortedItems = result.EventLogItems
                     .OrderBy(x => x.EventDateTime)
@@ -1840,7 +1979,7 @@ namespace Rah_Negar.UI.Forms
         /// <summary>
         /// ترکیب روزهای سرویس را فقط بر اساس خروجی رویدادها نمایش می‌دهد
         /// برای هر روز بازه مشخص می‌کند کدام واحدها طبق tbl_events در سرویس بوده‌اند
-        /// اگر در یک روز هیچ واحدی در سرویس نباشد، مقدار No Unit ثبت می‌شود
+        /// اگر در یک روز هیچ واحدی در سرویس نباشد، وضعیت بدون واحد ثبت می‌شود.
         /// </summary>
         private void BindServiceCombinationGrid(EventReportResult result)
         {
@@ -1864,9 +2003,9 @@ namespace Rah_Negar.UI.Forms
                     string unitText = FormatUnitCombination(units);
 
                     if (string.IsNullOrWhiteSpace(unitText))
-                        unitText = "No Unit";
+                        unitText = "بدون واحد";
 
-                    int activeCount = unitText == "No Unit"
+                    int activeCount = units.Count == 0
                         ? 0
                         : units.Distinct(StringComparer.OrdinalIgnoreCase).Count();
 
@@ -1885,7 +2024,7 @@ namespace Rah_Negar.UI.Forms
                 foreach (KeyValuePair<int, List<(long DateRep, string UnitText)>> group in groupedRows.OrderBy(x => x.Key))
                 {
                     string title = group.Key == 0
-                        ? "No Unit In Service"
+                        ? "بدون واحد در سرویس"
                         : GetCombinationDisplayName(group.Key);
 
                     int headerRowIndex = dgvServiceCombination.Rows.Add($"{title}", "", "");
@@ -1904,11 +2043,8 @@ namespace Rah_Negar.UI.Forms
                     }
                 }
 
-                string mostFrequentText = BuildMostFrequentCombinationText(combinationFrequency);
-
-                // TODO:
-                // محل نهایی نمایش این خلاصه بعداً در UI مشخص می‌شود
-                // lblMostFrequentCombination.Text = mostFrequentText;
+                _mostFrequentCombinationLabel.Text =
+                    ServiceCombinationSummaryService.Format(combinationFrequency);
             });
 
             DisableGridSelectionVisual(dgvServiceCombination);
@@ -2178,28 +2314,6 @@ namespace Rah_Negar.UI.Forms
         }
 
         /// <summary>
-        /// پرتکرارترین ترکیب واحدهای در سرویس را محاسبه و متن انگلیسی آن را تولید می‌کند
-        /// </summary>
-        private static string BuildMostFrequentCombinationText(Dictionary<string, int> combinationFrequency)
-        {
-            if (combinationFrequency.Count == 0)
-                return "Most Frequent Combination: No data";
-
-            int maxCount = combinationFrequency.Values.Max();
-
-            List<string> topCombinations = combinationFrequency
-                .Where(x => x.Value == maxCount)
-                .OrderBy(x => x.Key)
-                .Select(x => x.Key)
-                .ToList();
-
-            string combinationsText = string.Join(" | ", topCombinations);
-
-            return $"Most Frequent Combination: {combinationsText} ({maxCount} day{(maxCount > 1 ? "s" : "")})";
-        }
-
-
-        /// <summary>
         /// از خروجی ServiceDaysByUnit، برای هر تاریخ لیست واحدهای در سرویس را می‌سازد.
         /// این ساختار پایه هم برای نمایش روزانه و هم برای تحلیل ترکیب‌های پرتکرار استفاده می‌شود.
         /// </summary>
@@ -2396,11 +2510,11 @@ namespace Rah_Negar.UI.Forms
         {
             return count switch
             {
-                1 => "Single",
-                2 => "TwoUnits",
-                3 => "ThreeUnits",
-                4 => "FourUnits",
-                _ => $"{count}Units"
+                1 => "یک واحد",
+                2 => "دو واحد",
+                3 => "سه واحد",
+                4 => "چهار واحد",
+                _ => $"{count} واحد"
             };
         }
 
@@ -2614,37 +2728,27 @@ namespace Rah_Negar.UI.Forms
 
                 if (_currentGeneratedReportResult == null || _currentEventReportResult == null)
                 {
-                    MessageBox.Show(
-                        "اطلاعات گزارش برای نهایی‌سازی آماده نیست. گزارش را دوباره تولید کنید",
-                        "Finalize Month",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
+                    UiMessageService.ShowWarning("اطلاعات گزارش برای نهایی‌سازی آماده نیست. گزارش را دوباره تولید کنید", "نهایی‌سازی ماه");
                     return;
                 }
 
                 if (HasIncompleteDays(_currentGeneratedReportResult))
                 {
-                    MessageBox.Show(
-                        "داده‌های این ماه کامل نیست" +
-                        Environment.NewLine +
-                        Environment.NewLine +
+                    UiMessageService.ShowWarning(
+                        "داده‌های این ماه کامل نیست" + Environment.NewLine + Environment.NewLine +
                         "تا زمانی که تمام روزهای ماه کامل ثبت نشوند، گزارش نهایی ایجاد نمی‌شود",
-                        "داده ناقص",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
+                        "داده ناقص");
                     return;
                 }
 
-                DialogResult confirm = MessageBox.Show(
+                bool confirm = UiMessageService.ConfirmDanger(
                     $"آیا می‌خواهید گزارش ماه {year}/{month:00} نهایی شود؟" +
                     Environment.NewLine +
                     Environment.NewLine +
                     "بعد از نهایی‌سازی، داده‌های این ماه قابل ویرایش نخواهند بود",
-                    "Finalize Month",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning);
+                    "نهایی‌سازی ماه");
 
-                if (confirm != DialogResult.Yes)
+                if (!confirm)
                     return;
 
                 using SqliteConnection conn = SqliteDatabaseHelper.CreateConnection();
@@ -2672,11 +2776,7 @@ namespace Rah_Negar.UI.Forms
                     throw;
                 }
 
-                MessageBox.Show(
-                    "ماه انتخاب‌شده با موفقیت نهایی و قفل شد",
-                    "Finalize Month",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                UiMessageService.ShowSuccess("ماه انتخاب‌شده با موفقیت نهایی و قفل شد", "نهایی‌سازی ماه");
 
                 ClearGeneratedReportCache();
 
@@ -2687,13 +2787,7 @@ namespace Rah_Negar.UI.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "خطا در نهایی‌سازی ماه:" +
-                    Environment.NewLine +
-                    ex.Message,
-                    "خطا",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                UiMessageService.ShowError("نهایی‌سازی ماه انجام نشد. وضعیت داده و دسترسی دیتابیس را بررسی کنید.", ex, "خطا");
             }
             finally
             {
@@ -2707,33 +2801,21 @@ namespace Rah_Negar.UI.Forms
             {
                 if (!rdoMonthly.Checked)
                 {
-                    MessageBox.Show(
-                        " فقط برای گزارش ماهانه قابل انجام است",
-                        "PDF Report",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
+                    UiMessageService.ShowWarning("صدور PDF فقط برای گزارش ماهانه قابل انجام است", "صدور PDF");
 
                     return;
                 }
 
                 if (cmbYear.SelectedItem == null)
                 {
-                    MessageBox.Show(
-                        "سال گزارش را انتخاب کنید",
-                        "PDF Report",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
+                    UiMessageService.ShowWarning("سال گزارش را انتخاب کنید", "صدور PDF");
 
                     return;
                 }
 
                 if (!TryGetSelectedMonthNumber(out int month))
                 {
-                    MessageBox.Show(
-                        "ماه گزارش را انتخاب کنید",
-                        "PDF Report",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
+                    UiMessageService.ShowWarning("ماه گزارش را انتخاب کنید", "صدور PDF");
 
                     return;
                 }
@@ -2742,11 +2824,7 @@ namespace Rah_Negar.UI.Forms
 
                 if (!MonthlyLockService.IsMonthLocked(year, month))
                 {
-                    MessageBox.Show(
-                        "برای صدور گزارش، ابتدا باید ماه انتخاب ‌شده نهایی شود",
-                        "PDF Report",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
+                    UiMessageService.ShowWarning("برای صدور گزارش، ابتدا باید ماه انتخاب‌شده نهایی شود", "صدور PDF");
 
                     return;
                 }
@@ -2755,13 +2833,7 @@ namespace Rah_Negar.UI.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "خطا در صدور PDF:" +
-                    Environment.NewLine +
-                    ex.Message,
-                    "خطا",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                UiMessageService.ShowError("صدور PDF انجام نشد. مسیر خروجی و دسترسی فایل را بررسی کنید.", ex, "خطا");
             }
             finally
             {

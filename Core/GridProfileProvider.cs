@@ -21,6 +21,9 @@ public static class GridProfileProvider
     /// <returns>GridProfile مربوط به ایستگاه</returns>
     public static GridProfile GetProfile(string stationName)
     {
+        if (GenericProfileIdentity.TryGetUnitCount(stationName, out int genericUnitCount))
+            return GenericGridProfileFactory.Create(genericUnitCount);
+
         return stationName switch
         {
             "Rasht Station" => RashtGridProfileFactory.Create(),

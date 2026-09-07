@@ -1,6 +1,8 @@
 ﻿using Microsoft.Data.Sqlite;
 using Rah_Negar.Data;
+using Rah_Negar.Services.UI;
 using Rah_Negar.UI.Forms.Base;
+using Rah_Negar.Utils;
 
 namespace Rah_Negar.UI.Forms;
 
@@ -214,13 +216,8 @@ public partial class FrmRuntimeSettings : BaseForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show(
-                "خطا در ذخیره مقدارهای پایه ساعت کارکرد" +
-                Environment.NewLine +
-                ex.Message,
-                "خطا",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
+            ErrorLogger.Log(ex, "FrmRuntimeSettings.Save");
+            UiMessageService.ShowError("ذخیره مقدارهای پایه ساعت کارکرد انجام نشد. ورودی‌ها و دسترسی داده را بررسی کنید.", "خطا");
         }
     }
 

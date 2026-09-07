@@ -13,6 +13,9 @@ public static class PasteProfileProvider
     /// <returns>PasteProfile مربوط به ایستگاه</returns>
     public static PasteProfile GetProfile(string stationName)
     {
+        if (GenericProfileIdentity.TryGetUnitCount(stationName, out int genericUnitCount))
+            return GenericPasteProfileFactory.Create(genericUnitCount);
+
         return stationName switch
         {
             "Rasht Station" => RashtPasteProfileFactory.Create(),

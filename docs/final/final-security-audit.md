@@ -18,7 +18,9 @@ SEC-06 is also retired from the active product path with removal of the legacy r
 
 Mutable database, authority metadata, transition/recovery metadata, audit files, backups, and logs are centralized under `%ProgramData%\RahNegar\` through `ApplicationDataPaths`. Legacy executable-side database migration is WAL-aware, source-preserving, audited, and fails closed on conflict or corruption. The explicit inactive Target operational write boundary remains disabled; no installer or startup path grants Target authority.
 
-## Confirmed security defects/gaps
+## Historical baseline findings
+
+The following table is retained for audit traceability. Batch 1/2 status updates above supersede the historical dispositions for the active product path; the current unresolved gate is H-05 human/native acceptance, not an open technical security defect.
 
 | ID | Severity | Finding | Evidence | Disposition |
 |---|---|---|---|---|
@@ -32,9 +34,13 @@ Mutable database, authority metadata, transition/recovery metadata, audit files,
 
 ## Dependency health
 
-`dotnet list Rah_Negar.csproj package --include-transitive` found the six known NU1701 warning identities arise from transitive `OpenTK 3.1.0`, `OpenTK.GLControl 3.1.0`, and `SkiaSharp.Views.WindowsForms 3.119.0` (through the ScottPlot/Skia rendering chain). The whole-solution build emits those identities across both app/test projects, so the log contains repeated diagnostic lines. The local `dotnet list ... --vulnerable --include-transitive` command returned no vulnerable-package entries. No upgrade was made: replacing the rendering chain requires a controlled visual/regression comparison.
+Batch 3 re-assessed the six NU1701 identities. Source inspection found no `ScottPlot`, `OpenTK`, or Skia API use in the product; the rendering reference was redundant. Removing `ScottPlot.WinForms` and restoring the affected projects eliminated all six warning instances without a replacement rendering path. The Release solution build is now 0 warnings/0 errors. No vulnerable-package entries were reported by the prior local package audit.
 
-Disposition: SAFE_TO_RETAIN_WITH_JUSTIFICATION for Pilot RC1; FIX_REQUIRED before a final industrial release unless a reviewed compatibility decision accepts them. The warnings are not security clearance and do not close the runtime-compatibility validation gap.
+Disposition: RESOLVED for the current offline product scope; no rendering feature was removed from the reachable UI because no chart control/button was present.
+
+## Batch 3 security hardening
+
+`ErrorLogger` continues to use the canonical ProgramData Logs directory, now redacts sensitive key/value material, omits raw exception/stack details, rotates the daily file at 2 MiB, and returns a non-throwing health result. Qualification-only credential preparation is excluded from the normal product assembly and the UI harness uses an isolated root.
 
 ## Boundary
 

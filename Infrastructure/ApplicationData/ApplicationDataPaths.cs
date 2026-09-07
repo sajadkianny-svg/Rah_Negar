@@ -7,6 +7,7 @@ namespace Rah_Negar.Infrastructure.ApplicationData;
 public sealed class ApplicationDataPaths
 {
     public const string ProductDirectoryName = "RahNegar";
+    public const string QualificationRootEnvironmentVariable = "RAH_NEGAR_QUALIFICATION_ROOT";
 
     private ApplicationDataPaths(string root)
     {
@@ -41,8 +42,28 @@ public sealed class ApplicationDataPaths
             throw new ArgumentException("Application data root is required.", nameof(root));
         return new ApplicationDataPaths(root);
     }
-    public static ApplicationDataPaths CreateDefault() => ForRoot(
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), ProductDirectoryName));
+    public static ApplicationDataPaths CreateDefault() => ForRoot(ResolveDefaultRoot(
+        Environment.GetEnvironmentVariable(QualificationRootEnvironmentVariable)));
+
+    /// <summary>
+    /// Resolves the normal ProgramData root, with an explicit isolated override
+    /// intended only for qualification launches. The override can never point at
+    /// the canonical production root.
+    /// </summary>
+    public static string ResolveDefaultRoot(string? qualificationRoot)
+    {
+        string productionRoot = Path.GetFullPath(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), ProductDirectoryName));
+
+        if (string.IsNullOrWhiteSpace(qualificationRoot))
+            return productionRoot;
+
+        string isolatedRoot = Path.GetFullPath(qualificationRoot);
+        if (string.Equals(isolatedRoot, productionRoot, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Qualification data must not use the canonical production root.");
+
+        return isolatedRoot;
+    }
 
     public void EnsureDirectories()
     {

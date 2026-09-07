@@ -87,7 +87,7 @@
             lblRecordsTitle.Name = "lblRecordsTitle";
             lblRecordsTitle.Size = new Size(67, 13);
             lblRecordsTitle.TabIndex = 2;
-            lblRecordsTitle.Text = "Data Entry";
+            lblRecordsTitle.Text = "ثبت داده‌ها";
             lblRecordsTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // cardReports
@@ -107,7 +107,7 @@
             lblReportsTitle.Name = "lblReportsTitle";
             lblReportsTitle.Size = new Size(87, 13);
             lblReportsTitle.TabIndex = 1;
-            lblReportsTitle.Text = "Report Center";
+            lblReportsTitle.Text = "مرکز گزارش";
             lblReportsTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // cardSettings
@@ -127,7 +127,7 @@
             lblSettingsTitle.Name = "lblSettingsTitle";
             lblSettingsTitle.Size = new Size(54, 13);
             lblSettingsTitle.TabIndex = 0;
-            lblSettingsTitle.Text = "Settings";
+            lblSettingsTitle.Text = "تنظیمات";
             lblSettingsTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // picLogo
@@ -172,7 +172,7 @@
             MaximizeBox = false;
             Name = "FrmMain";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Rah_Negar";
+            Text = "ره‌نگار";
             pnlBody.ResumeLayout(false);
             cardRecords.ResumeLayout(false);
             cardRecords.PerformLayout();

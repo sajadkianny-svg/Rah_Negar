@@ -19,5 +19,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <ProjectReference Include="..\Rah_Negar.csproj" />
+    <Compile Include="..\Qualification\QualificationEnvironment.cs" Link="Qualification\QualificationEnvironment.cs" />
   </ItemGroup>
 </Project>

@@ -95,7 +95,7 @@
             lblTitle.Name = "lblTitle";
             lblTitle.Size = new Size(59, 14);
             lblTitle.TabIndex = 2;
-            lblTitle.Text = "Settings";
+            lblTitle.Text = "تنظیمات برنامه";
             // 
             // lblSubTitle
             // 
@@ -105,7 +105,7 @@
             lblSubTitle.Name = "lblSubTitle";
             lblSubTitle.Size = new Size(149, 13);
             lblSubTitle.TabIndex = 1;
-            lblSubTitle.Text = "System Configuration Panel";
+            lblSubTitle.Text = "پیکربندی سامانه";
             // 
             // rdoThemeClassicSoftAccent
             // 
@@ -153,7 +153,7 @@
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(80, 25);
             btnClose.TabIndex = 7;
-            btnClose.Text = "Close";
+            btnClose.Text = "بستن";
             btnClose.UseVisualStyleBackColor = false;
             btnClose.Click += btnClose_Click;
             // 
@@ -166,7 +166,7 @@
             btnResetFactory.Name = "btnResetFactory";
             btnResetFactory.Size = new Size(115, 25);
             btnResetFactory.TabIndex = 6;
-            btnResetFactory.Text = "Reset Factory";
+            btnResetFactory.Text = "بازنشانی کارخانه‌ای";
             btnResetFactory.UseVisualStyleBackColor = false;
             btnResetFactory.Click += btnResetFactory_Click;
             // 
@@ -179,7 +179,7 @@
             btnAbout.Name = "btnAbout";
             btnAbout.Size = new Size(90, 25);
             btnAbout.TabIndex = 5;
-            btnAbout.Text = "About";
+            btnAbout.Text = "درباره برنامه";
             btnAbout.UseVisualStyleBackColor = false;
             btnAbout.Click += btnAbout_Click;
             // 
@@ -192,7 +192,7 @@
             lblDatabaseDetails.Name = "lblDatabaseDetails";
             lblDatabaseDetails.Size = new Size(113, 13);
             lblDatabaseDetails.TabIndex = 8;
-            lblDatabaseDetails.Text = "lblDatabaseDetails";
+            lblDatabaseDetails.Text = "جزئیات دیتابیس";
             // 
             // pnlBody
             // 
@@ -219,7 +219,7 @@
             grpRuntimeSettings.Size = new Size(676, 82);
             grpRuntimeSettings.TabIndex = 10;
             grpRuntimeSettings.TabStop = false;
-            grpRuntimeSettings.Text = "Runtime";
+            grpRuntimeSettings.Text = "ساعت کارکرد";
             // 
             // grbBaseLine
             // 
@@ -236,7 +236,7 @@
             grbBaseLine.Size = new Size(302, 69);
             grbBaseLine.TabIndex = 38;
             grbBaseLine.TabStop = false;
-            grbBaseLine.Text = "Data Baseline";
+            grbBaseLine.Text = "تاریخ مبنای داده‌ها";
             grbBaseLine.Visible = false;
             // 
             // label2
@@ -247,7 +247,7 @@
             label2.Name = "label2";
             label2.Size = new Size(37, 13);
             label2.TabIndex = 30;
-            label2.Text = "Month";
+            label2.Text = "ماه";
             // 
             // label1
             // 
@@ -257,7 +257,7 @@
             label1.Name = "label1";
             label1.Size = new Size(29, 13);
             label1.TabIndex = 29;
-            label1.Text = "Year";
+            label1.Text = "سال";
             // 
             // txtDataStartDateInfo
             // 
@@ -278,7 +278,7 @@
             btnUpdateDataStartDate.Name = "btnUpdateDataStartDate";
             btnUpdateDataStartDate.Size = new Size(65, 23);
             btnUpdateDataStartDate.TabIndex = 27;
-            btnUpdateDataStartDate.Text = "Update";
+            btnUpdateDataStartDate.Text = "به‌روزرسانی";
             btnUpdateDataStartDate.UseVisualStyleBackColor = true;
             btnUpdateDataStartDate.Click += btnUpdateDataStartDate_Click;
             // 
@@ -315,7 +315,7 @@
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(70, 25);
             btnSave.TabIndex = 8;
-            btnSave.Text = "Save";
+            btnSave.Text = "ذخیره";
             btnSave.UseVisualStyleBackColor = false;
             btnSave.Click += btnSave_Click;
             // 
@@ -327,7 +327,7 @@
             ChAddHoursAfterEsd.RightToLeft = RightToLeft.No;
             ChAddHoursAfterEsd.Size = new Size(128, 17);
             ChAddHoursAfterEsd.TabIndex = 0;
-            ChAddHoursAfterEsd.Text = "Add Runtime per ESD";
+            ChAddHoursAfterEsd.Text = "افزودن ساعت کارکرد پس از ESD";
             ChAddHoursAfterEsd.UseVisualStyleBackColor = true;
             ChAddHoursAfterEsd.CheckedChanged += chkAddHoursAfterNsd_CheckedChanged;
             // 
@@ -354,7 +354,7 @@
             gpPassword.Size = new Size(308, 114);
             gpPassword.TabIndex = 9;
             gpPassword.TabStop = false;
-            gpPassword.Text = "Password";
+            gpPassword.Text = "رمز عبور";
             // 
             // lblPasswordDetails
             // 
@@ -365,7 +365,7 @@
             lblPasswordDetails.Name = "lblPasswordDetails";
             lblPasswordDetails.Size = new Size(135, 13);
             lblPasswordDetails.TabIndex = 9;
-            lblPasswordDetails.Text = "Last Password Update:";
+            lblPasswordDetails.Text = "آخرین تغییر رمز عبور:";
             // 
             // btnResetPassword
             // 
@@ -375,7 +375,7 @@
             btnResetPassword.Name = "btnResetPassword";
             btnResetPassword.Size = new Size(120, 25);
             btnResetPassword.TabIndex = 4;
-            btnResetPassword.Text = "Recovery";
+            btnResetPassword.Text = "بازیابی";
             btnResetPassword.UseVisualStyleBackColor = false;
             btnResetPassword.Click += btnResetPassword_Click;
             // 
@@ -387,7 +387,7 @@
             btnChangeLoginPassword.Name = "btnChangeLoginPassword";
             btnChangeLoginPassword.Size = new Size(120, 25);
             btnChangeLoginPassword.TabIndex = 3;
-            btnChangeLoginPassword.Text = "Change";
+            btnChangeLoginPassword.Text = "تغییر";
             btnChangeLoginPassword.UseVisualStyleBackColor = false;
             btnChangeLoginPassword.Click += btnChangeLoginPassword_Click;
             // 
@@ -404,7 +404,7 @@
             gpDatabase.Size = new Size(362, 114);
             gpDatabase.TabIndex = 8;
             gpDatabase.TabStop = false;
-            gpDatabase.Text = "Database";
+            gpDatabase.Text = "دیتابیس";
             // 
             // panel1
             // 
@@ -423,7 +423,7 @@
             btnRepairDatabase.Name = "btnRepairDatabase";
             btnRepairDatabase.Size = new Size(120, 25);
             btnRepairDatabase.TabIndex = 2;
-            btnRepairDatabase.Text = "Maintenance";
+            btnRepairDatabase.Text = "تعمیر و نگهداری";
             btnRepairDatabase.UseVisualStyleBackColor = false;
             btnRepairDatabase.Click += btnRepairDatabase_Click;
             // 
@@ -435,7 +435,7 @@
             btnImportDatabase.Name = "btnImportDatabase";
             btnImportDatabase.Size = new Size(120, 25);
             btnImportDatabase.TabIndex = 1;
-            btnImportDatabase.Text = "Import";
+            btnImportDatabase.Text = "بازیابی نسخه پشتیبان";
             btnImportDatabase.UseVisualStyleBackColor = false;
             btnImportDatabase.Click += btnImportDatabase_Click;
             // 
@@ -447,7 +447,7 @@
             btnExportDatabase.Name = "btnExportDatabase";
             btnExportDatabase.Size = new Size(120, 25);
             btnExportDatabase.TabIndex = 0;
-            btnExportDatabase.Text = "Backup";
+            btnExportDatabase.Text = "پشتیبان‌گیری";
             btnExportDatabase.UseVisualStyleBackColor = false;
             btnExportDatabase.Click += btnExportDatabase_Click;
             // 
@@ -467,7 +467,7 @@
             gbTheme.Size = new Size(676, 60);
             gbTheme.TabIndex = 7;
             gbTheme.TabStop = false;
-            gbTheme.Text = "Theme";
+            gbTheme.Text = "ظاهر برنامه";
             // 
             // rdoIndustrialRed
             // 

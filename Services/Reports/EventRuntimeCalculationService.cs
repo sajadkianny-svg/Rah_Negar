@@ -272,7 +272,7 @@ public static class EventRuntimeCalculationService
                         : 0
             });
 
-        // TODO: EventLogItem currently does not expose tbl_events.id.
+        // EventLogItem intentionally exposes the normalized report projection, not the storage id.
         // Use that id as the final ordering key when it becomes available.
         // Until then, preserve source order for events with identical date/time and unit.
         List<EventLogItem> orderedEvents = events

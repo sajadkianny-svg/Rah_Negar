@@ -4,7 +4,9 @@
 
 `Program.cs` initializes the application. An empty database enters `FrmStartup`; a configured database enters `FrmLogin`; successful login opens `FrmMain`. Main navigation opens records, reports, settings, and the read-only Pilot surface. Records use the legacy repositories/services for daily data, unique values, Events, and locks. Report Center uses legacy report services and exports/finalizes reports. Settings exposes password/user controls, while protected maintenance, recovery, reset, and ESD-setting actions fail closed unless the canonical management proof composition is available. This trace is important because the newer target contracts are not automatically evidence that the reachable legacy path is correct.
 
-## Confirmed functional findings
+## Historical baseline findings
+
+The following table is retained for audit traceability. Batch 1/2/3 status updates above supersede the historical dispositions for the current Legacy-authoritative product path; the current unresolved gate is H-05 human/native acceptance, not an open technical M/L defect.
 
 ## Batch 1 status update (2026-09-07)
 
@@ -28,8 +30,12 @@ The normal runtime now uses the canonical ProgramData data root with fail-closed
 
 ## Scope boundaries
 
-No evidence supports adding a future universal platform, cloud service, updater, Support login, RBAC, 35-unit operation, or Production activation to the current product. The 35-unit value is an explicit rejected boundary test, not a feature. Production authority/routing remains disabled and unauthorized by owner decision.
+The current product acceptance identity is a generic/profile-driven station with a supported unit boundary of 3–5 inclusive. Counts 2, 6, and 35 remain explicit rejected boundary tests, not features. Legacy station fixtures are compatibility-only; no cloud service, updater, Support login, RBAC expansion, or Production activation is introduced. Production authority/routing remains disabled and unauthorized by owner decision.
+
+## Batch 3 evidence update
+
+The remaining reachable operator gaps were addressed: unavailable reset/recovery actions are explicit and disabled, the report-center frequent-combination summary is displayed, reviewed legacy captions are localized, invalid-setting and normal error paths avoid developer details, and qualification-only login/data preparation is excluded from the product assembly. No Production routing or authority decision changed.
 
 ## Functional conclusion
 
-The Pilot can launch with Batch 1 safety defects contained and Batch 2 persistence/installer/qualification boundaries implemented. Real UI acceptance and remaining visual/performance work remain open. Production authority/routing remains unchanged and no activation or cutover is authorized.
+The Pilot can launch with Batch 1 safety defects contained, Batch 2 persistence/installer/qualification boundaries implemented, and Batch 3 technical M/L gaps closed. Real native UI observation remains H-05; Production authority/routing remains unchanged and no activation or cutover is authorized.

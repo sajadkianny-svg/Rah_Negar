@@ -100,7 +100,7 @@
             lblOH.Name = "lblOH";
             lblOH.Size = new Size(50, 13);
             lblOH.TabIndex = 2;
-            lblOH.Text = "After OH";
+            lblOH.Text = "پس از اورهال";
             // 
             // lblRun
             // 
@@ -111,7 +111,7 @@
             lblRun.Name = "lblRun";
             lblRun.Size = new Size(34, 13);
             lblRun.TabIndex = 1;
-            lblRun.Text = "Total ";
+            lblRun.Text = "مجموع";
             // 
             // txtU1OH
             // 
@@ -149,7 +149,7 @@
             lblU4.Name = "lblU4";
             lblU4.Size = new Size(35, 13);
             lblU4.TabIndex = 25;
-            lblU4.Text = "Unit 4";
+            lblU4.Text = "واحد ۴";
             lblU4.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // txtU4OH
@@ -202,7 +202,7 @@
             lblU1.Name = "lblU1";
             lblU1.Size = new Size(35, 13);
             lblU1.TabIndex = 3;
-            lblU1.Text = "Unit 1";
+            lblU1.Text = "واحد ۱";
             lblU1.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblU3
@@ -215,7 +215,7 @@
             lblU3.Name = "lblU3";
             lblU3.Size = new Size(35, 13);
             lblU3.TabIndex = 23;
-            lblU3.Text = "Unit 3";
+            lblU3.Text = "واحد ۳";
             lblU3.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblU2
@@ -228,7 +228,7 @@
             lblU2.Name = "lblU2";
             lblU2.Size = new Size(35, 13);
             lblU2.TabIndex = 24;
-            lblU2.Text = "Unit 2";
+            lblU2.Text = "واحد ۲";
             lblU2.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // txtU1Run
@@ -312,7 +312,7 @@
             Controls.Add(pnlHeader);
             Controls.Add(pnlContainer);
             Name = "FrmRuntimeSettings";
-            Text = "FrmRuntimeSettings";
+            Text = "تنظیمات ساعت کارکرد";
             pnlContainer.ResumeLayout(false);
             pnlContainer.PerformLayout();
             pnlHeader.ResumeLayout(false);

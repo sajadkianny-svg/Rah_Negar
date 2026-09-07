@@ -198,7 +198,7 @@
             MinimizeBox = false;
             Name = "FrmLogin";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Rah_Negar Login";
+            Text = "ورود به ره‌نگار";
             Load += FrmLogin_Load;
             pnlBack.ResumeLayout(false);
             pnlBack.PerformLayout();

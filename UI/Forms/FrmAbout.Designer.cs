@@ -166,7 +166,7 @@
             RightToLeft = RightToLeft.No;
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
-            Text = "About";
+            Text = "درباره برنامه";
             pnlHeader.ResumeLayout(false);
             pnlHeader.PerformLayout();
             ResumeLayout(false);

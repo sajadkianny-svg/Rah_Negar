@@ -20,6 +20,15 @@ The original finding rows below are retained as the audit baseline. Current stat
 | H-05 | OPEN | Base UI policy/message hardening and automated scale invariants are present, but real desktop visual/keyboard/DPI acceptance is unavailable in this environment. |
 | H-07 | RESOLVED AS INACTIVE COMPOSITION | Explicit target operational write boundary and routing guard remain disabled; Legacy remains authoritative and Target remains non-authoritative. |
 | M-04 | RESOLVED AS PART OF BATCH 1 | Factory reset service is proof-gated, sidecar-aware, integrity-checked, and requires a separate compatible verified backup. |
+| M-01 | RESOLVED IN BATCH 3 | Records and report grid column definitions are cached and reused; the source-level probe recorded 1 miss and 1,000 hits. |
+| M-02 | RESOLVED IN BATCH 3 | Reachable legacy captions/default labels were localized; BaseForm policy remains the common RTL/DPI/style boundary. Native visual confirmation remains H-05 only. |
+| M-03 | RESOLVED IN BATCH 3 | Frequent service-combination summary is now rendered in the report center; unavailable recovery/reset actions are visibly disabled. |
+| M-05 | RESOLVED IN BATCH 3 | Malformed numeric settings fall back safely and the developer `NULL` dialog was removed. |
+| M-06 | RESOLVED IN BATCH 3 | ProgramData logger now redacts sensitive key/value text, writes bounded daily files with one archive, and exposes a non-throwing health result. |
+| M-07 | RESOLVED IN BATCH 3 | Controlled cache/performance evidence is retained at `Qualification/qualification-run/batch3-performance/`; native workstation timings remain a human follow-up, not an open technical defect. |
+| L-01 | RESOLVED IN BATCH 3 | Unwired Recovery designer handler removed. |
+| L-02 | RESOLVED IN BATCH 3 | Stale TODO/debug and visible legacy technical wording removed from the reviewed production paths. |
+| L-03 | RESOLVED IN BATCH 3 | Unused ScottPlot.WinForms reference removed after source-use review; solution Release build now emits zero NU1701 warnings. |
 
 The production authority decision remains unchanged: Legacy is authoritative, Target is non-authoritative, target routing is disabled, and Production Activation/Cutover are unauthorized.
 
@@ -35,7 +44,7 @@ The production authority decision remains unchanged: Legacy is authoritative, Ta
 | H-04 | Qualification | Phase 9.7 runner cannot start QualificationTool due nested top-level Program compilation. | HIGH | `QualificationTool/Program.cs`, `Phase98Probe/Program.cs`; failed runner log | Exclude nested probe or separate project; rerun qualification cleanly. | Clean-checkout qualification run. | YES |
 | H-05 | UI acceptance | Full real visual/keyboard/RTL/DPI acceptance is not complete. | HIGH | phase 8/9 docs retain manual gate; native surface unavailable here | Execute independent 1920×1080 100/125/150% matrix and fix findings. | Retained screenshots/observations/checklist. | YES |
 | H-06 | Event integrity | Legacy public Event write/validation path can bypass complete-chain rules and has silent duplicate/error paths. | HIGH | `legacy-event-subsystem-audit.md:14,156,262` | Route all mutations through one transactional validator. | Insert/edit/delete/duplicate/invalid-time tests. | YES |
-| H-07 | Legacy integration | Target security/report/snapshot foundations are not the complete normal legacy operational composition. | HIGH | `FrmMain.cs:512-537`; target Application layers; phase 9.5a gate | Migrate/compose the approved target boundaries or explicitly retire legacy paths. | End-to-end Rasht/Ramsar scenarios. | YES |
+| H-07 | Legacy integration | Target security/report/snapshot foundations are not the complete normal legacy operational composition. | HIGH | `FrmMain.cs:512-537`; target Application layers; phase 9.5a gate | Migrate/compose the approved target boundaries or explicitly retire legacy paths. | End-to-end generic 3/4/5-unit scenarios; legacy identities remain compatibility-only. | YES |
 | M-01 | Performance | Dynamic grids rebuild columns/rows instead of caching/reusing definitions. | MEDIUM | `FrmRecords.cs:1016-1087`; Report Center configurators | Add cache/reuse and baseline large-history performance. | Grid/navigation/memory benchmark. | YES |
 | M-02 | UI quality | Mixed English/default UI, inconsistent RTL, compact/fixed layouts, and unfinished default labels remain. | MEDIUM | Designer inventory; `FrmSettings.Designer.cs:552-563` | Localize, standardize RTL/typography/layout, remove default titles. | Visual/keyboard/localization matrix. | NO |
 | M-03 | Reporting UX | Most-frequent summary is computed but not displayed; legacy chart presentation is incomplete. | MEDIUM | `FrmReportCenter.cs:1909-1912`; phase 0 baseline | Finish approved display or remove from scope. | Report empty/loading/error/display tests. | NO |
@@ -57,4 +66,4 @@ The production authority decision remains unchanged: Legacy is authoritative, Ta
 | D-03 | MQ-07 manual observation | Blocked with automated invariant evidence retained | NO under the recorded narrow Pilot decision |
 | D-04 | ESD effects, recovery custody, and some cutover semantics | Pending explicit owner/domain decisions | NO for current Pilot; YES for the affected final-production capability |
 
-Open actionable counts after Batch 2: CRITICAL 0, HIGH 1 (H-05), MEDIUM 7, LOW 3. H-05 is not closed because the required native desktop observations could not be performed here.
+Open actionable counts after Batch 3: CRITICAL 0, HIGH 1 (H-05), MEDIUM 0, LOW 0. H-05 remains open only for human/native visual observation. Production Activation/Cutover remains unauthorized.

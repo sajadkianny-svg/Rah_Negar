@@ -49,7 +49,7 @@ LIMIT 1;";
 
         return new AppSettingsModel
         {
-            IsInitialized = Convert.ToInt32(reader["is_initialized"]) == 1,
+            IsInitialized = ReadInt(reader["is_initialized"]) == 1,
             StationType = Enum.TryParse(reader["station_type"]?.ToString(),
             out StationType stationType)
                 ? stationType
@@ -57,18 +57,19 @@ LIMIT 1;";
             StationName = reader["station_name"]?.ToString() ?? string.Empty,
             UserResetPasswordHash = reader["user_reset_password_hash"]?.ToString() ?? string.Empty,
             UserResetPasswordSalt = reader["user_reset_password_salt"]?.ToString() ?? string.Empty,
-            CreatedAt = DateTime.TryParse(reader["created_at"]?.ToString(), out DateTime dt) ? dt : DateTime.MinValue,
+            CreatedAt = DateTime.TryParse(reader["created_at"]?.ToString(), CultureInfo.InvariantCulture,
+                DateTimeStyles.AllowWhiteSpaces, out DateTime dt) ? dt : DateTime.MinValue,
             ThemeIndex = reader["theme_index"] == DBNull.Value
                 ? 0
-                : Convert.ToInt32(reader["theme_index"]),
+                : ReadInt(reader["theme_index"]),
             EsdExtraRuntimeEnabled =
-                    Convert.ToInt32(reader["esd_extra_runtime_enabled"]) == 1,
+                    ReadInt(reader["esd_extra_runtime_enabled"]) == 1,
 
             EsdExtraRuntimeHours =
-                    Convert.ToDouble(reader["esd_extra_runtime_hours"]),
+                    ReadDouble(reader["esd_extra_runtime_hours"]),
 
             DataStartDateRep = reader["data_start_date"] == DBNull.Value
-                ? 0 : Convert.ToInt64(reader["data_start_date"])
+                ? 0 : ReadLong(reader["data_start_date"])
 
         };
     }
@@ -225,8 +226,6 @@ LIMIT 1;";
             string shownDate = dataStartDate > 0
                 ? DateFormatHelper.FormatDateRep(dataStartDate)
                 : "ثبت نشده";
-            MessageBox.Show(settings?.DataStartDateRep.ToString() ?? "NULL");
-
             MessageBox.Show(
                 "تاریخ مبنای شروع داده‌ها معتبر نیست" +
                 Environment.NewLine +
@@ -248,6 +247,18 @@ LIMIT 1;";
 
         return dataStartDate;
     }
+
+    private static int ReadInt(object? value) =>
+        int.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), NumberStyles.Integer,
+            CultureInfo.InvariantCulture, out int result) ? result : 0;
+
+    private static long ReadLong(object? value) =>
+        long.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), NumberStyles.Integer,
+            CultureInfo.InvariantCulture, out long result) ? result : 0;
+
+    private static double ReadDouble(object? value) =>
+        double.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), NumberStyles.Float,
+            CultureInfo.InvariantCulture, out double result) && double.IsFinite(result) ? result : 0d;
 
 
     /// <summary>

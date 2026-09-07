@@ -14,6 +14,9 @@ public static class ReportParameterRegistry
     /// </summary>
     public static IReadOnlyList<ReportParameterDefinition> GetParameters(string stationName)
     {
+        if (GenericProfileIdentity.TryGetUnitCount(stationName, out int genericUnitCount))
+            return GetGenericParameters(genericUnitCount);
+
         return stationName switch
         {
             "Rasht Station" => GetRashtParameters(),
@@ -111,6 +114,38 @@ public static class ReportParameterRegistry
             CreateUniqueParameter("non_turbine_flow", "Non-Turbine Flow", ReportParameterCategory.Flow, "non_turbine_flow"),
             CreateUniqueParameter("vent", "Vent", ReportParameterCategory.Flow, "vent")
         ];
+    }
+
+    public static IReadOnlyList<ReportParameterDefinition> GetGenericParameters(int unitCount)
+    {
+        if (!Rah_Negar.Foundation.Application.Provisioning.TargetStationProfileRules.IsUnitCountSupported(unitCount))
+            throw new ArgumentOutOfRangeException(nameof(unitCount));
+
+        List<ReportParameterDefinition> parameters =
+        [
+            CreateDataParameter("in_p", "Inlet Press", ReportParameterCategory.Pressure, "in_p"),
+            CreateDataParameter("out_p", "Outlet Press", ReportParameterCategory.Pressure, "out_p"),
+            CreateDataParameter("rec", "Recycle", ReportParameterCategory.Recycle, "rec"),
+            CreateDataParameter("flow", "GasFlow", ReportParameterCategory.Flow, "flow"),
+            CreateDataParameter("in_t", "Inlet Temp", ReportParameterCategory.Temperature, "in_t"),
+            CreateDataParameter("out_t", "Outlet Temp", ReportParameterCategory.Temperature, "out_t"),
+            CreateDataParameter("amb_t", "Ambient Temp", ReportParameterCategory.Temperature, "amb_t"),
+            CreateDataParameter("ratio", "Ratio", ReportParameterCategory.Ratio, "ratio")
+        ];
+
+        for (int unit = 1; unit <= unitCount; unit++)
+        {
+            parameters.Add(CreateStatusParameter($"u{unit}_st", $"Unit {unit} Status", $"u{unit}_st"));
+            parameters.Add(CreateDataParameter($"u{unit}_rpm", $"Unit {unit} RPM", ReportParameterCategory.RPM, $"u{unit}_rpm"));
+        }
+
+        parameters.AddRange([
+            CreateUniqueParameter("ir_f", "Gas Generator Fuel", ReportParameterCategory.Fuel, "ir_f"),
+            CreateUniqueParameter("turbine_fuel", "Turbine Fuel", ReportParameterCategory.Fuel, "turbine_fuel"),
+            CreateUniqueParameter("turbine_flow", "Turbine Flow", ReportParameterCategory.Flow, "turbine_flow"),
+            CreateUniqueParameter("non_turbine_flow", "Non-Turbine Flow", ReportParameterCategory.Flow, "non_turbine_flow"),
+            CreateUniqueParameter("vent", "Vent", ReportParameterCategory.Flow, "vent")]);
+        return parameters;
     }
 
     /// <summary>

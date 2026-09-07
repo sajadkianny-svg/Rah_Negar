@@ -28,3 +28,7 @@ Mutable state is now rooted at `%ProgramData%\RahNegar\` through `Infrastructure
 The reviewed installer uses x64 architecture, version `9.9.0`, publisher identity, application icon, offline payload, standard-user post-install operation, Start Menu shortcut, opt-in Desktop shortcut, and explicit data preservation. Fresh install, first run, upgrade, reinstall, and uninstall were exercised in an isolated elevated lifecycle harness. Restricted-account and interrupted-install rehearsals remain follow-up validation.
 
 Installer readiness: COMPLETE for the tested offline lifecycle. Standard-user post-install operation and interrupted-install/read-only-host behavior still deserve a separately provisioned restricted-account rehearsal.
+
+## Batch 3 evidence update (2026-09-07)
+
+The product project now excludes `Qualification/**` source, so the qualification credential/preparation code is not compiled into the normal application assembly. `Installer/prepare-installer.ps1` remains the clean self-contained payload path and `Installer/validate-installer.ps1` rejects source, test, qualification, database, PDB, and credential artifacts. Removing the unused ScottPlot rendering reference also removes the prior NU1701 dependency chain; the Release solution build is 0 warnings/0 errors. No Setup.exe was designated as final production delivery because H-05 is still open.

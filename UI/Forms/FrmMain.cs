@@ -152,9 +152,9 @@ namespace Rah_Negar.UI.Forms
         /// </summary>
         private void ConfigureCardLabels()
         {
-            ConfigureSingleLabel(lblRecordsTitle, "📝 Data Entry", cardRecords.BackColor);
-            ConfigureSingleLabel(lblReportsTitle, "📊 Report Center", cardReports.BackColor);
-            ConfigureSingleLabel(lblSettingsTitle, "⚙ Setting", cardSettings.BackColor);
+            ConfigureSingleLabel(lblRecordsTitle, "📝 ثبت داده‌ها", cardRecords.BackColor);
+            ConfigureSingleLabel(lblReportsTitle, "📊 مرکز گزارش", cardReports.BackColor);
+            ConfigureSingleLabel(lblSettingsTitle, "⚙ تنظیمات", cardSettings.BackColor);
         }
 
         /// <summary>

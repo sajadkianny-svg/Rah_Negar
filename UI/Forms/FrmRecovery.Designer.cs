@@ -189,11 +189,6 @@ namespace Rah_Negar.UI.Forms
             ResumeLayout(false);
         }
 
-        private void btnVerify_Click_1(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
         private TextBox txtRecoveryCode;
         private Button btnVerify;

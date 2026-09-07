@@ -1013,7 +1013,6 @@ ORDER BY unit_no;";
 
             try
             {
-                dgvData.Columns.Clear();
                 dgvData.Rows.Clear();
 
                 dgvData.AllowUserToAddRows = profile.Visual.AllowUserToAddRows;
@@ -1048,27 +1047,20 @@ ORDER BY unit_no;";
                 dgvData.DefaultCellStyle.SelectionBackColor = profile.Visual.SelectionBackColor;
                 dgvData.DefaultCellStyle.SelectionForeColor = profile.Visual.SelectionForeColor;
 
-                for (int i = 0; i < profile.Columns.Count; i++)
-                {
-                    GridColumnProfile colProfile = profile.Columns[i];
-
-                    DataGridViewTextBoxColumn col = new()
-                    {
-                        Name = colProfile.Name,
-                        HeaderText = colProfile.HeaderText,
-                        SortMode = DataGridViewColumnSortMode.NotSortable,
-                        ReadOnly = colProfile.ReadOnly,
-                        AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
-                        MinimumWidth = 25
-                    };
-
-                    col.DefaultCellStyle.Alignment = colProfile.Alignment;
-                    col.DefaultCellStyle.BackColor = (i % 2 == 0)
-                        ? profile.Visual.AlternateBackColor1
-                        : profile.Visual.AlternateBackColor2;
-
-                    dgvData.Columns.Add(col);
-                }
+                IReadOnlyList<DataGridViewColumnDefinition> definitions = profile.Columns
+                    .Select((column, index) => new DataGridViewColumnDefinition(
+                        column.Name,
+                        column.HeaderText,
+                        column.Width,
+                        column.ReadOnly,
+                        column.Alignment,
+                        index % 2 == 0
+                            ? profile.Visual.AlternateBackColor1
+                            : profile.Visual.AlternateBackColor2))
+                    .ToArray();
+                string cacheKey = "records|" + string.Join("|", definitions.Select(x =>
+                    $"{x.Name}:{x.HeaderText}:{x.Width}:{x.ReadOnly}:{x.Alignment}:{x.BackColor.ToArgb()}"));
+                DataGridViewDefinitionCache.EnsureColumns(dgvData, cacheKey, definitions);
 
                 if (dgvData.Columns.Count > profile.HourColumnIndex)
                 {
@@ -2603,7 +2595,7 @@ ORDER BY unit_no;";
                 txtRemark.Text = row.Cells[4].Value?.ToString()?.Trim() ?? "";
 
                 _eventEntryMode = EventEntryMode.Apply;
-                btnAdd.Text = "Apply";
+            btnAdd.Text = "اعمال تغییرات";
 
                 btnEndSelection.Enabled = true;
                 btnEndSelection.Visible = true;
@@ -2756,7 +2748,7 @@ ORDER BY unit_no;";
             txtRemark.Enabled = false;
 
             _eventEntryMode = EventEntryMode.Add;
-            btnAdd.Text = "Add";
+            btnAdd.Text = "افزودن";
 
             btnEndSelection.Enabled = false;
             btnEndSelection.Visible = false;

@@ -6,7 +6,7 @@ Batch 2 adds data-root migration, inactive Target write-boundary, UI policy/DPI,
 
 ## Current evidence
 
-Release baseline: 774/774 tests passed, zero failed/skipped, build 0 errors, and six known NU1701 warning identities (repeated across the two solution projects). The MQ-01…MQ-05 readiness support suites also passed: 3, 7, 16, 18, and 10 tests respectively. A real offline launch reached the Startup Wizard and initialized an isolated database on the prior package smoke test.
+Batch 3 validation: 781/781 tests passed, zero failed/skipped, Release build 0 errors/0 warnings, and the clean installer payload audit passed with 500 files. The MQ-01…MQ-05 readiness support suites and Phase 9.7 qualification also passed. Native visual acceptance remains intentionally unclaimed because it requires a human on the supported Windows workstation.
 
 The full test suite is strongest in deterministic domain rules, target SQLite boundaries, provisioning, reporting contracts, target security, authority rejection, and pilot safety. Passing tests do not prove that the legacy WinForms path, installer, or manual operator experience is complete.
 
@@ -27,8 +27,8 @@ The full test suite is strongest in deterministic domain rules, target SQLite bo
 | SQLite integrity/WAL/locking | PARTIAL | helper policy and managed boundary tests | Legacy import/reset sidecars, low permissions, file locks, interrupted replacement. |
 | Migration/upgrade | PARTIAL | migration/provisioning tests on disposable copies | Actual installer upgrade/reinstall/data-preservation rehearsal. |
 | Crash/restart/failure injection | PARTIAL | target authority/rollback tests | Legacy forms/services, DB write interruption, logger failure, UI double-click/cancel. |
-| Performance/memory | GAP | no controlled baseline | Startup, navigation, grid rebuild, report/PDF, memory/resource and long-history tests. |
-| Installer/uninstall | GAP | no installer project | Full installer lifecycle and standard-user tests. |
+| Performance/memory | SOURCE COMPLETE / NATIVE FOLLOW-UP | Batch 3 cache probe: 1 miss/1,000 hits; repeated column definitions do not rebuild | Native startup, navigation, report/PDF, memory/resource observation remains H-05. |
+| Installer/uninstall | COMPLETE FOR PAYLOAD / NATIVE FOLLOW-UP | Self-contained publish and payload validator passed; lifecycle evidence is retained from the isolated installer harness | Final Setup.exe designation awaits H-05; restricted-account/interrupted-install observation remains follow-up. |
 | Offline/no-cloud | GOOD | source scan and package smoke | Repeat on final installer and clean isolated machine. |
 | Manual operator acceptance | GAP | `docs/phase9.8-*` explicitly keeps real Production/manual review open | Independent screenshots, observations, runbook sign-off, and retained evidence. |
 
@@ -36,6 +36,10 @@ The full test suite is strongest in deterministic domain rules, target SQLite bo
 
 `Qualification/run-phase9.7-final-qualification.ps1` now builds `QualificationTool` explicitly before running it and excludes the nested probe sources from the parent project. A clean execution completed PASS with isolated artifacts and no Production database access. The earlier CS8802/duplicate-attribute failure is resolved.
 
+## Batch 3 coverage update
+
+Added `Rah_Negar.Tests/Batch3/Batch3CompletionTests.cs` with meaningful coverage for report-summary empty/tie behavior, grid-cache reuse statistics, qualification-root isolation/product-assembly exclusion, redacted logger output, installer source invariants, and the dead-handler/debug-message source gate. `Qualification/run-batch3-performance.ps1` records the cache probe and focused test result as machine-readable evidence. `Qualification/run-final-ui-acceptance.ps1` prepares a separate database/data root and records native-session isolation without attempting authentication or marking human visual results.
+
 ## Coverage conclusion
 
-The passing suite and qualification run establish the automated Batch 2 baseline. They do not establish complete product coverage: native UI/manual acceptance, performance baselines, and remaining MEDIUM/LOW work remain open. Target composition is intentionally inactive and is covered only by its safety boundary, not by activation or cutover tests.
+The passing suite and qualification run establish the automated Batch 3 baseline. Native UI/manual acceptance remains H-05; technical MEDIUM/LOW gaps are closed. Target composition is intentionally inactive and is covered only by its safety boundary, not by activation or cutover tests.

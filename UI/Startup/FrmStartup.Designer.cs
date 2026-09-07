@@ -85,7 +85,7 @@
             rbRasht.Size = new Size(54, 19);
             rbRasht.TabIndex = 2;
             rbRasht.TabStop = true;
-            rbRasht.Text = "Rasht";
+            rbRasht.Text = "رشت";
             rbRasht.UseVisualStyleBackColor = true;
             // 
             // grpStation
@@ -104,7 +104,7 @@
             grpStation.Size = new Size(638, 65);
             grpStation.TabIndex = 1;
             grpStation.TabStop = false;
-            grpStation.Text = "Station";
+            grpStation.Text = "ایستگاه";
             // 
             // lblCustom
             // 
@@ -115,7 +115,7 @@
             lblCustom.Name = "lblCustom";
             lblCustom.Size = new Size(87, 15);
             lblCustom.TabIndex = 4;
-            lblCustom.Text = "Custom Name:";
+            lblCustom.Text = "نام سفارشی:";
             // 
             // txtCustom
             // 
@@ -140,7 +140,7 @@
             rbOther.Size = new Size(55, 19);
             rbOther.TabIndex = 4;
             rbOther.TabStop = true;
-            rbOther.Text = "Other";
+            rbOther.Text = "سایر";
             rbOther.UseVisualStyleBackColor = true;
             // 
             // rbRamsar
@@ -153,7 +153,7 @@
             rbRamsar.Size = new Size(64, 19);
             rbRamsar.TabIndex = 3;
             rbRamsar.TabStop = true;
-            rbRamsar.Text = "Ramsar";
+            rbRamsar.Text = "رامسر";
             rbRamsar.UseVisualStyleBackColor = true;
             // 
             // grpSecurity
@@ -172,7 +172,7 @@
             grpSecurity.Size = new Size(389, 65);
             grpSecurity.TabIndex = 9;
             grpSecurity.TabStop = false;
-            grpSecurity.Text = "Security";
+            grpSecurity.Text = "امنیت";
             // 
             // btnTogglePassword
             // 
@@ -208,7 +208,7 @@
             lblConfirm.Name = "lblConfirm";
             lblConfirm.Size = new Size(54, 15);
             lblConfirm.TabIndex = 2;
-            lblConfirm.Text = "Confirm:";
+            lblConfirm.Text = "تکرار رمز:";
             // 
             // txtPass
             // 
@@ -233,7 +233,7 @@
             lblPass.Name = "lblPass";
             lblPass.Size = new Size(60, 15);
             lblPass.TabIndex = 0;
-            lblPass.Text = "Password:";
+            lblPass.Text = "رمز عبور:";
             // 
             // grpRuntime
             // 
@@ -269,7 +269,7 @@
             grpRuntime.Size = new Size(638, 193);
             grpRuntime.TabIndex = 13;
             grpRuntime.TabStop = false;
-            grpRuntime.Text = "Runtime";
+            grpRuntime.Text = "ساعت کارکرد";
             // 
             // lblDate
             // 
@@ -282,7 +282,7 @@
             lblDate.Name = "lblDate";
             lblDate.Size = new Size(75, 13);
             lblDate.TabIndex = 29;
-            lblDate.Text = "1404/12/12";
+            lblDate.Text = "انتخاب نشده";
             lblDate.TextAlign = ContentAlignment.MiddleRight;
             lblDate.Visible = false;
             // 
@@ -347,7 +347,7 @@
             label2.Name = "label2";
             label2.Size = new Size(39, 15);
             label2.TabIndex = 19;
-            label2.Text = "Status";
+            label2.Text = "وضعیت";
             // 
             // lblOH
             // 
@@ -358,7 +358,7 @@
             lblOH.Name = "lblOH";
             lblOH.Size = new Size(54, 15);
             lblOH.TabIndex = 2;
-            lblOH.Text = "After OH";
+            lblOH.Text = "پس از اورهال";
             // 
             // lblRun
             // 
@@ -369,7 +369,7 @@
             lblRun.Name = "lblRun";
             lblRun.Size = new Size(33, 15);
             lblRun.TabIndex = 1;
-            lblRun.Text = "Total";
+            lblRun.Text = "مجموع";
             // 
             // lblU1
             // 
@@ -381,7 +381,7 @@
             lblU1.Name = "lblU1";
             lblU1.Size = new Size(38, 15);
             lblU1.TabIndex = 3;
-            lblU1.Text = "Unit 1";
+            lblU1.Text = "واحد ۱";
             lblU1.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblU4
@@ -394,7 +394,7 @@
             lblU4.Name = "lblU4";
             lblU4.Size = new Size(38, 15);
             lblU4.TabIndex = 25;
-            lblU4.Text = "Unit 4";
+            lblU4.Text = "واحد ۴";
             lblU4.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblU3
@@ -407,7 +407,7 @@
             lblU3.Name = "lblU3";
             lblU3.Size = new Size(38, 15);
             lblU3.TabIndex = 23;
-            lblU3.Text = "Unit 3";
+            lblU3.Text = "واحد ۳";
             lblU3.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblU2
@@ -420,7 +420,7 @@
             lblU2.Name = "lblU2";
             lblU2.Size = new Size(38, 15);
             lblU2.TabIndex = 24;
-            lblU2.Text = "Unit 2";
+            lblU2.Text = "واحد ۲";
             lblU2.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblInitialBaseDateInfo
@@ -449,7 +449,7 @@
             txtEsdExtraHours.Name = "txtEsdExtraHours";
             txtEsdExtraHours.Size = new Size(51, 22);
             txtEsdExtraHours.TabIndex = 26;
-            txtEsdExtraHours.Text = "100";
+            txtEsdExtraHours.Text = "0";
             txtEsdExtraHours.TextAlign = HorizontalAlignment.Center;
             // 
             // chAddHoursAfterEsd
@@ -463,7 +463,7 @@
             chAddHoursAfterEsd.Name = "chAddHoursAfterEsd";
             chAddHoursAfterEsd.Size = new Size(146, 19);
             chAddHoursAfterEsd.TabIndex = 25;
-            chAddHoursAfterEsd.Text = "Extra runtime after ESD";
+            chAddHoursAfterEsd.Text = "افزودن ساعت کارکرد پس از ESD";
             chAddHoursAfterEsd.UseVisualStyleBackColor = true;
             // 
             // txtU4OH
@@ -585,7 +585,7 @@
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(110, 28);
             btnCancel.TabIndex = 28;
-            btnCancel.Text = "Cancel";
+            btnCancel.Text = "انصراف";
             btnCancel.UseVisualStyleBackColor = false;
             btnCancel.Click += btnCancel_Click;
             // 
@@ -604,7 +604,7 @@
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(170, 28);
             btnSave.TabIndex = 27;
-            btnSave.Text = "Create Profile";
+            btnSave.Text = "ایجاد پروفایل";
             btnSave.UseVisualStyleBackColor = false;
             btnSave.Click += btnSave_Click;
             // 
@@ -643,7 +643,7 @@
             groupBox1.Size = new Size(242, 65);
             groupBox1.TabIndex = 6;
             groupBox1.TabStop = false;
-            groupBox1.Text = "Data Baseline";
+            groupBox1.Text = "تاریخ مبنای داده‌ها";
             // 
             // FrmStartup
             // 
@@ -663,7 +663,7 @@
             MaximizeBox = false;
             Name = "FrmStartup";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Rah_Negar Startup Wizard";
+            Text = "راه‌اندازی اولیه ره‌نگار";
             Load += FrmStartup_Load;
             grpStation.ResumeLayout(false);
             grpStation.PerformLayout();

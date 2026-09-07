@@ -17,6 +17,9 @@ public static class StationRecordProfileProvider
     /// </exception>
     public static IStationUiProfile GetProfile(string stationName)
     {
+        if (GenericProfileIdentity.TryGetUnitCount(stationName, out int genericUnitCount))
+            return new GenericStationRecordProfile(stationName, genericUnitCount);
+
         return stationName switch
         {
             "Rasht Station" => new RashtStationRecordProfile(),

@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Rah_Negar.Core;
 using Rah_Negar.Data;
 using Rah_Negar.Utils;
+using Rah_Negar.Foundation.Application.Provisioning;
 
 namespace Rah_Negar.Qualification;
 
@@ -22,6 +23,23 @@ public static class QualificationEnvironment
         CreateScenario(Path.Combine(root, "Ramsar", "db.sys"), StationType.Ramsar, 4);
     }
 
+    public static void PrepareGeneric(string rootDirectory, int unitCount)
+    {
+        if (!TargetStationProfileRules.IsUnitCountSupported(unitCount))
+            throw new ArgumentOutOfRangeException(nameof(unitCount), "Generic profile unit count must be 3 through 5.");
+
+        string root = Path.GetFullPath(rootDirectory);
+        if (Path.GetFileName(root).Equals("Data", StringComparison.OrdinalIgnoreCase) ||
+            root.Contains("\\Data\\", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Qualification output must be outside the production Data directory.");
+
+        string profileName = GenericProfileIdentity.Create(unitCount);
+        string scenarioRoot = Path.Combine(root, $"Generic-{unitCount}");
+        CreateGenericScenario(Path.Combine(scenarioRoot, "db.sys"), profileName, unitCount);
+        File.WriteAllText(Path.Combine(scenarioRoot, "generic-profile.json"),
+            $"{{\"profileName\":\"{profileName}\",\"unitCount\":{unitCount},\"productionDataTouched\":false}}");
+    }
+
     private static void CreateScenario(string path, StationType station, int unitCount)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -30,7 +48,9 @@ public static class QualificationEnvironment
         connection.Open();
         using var transaction = connection.BeginTransaction();
         Execute(connection, transaction, "PRAGMA foreign_keys=ON;");
-        Execute(connection, transaction, BaseSchema(station));
+        Execute(connection, transaction, BaseSchema(station == StationType.Rasht
+            ? new RashtDataSchema()
+            : new RamsarDataSchema()));
         string stationId = station == StationType.Rasht ? "station-rasht" : "station-ramsar";
         string stationName = station == StationType.Rasht ? "Rasht Station" : "Ramsar Station";
         string hash = PasswordHelper.HashPassword(LoginPassword, FixedSalt);
@@ -67,11 +87,29 @@ public static class QualificationEnvironment
         transaction.Commit();
     }
 
-    private static string BaseSchema(StationType station)
+    private static void CreateGenericScenario(string path, string profileName, int unitCount)
     {
-        string stationTable = station == StationType.Rasht
-            ? new RashtDataSchema().GetCreateTableSql()
-            : new RamsarDataSchema().GetCreateTableSql();
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        if (File.Exists(path)) File.Delete(path);
+        using var connection = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = path, Pooling = false }.ToString());
+        connection.Open();
+        using var transaction = connection.BeginTransaction();
+        Execute(connection, transaction, BaseSchema(new GenericDataSchema(unitCount)));
+        string hash = PasswordHelper.HashPassword(LoginPassword, FixedSalt);
+        Execute(connection, transaction, $"""
+            INSERT INTO app_settings(is_initialized,station_type,station_name,user_reset_password_hash,user_reset_password_salt,created_at,theme_index,esd_extra_runtime_enabled,esd_extra_runtime_hours,data_start_date)
+            VALUES (1,'Custom','{profileName}', '{hash}', '{FixedSalt}', '2026-09-01 00:00:00',0,1,1.5,{DataStartDate});
+            """);
+        for (int unit = 1; unit <= unitCount; unit++)
+        {
+            Execute(connection, transaction, $"INSERT INTO unit_runtime_base(unit_no,base_runtime_hours,base_runtime_after_oh_hours,initial_is_running,initial_status) VALUES ({unit},{100 + unit},{20 + unit},0,'OFF');");
+        }
+        transaction.Commit();
+    }
+
+    private static string BaseSchema(IStationDataSchema stationSchema)
+    {
+        string stationTable = stationSchema.GetCreateTableSql();
         return $"""
         CREATE TABLE app_settings(id INTEGER PRIMARY KEY AUTOINCREMENT,is_initialized INTEGER NOT NULL,station_type TEXT NOT NULL,station_name TEXT NOT NULL,user_reset_password_hash TEXT NOT NULL,user_reset_password_salt TEXT NOT NULL,created_at TEXT NOT NULL,last_backup_at TEXT,password_changed_at TEXT,theme_index INTEGER NOT NULL DEFAULT 0,esd_extra_runtime_enabled INTEGER NOT NULL DEFAULT 0,esd_extra_runtime_hours REAL NOT NULL DEFAULT 0,data_start_date INTEGER NOT NULL);
         CREATE TABLE unit_runtime_base(id INTEGER PRIMARY KEY AUTOINCREMENT,unit_no INTEGER NOT NULL,base_runtime_hours REAL NOT NULL,base_runtime_after_oh_hours REAL NOT NULL,initial_is_running INTEGER NOT NULL,initial_status TEXT NOT NULL);

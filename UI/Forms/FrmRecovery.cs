@@ -21,6 +21,11 @@ public partial class FrmRecovery : BaseForm
     {
         InitializeComponent();
 
+        btnGenerateRequest.Enabled = false;
+        btnVerify.Enabled = false;
+        txtRecoveryCode.Enabled = false;
+        lblHeaderText.Text = "بازیابی رمز عبور (مدیریت‌شده)";
+
         ApplyTheme();
 
         InitializeRecoveryForm();

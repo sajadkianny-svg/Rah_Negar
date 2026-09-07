@@ -18,6 +18,9 @@
     <Compile Remove="Rah_Negar.Tests\**\*.cs" />
     <EmbeddedResource Remove="Rah_Negar.Tests\**\*" />
     <None Remove="Rah_Negar.Tests\**\*" />
+    <Compile Remove="Qualification\**\*.cs" />
+    <EmbeddedResource Remove="Qualification\**\*" />
+    <None Remove="Qualification\**\*" />
     <Compile Remove="QualificationTool\**\*.cs" />
     <EmbeddedResource Remove="QualificationTool\**\*" />
     <None Remove="QualificationTool\**\*" />
@@ -28,7 +31,6 @@
     <PackageReference Include="Dapper" Version="2.1.79" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
     <PackageReference Include="QuestPDF" Version="2026.6.0" />
-    <PackageReference Include="ScottPlot.WinForms" Version="5.1.58" />
     <PackageReference Include="Serilog" Version="4.3.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="SourceGear.sqlite3" Version="3.50.4.5" />
