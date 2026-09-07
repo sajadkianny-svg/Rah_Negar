@@ -1,24 +1,31 @@
 # Phase 9.8 - Human Actions Required
 
-This checklist contains only actions not completed by the Phase 9.8 technical
-evidence collection. Completing an action requires the named person to provide
-the stated evidence; no field is pre-completed here.
+The isolated deployment resolves technical evidence items only for
+**PRODUCTION-LIKE QUALIFICATION**. It does not close human custody, approvals,
+independent review, Project Owner decision, or real Production installation
+evidence.
 
-| Action ID | Person required | Document to open | Exact fields/decision to complete | Evidence/signature required | Blocks activation-decision eligibility? |
-|---|---|---|---|---|---|
-| H-01 | Deployment/operations administrator with access to the actual installation | `phase9.8-installation-bound-evidence-package.md` | Record actual deployment/station, installed build/version, schema/migration, profile, Unit count, Production DB path/hash/size/last-write UTC, Target identity/equivalence, authority/transition/audit paths and readbacks, and live fence/write-drain evidence | Installation command/readback receipts bound to the real deployment, plus named acknowledgement and UTC timestamp | YES |
-| H-02 | Restore operator and physical/records custodian | `phase9.8-physical-restore-custody-record.md` | Identify the retained backup artifact and storage location; complete operator, custodian, accessibility, recovery-time, and physical retention fields | Human restore observation, custody acknowledgement, signature/auditable reference, and UTC timestamp | YES |
-| H-03 | Named ShiftProfile operator | `phase9.8-operator-runbook-approval.md` | Complete operator identity/scope and every runbook acknowledgement checkbox, including STOP, ABORT, rollback, `RECOVERY_REQUIRED`, no bypass, routing ordering, and handoff | Operator signature or auditable approval reference and UTC timestamp | YES |
-| H-04 | Operational Supervisor | `phase9.8-operator-runbook-approval.md` | Confirm runbook version, operator readiness/training, writer fence/drain responsibility, restore escalation, evidence custody, and all required acknowledgements | Supervisor signature or auditable approval reference and UTC timestamp | YES |
-| H-05 | Audit/evidence retention custodian or governance records owner | `phase9.8-installation-bound-evidence-package.md` and `phase9.8-physical-restore-custody-record.md` | Confirm actual audit retention location, immutable/readback controls, access policy, retention period/manifest, and custody responsibility; distinguish technical hash-chain evidence from organizational custody | Retention manifest, access/custody acknowledgement, named owner, signature/reference, and UTC timestamp | YES |
-| H-06 | Organizationally independent human reviewer | `phase9.8-independent-review-final-package.md` | Confirm independence, review the exact scope/checklist/evidence, record findings, and select exactly one: PASS, PASS WITH LIMITATIONS, or FAIL | Reviewer identity, independence basis, findings, signature/auditable review reference, and UTC timestamp | YES |
-| H-07 | Project Owner / governance authority | `phase9.8-project-owner-decision.md` | Review the completed evidence and human approvals; complete exactly one permitted decision choice and all acknowledgements. Do not treat READY as activation/cutover authorization | Explicit decision, owner comment, signature/reference, and UTC timestamp; no decision is recorded by this package | YES |
+| Action ID | Person required | Status after qualification evidence | Required human evidence |
+|---|---|---|---|
+| H-01 | Deployment/operations administrator | **OPEN for real Production**; qualification package technically complete | Real Production installation path/build/DB/schema/profile/Unit/data-equivalence, authority/route readback, and live fence/drain receipt with acknowledgement and UTC timestamp |
+| H-02 | Restore operator and physical/records custodian | Technical restore **RESOLVED FOR PRODUCTION-LIKE QUALIFICATION**; custody **OPEN** | Named retained artifact/location, human restore observation, custodian, independent verifier, accessibility/recovery-time observation, signature/reference, UTC timestamp |
+| H-03 | Named ShiftProfile operator | **OPEN** | Operator identity, scope, runbook acknowledgements, STOP/ABORT/rollback/no-bypass/handoff approval and UTC timestamp |
+| H-04 | Operational Supervisor | **OPEN** | Supervisor readiness/training, fence/drain responsibility, restore escalation, evidence custody, signature/reference, UTC timestamp |
+| H-05 | Audit/evidence retention custodian | Technical chain **RESOLVED FOR PRODUCTION-LIKE QUALIFICATION**; organizational custody **OPEN** | Actual Production retention location, immutable/readback controls, ACL/access policy, retention manifest, named owner, signature/reference, UTC timestamp |
+| H-06 | Organizationally independent human reviewer | **OPEN** | Independent review of exact evidence and one disposition: PASS, PASS WITH LIMITATIONS, or FAIL, with identity and auditable reference |
+| H-07 | Project Owner / governance authority | **OPEN** | Project Owner decision and acknowledgements; no decision is recorded by this package and qualification evidence is not activation authorization |
 
-## Persistent boundary while actions are pending
+## Technical qualification references
+
+`Qualification/qualification-run/phase9.8-production-like-deployment/Evidence/deployment-manifest.json`
+records the isolated app, DB, authority, fence, restore, and audit paths.
+The technical status is **COMPLETE FOR PRODUCTION-LIKE QUALIFICATION** only.
+
+## Persistent boundary
 
 Legacy remains **AUTHORITATIVE**. Target remains **NON-AUTHORITATIVE**. Target
 routing remains **DISABLED**. Production Activation and Production Cutover
-remain **UNAUTHORIZED**. MQ-07 remains **BLOCKED  MANUAL OBSERVATION NOT
+remain **UNAUTHORIZED**. MQ-07 remains **BLOCKED - MANUAL OBSERVATION NOT
 PRACTICALLY EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED**.
 
 **Current aggregate: NOT_ELIGIBLE_FOR_ACTIVATION_DECISION.**

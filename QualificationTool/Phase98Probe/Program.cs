@@ -3,10 +3,14 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using Rah_Negar.Core;
 using Rah_Negar.Foundation.Application.Authority;
 using Rah_Negar.Foundation.Application.Database.Readiness;
 using Rah_Negar.Foundation.Application.Security;
 using Rah_Negar.Foundation.Time;
+using Rah_Negar.Models;
+using Rah_Negar.Qualification;
+using Rah_Negar.Services;
 using Rah_Negar.Infrastructure.Database;
 using Rah_Negar.Infrastructure.Database.Checksums;
 using Rah_Negar.Infrastructure.Database.Migrations;
@@ -17,21 +21,28 @@ using Rah_Negar.Infrastructure.Foundation.Time;
 try
 {
     if (args.Length < 2)
-        throw new ArgumentException("Usage: Phase98Probe <capture | restore | audit> <path> <evidence-directory>");
+        throw new ArgumentException("Usage: Phase98Probe <initialize | capture | restore | audit | fence | startup> <path> <evidence-directory> [output-path]");
 
     string mode = args[0].Trim().ToLowerInvariant();
     string firstPath = Path.GetFullPath(args[1]);
     string evidence = Path.GetFullPath(args.Length > 2 ? args[2] : Path.Combine(Path.GetTempPath(), "RahNegar-Phase98"));
     Directory.CreateDirectory(evidence);
 
-    if (mode == "capture")
+    if (mode == "initialize")
+        await InitializeAsync(firstPath, evidence, args.Length > 3 ? Path.GetFullPath(args[3]) : throw new ArgumentException("Initialize requires the published App directory."));
+    else if (mode == "capture")
         await CaptureAsync(firstPath, evidence);
     else if (mode == "restore")
-        await VerifyRestoreAsync(firstPath, evidence);
+        await VerifyRestoreAsync(firstPath, evidence, args.Length > 3 ? Path.GetFullPath(args[3]) : null,
+            args.Length > 4 ? Path.GetFullPath(args[4]) : null);
     else if (mode == "audit")
-        await VerifyAuditAsync(evidence);
+        await VerifyAuditAsync(firstPath, evidence, args.Length > 3 ? Path.GetFullPath(args[3]) : Path.Combine(evidence, "audit-tampered.jsonl"));
+    else if (mode == "fence")
+        await VerifyFenceAsync(firstPath, evidence);
+    else if (mode == "startup")
+        await VerifyStartupAsync(firstPath, evidence);
     else
-        throw new ArgumentException("Unknown mode. Use capture, restore, or audit.");
+        throw new ArgumentException("Unknown mode. Use initialize, capture, restore, audit, fence, or startup.");
 
     Environment.ExitCode = 0;
 }
@@ -76,16 +87,141 @@ static async Task CaptureAsync(string repo, string evidence)
     await WriteJsonAsync(Path.Combine(evidence, "phase9.8-installation-discovery.json"), result);
 }
 
-static async Task VerifyRestoreAsync(string source, string evidence)
+static async Task InitializeAsync(string databasePath, string evidence, string appDirectory)
+{
+    if (File.Exists(databasePath)) throw new IOException("Qualification database already exists; refusing to overwrite it.");
+    Directory.CreateDirectory(Path.GetDirectoryName(databasePath)!);
+    Directory.CreateDirectory(appDirectory);
+
+    string fixturePath = Path.Combine(AppContext.BaseDirectory, "Data", "db.sys");
+    DeleteGenerated(fixturePath);
+    StartupSetupService.InitializeApplication(new StartupSetupData
+    {
+        StationType = StationType.Rasht,
+        StationName = "Production-Like Qualification Station",
+        ResetPassword = QualificationEnvironment.LoginPassword,
+        DataStartDateRep = QualificationEnvironment.DataStartDate,
+        EsdExtraRuntimeEnabled = true,
+        EsdExtraRuntimeHours = 1.5,
+        UnitRuntimeBases = Enumerable.Range(1, 3).Select(unit => new UnitRuntimeBase
+        {
+            UnitNo = unit,
+            BaseRuntimeHours = 100 + unit,
+            BaseRuntimeAfterOHHours = 20 + unit,
+            InitialIsRunning = false,
+            InitialStatus = "OFF"
+        }).ToList()
+    });
+    await CheckpointAsync(fixturePath);
+    File.Copy(fixturePath, databasePath, false);
+    foreach (string suffix in new[] { "-wal", "-shm" })
+        if (File.Exists(fixturePath + suffix)) File.Copy(fixturePath + suffix, databasePath + suffix, false);
+
+    var checksums = new Sha256ChecksumService();
+    var factory = new SqliteConnectionFactory(new SqliteDatabaseOptions
+    {
+        DataSource = databasePath,
+        Mode = SqliteOpenMode.ReadWrite,
+        Pooling = false
+    });
+    var runner = new MigrationRunner(new SqliteTransactionManager(factory), new MigrationChecksumValidator(checksums));
+    MigrationRunResult migration = await runner.RunPendingAsync(UnifiedTargetMigrationChain.Create(checksums));
+    await SeedGenericTargetIdentityAsync(databasePath);
+
+    string dataFiles = Path.Combine(appDirectory, "DataFiles");
+    Directory.CreateDirectory(dataFiles);
+    string deploymentScope = "phase9.8-production-like-qualification";
+    string stationScope = "qualification-station";
+    string authorityPath = Path.Combine(dataFiles, "authority-state.json");
+    string transitionPath = Path.Combine(dataFiles, "authority-transition.json");
+    string auditPath = Path.Combine(dataFiles, "authority-audit.jsonl");
+    AuthorityStateRecord legacy = AuthorityStateRecord.Legacy(deploymentScope, stationScope);
+    await new FileAuthorityStateStore(authorityPath).SaveAsync(legacy);
+    AuthorityTransitionRecord transition = AuthorityTransitionRecord.PreparedFrom(legacy, "phase9.8-qualification-aborted-transition", 1)
+        with { Lifecycle = TransitionLifecycle.Aborted, RecordedAtUtc = DateTimeOffset.UtcNow };
+    await new FileTransitionStateStore(transitionPath).SaveAsync(transition);
+    using (var audit = new TamperEvidentAuthorityAuditSink(auditPath))
+    {
+        await audit.WriteAsync(new("phase9.8-qualification", DateTimeOffset.UtcNow, deploymentScope, stationScope,
+            "qualification", AuthorityState.LegacyAuthoritative, AuthorityState.ActivationPreparedNotExecuted,
+            AuthorityAuditAction.Prepare, "PREPARED", "qualification-only-transition", "phase9.8-authority-readback", 1));
+        await audit.WriteAsync(new("phase9.8-qualification", DateTimeOffset.UtcNow, deploymentScope, stationScope,
+            "qualification", AuthorityState.LegacyAuthoritative, AuthorityState.ActivationPreparedNotExecuted,
+            AuthorityAuditAction.Abort, "ABORTED", "qualification-only-transition-aborted", "phase9.8-authority-readback", 1));
+    }
+
+    string profilePath = Path.Combine(dataFiles, "deployment-profile.json");
+    await WriteJsonAsync(profilePath, new
+    {
+        classification = "PRODUCTION-LIKE QUALIFICATION DEPLOYMENT",
+        production = false,
+        authoritative = false,
+        identity = "phase9.8-qualification-generic-r3",
+        applicationCompatibilityProfile = "Rasht-compatible 3-unit fixture for the current supported application schema",
+        qualificationOnly = true,
+        targetRoutingEnabled = false,
+        productionActivationAuthorized = false,
+        productionCutoverAuthorized = false
+    });
+
+    AuthorityStartupResult startup = await new AuthorityStartupResolver(new FileAuthorityStateStore(authorityPath))
+        .ResolveCanonicalAsync(new FileTransitionStateStore(transitionPath));
+    string malformedDirectory = Path.Combine(evidence, "startup-malformed");
+    Directory.CreateDirectory(malformedDirectory);
+    string malformedAuthorityPath = Path.Combine(malformedDirectory, "authority-state.json");
+    await File.WriteAllTextAsync(malformedAuthorityPath, "{not-json");
+    AuthorityStartupResult malformed = await new AuthorityStartupResolver(new FileAuthorityStateStore(malformedAuthorityPath))
+        .ResolveCanonicalAsync(new FileTransitionStateStore(Path.Combine(malformedDirectory, "authority-transition.json")));
+
+    await WriteJsonAsync(Path.Combine(evidence, "deployment-initialization.json"), new
+    {
+        generatedUtc = DateTimeOffset.UtcNow,
+        classification = "PRODUCTION-LIKE QUALIFICATION DEPLOYMENT - NOT PRODUCTION",
+        productionStateUnchanged = true,
+        database = await DescribeDatabaseAsync(databasePath),
+        migration = new { migration.InitialVersion, migration.FinalVersion, migration.AppliedMigrationIds },
+        metadata = new
+        {
+            authorityState = DescribeFile(authorityPath),
+            authorityTransition = DescribeFile(transitionPath),
+            authorityAudit = DescribeFile(auditPath),
+            deploymentProfile = DescribeFile(profilePath)
+        },
+        authorityReadback = startup,
+        authorityBoundary = new
+        {
+            legacy = startup.EffectiveAuthority.LegacyAuthoritative ? "AUTHORITATIVE" : "NOT AUTHORITATIVE",
+            target = startup.EffectiveAuthority.TargetAuthoritative ? "AUTHORITATIVE" : "NON-AUTHORITATIVE",
+            targetRouting = startup.EffectiveAuthority.TargetRoutingEnabled ? "ENABLED" : "DISABLED",
+            productionActivation = "UNAUTHORIZED",
+            productionCutover = "UNAUTHORIZED",
+            legacyRoutingAllowed = AuthorityRoutingGuard.IsLegacyOperationalRoutingAllowed(startup.EffectiveAuthority),
+            targetRoutingAllowed = AuthorityRoutingGuard.IsTargetOperationalRoutingAllowed(startup.EffectiveAuthority)
+        },
+        malformedStartupFailClosed = new
+        {
+            classification = malformed.Classification,
+            routingBlocked = malformed.RoutingBlocked,
+            issues = malformed.Issues,
+            passed = malformed.RoutingBlocked && malformed.Classification == "InvalidOrCorrupt"
+        },
+        activationAuthorizationArtifacts = Directory.GetFiles(dataFiles, "*authorization*", SearchOption.TopDirectoryOnly)
+            .Select(Path.GetFullPath).ToArray()
+    });
+}
+
+static async Task VerifyRestoreAsync(string source, string evidence, string? backupDirectory, string? restoreDirectory)
 {
     if (!File.Exists(source)) throw new FileNotFoundException("Restore source is absent.", source);
     string sourceHashBefore = await Sha256Async(source);
     FileInfo sourceInfoBefore = new(source);
-    string work = Path.Combine(evidence, "restore-work");
-    Directory.CreateDirectory(work);
-    string backup = Path.Combine(work, "verified-backup.sqlite");
-    string destination = Path.Combine(work, "disposable-restore-target.sqlite");
-    string rollback = Path.Combine(work, "disposable-restore-rollback.sqlite");
+    string backupWork = backupDirectory ?? Path.Combine(evidence, "restore-work");
+    string restoreWork = restoreDirectory ?? backupWork;
+    Directory.CreateDirectory(backupWork);
+    Directory.CreateDirectory(restoreWork);
+    string backup = Path.Combine(backupWork, "verified-backup.sqlite");
+    string destination = Path.Combine(restoreWork, "disposable-restore-target.sqlite");
+    string rollback = Path.Combine(restoreWork, "disposable-restore-rollback.sqlite");
     File.Copy(source, destination, false);
     foreach (string suffix in new[] { "-wal", "-shm" })
         if (File.Exists(source + suffix)) File.Copy(source + suffix, destination + suffix, false);
@@ -101,7 +237,7 @@ static async Task VerifyRestoreAsync(string source, string evidence)
     {
         ["generatedUtc"] = DateTimeOffset.UtcNow,
         ["source"] = DescribeFile(source),
-        ["sourceClassification"] = "Release build-output SQLite file; not proven as Production",
+        ["sourceClassification"] = "PRODUCTION-LIKE QUALIFICATION DEPLOYMENT SQLite file; not Production",
         ["backupArtifact"] = DescribeFile(backup),
         ["backupReceipt"] = backupResult.Receipt,
         ["backupVerification"] = backupResult.Verification,
@@ -139,50 +275,170 @@ static async Task VerifyRestoreAsync(string source, string evidence)
     await WriteJsonAsync(Path.Combine(evidence, "phase9.8-restore-verification.json"), record);
 }
 
-static async Task VerifyAuditAsync(string evidence)
+static async Task VerifyAuditAsync(string auditPath, string evidence, string tamperedPath)
 {
-    string work = Path.Combine(evidence, "audit-work");
-    Directory.CreateDirectory(work);
-    string auditPath = Path.Combine(work, "authority-audit.jsonl");
-    string tamperedPath = Path.Combine(work, "authority-audit-tampered.jsonl");
+    Directory.CreateDirectory(Path.GetDirectoryName(auditPath)!);
+    Directory.CreateDirectory(Path.GetDirectoryName(tamperedPath)!);
+    long linesBefore = File.Exists(auditPath) ? File.ReadLines(auditPath).LongCount(x => !string.IsNullOrWhiteSpace(x)) : 0;
     using (var sink = new TamperEvidentAuthorityAuditSink(auditPath))
     {
-        await sink.WriteAsync(new("phase9.8-audit", DateTimeOffset.UtcNow, "qualification", "all", "1.0.0.0",
-            AuthorityState.LegacyAuthoritative,
-            AuthorityState.ActivationPreparedNotExecuted,
-            AuthorityAuditAction.Prepare,
-            "PREPARED", "phase9.8-technical-audit-check", "phase9.8-installation-audit"));
-        await sink.WriteAsync(new("phase9.8-audit", DateTimeOffset.UtcNow, "qualification", "all", "1.0.0.0",
+        AuditIntegrityResult beforeAppend = await sink.VerifyAsync();
+        await sink.WriteAsync(new("phase9.8-audit", DateTimeOffset.UtcNow, "phase9.8-production-like-qualification", "qualification-station", "qualification",
             AuthorityState.LegacyAuthoritative,
             AuthorityState.ActivationPreparedNotExecuted,
             AuthorityAuditAction.ValidationFailed,
-            "BLOCKED", "phase9.8-technical-audit-check", "phase9.8-installation-audit"));
-        AuditIntegrityResult initial = await sink.VerifyAsync();
-        await sink.WriteAsync(new("phase9.8-audit", DateTimeOffset.UtcNow, "qualification", "all", "1.0.0.0",
-            AuthorityState.LegacyAuthoritative,
-            AuthorityState.ActivationPreparedNotExecuted,
-            AuthorityAuditAction.Abort,
-            "ABORTED", "phase9.8-technical-audit-check", "phase9.8-installation-audit"));
+            "BLOCKED", "phase9.8-technical-audit-check", "phase9.8-installation-audit", 1));
         AuditIntegrityResult appended = await sink.VerifyAsync();
         File.Copy(auditPath, tamperedPath, true);
         string tampered = await File.ReadAllTextAsync(tamperedPath);
-        await File.WriteAllTextAsync(tamperedPath, tampered.Replace("ABORTED", "TAMPERED", StringComparison.Ordinal));
+        await File.WriteAllTextAsync(tamperedPath, tampered.Replace("BLOCKED", "TAMPERED", StringComparison.Ordinal));
         AuditIntegrityResult tamperDetection;
         using (var tamperedSink = new TamperEvidentAuthorityAuditSink(tamperedPath))
             tamperDetection = await tamperedSink.VerifyAsync();
+        AuditIntegrityResult restartReadback;
+        using (var restartedSink = new TamperEvidentAuthorityAuditSink(auditPath))
+            restartReadback = await restartedSink.VerifyAsync();
         await WriteJsonAsync(Path.Combine(evidence, "phase9.8-audit-verification.json"), new
         {
             generatedUtc = DateTimeOffset.UtcNow,
             auditPath,
-            appendBehavior = new { linesBeforeAppend = 2, linesAfterAppend = 3, sequenceContinues = appended.LastSequence == 3, initial = initial },
+            appendBehavior = new { linesBeforeAppend = linesBefore, linesAfterAppend = appended.LastSequence, sequenceContinues = appended.LastSequence == linesBefore + 1, initial = beforeAppend },
             integrityValidation = appended,
             tamperDetection,
             tamperDetectionPassed = !tamperDetection.IsValid,
+            restartPersistence = restartReadback,
             retention = "KeepAll by implementation; no application prune path found in Phase97ProductionExecution.cs",
+            actualConfiguredAuditPath = auditPath,
             qualificationOnly = true,
-            productionAuditPath = "not configured/present in repository or Release build output"
+            organizationalCustody = "NOT CLAIMED"
         });
     }
+}
+
+static async Task VerifyFenceAsync(string lockPath, string evidence)
+{
+    Directory.CreateDirectory(Path.GetDirectoryName(lockPath)!);
+    var gate = new ProductionWriteGate();
+    WriterFenceAcquireResult acquired;
+    LegacyWriteLeaseResult writer;
+    WriteDrainLeaseResult drained;
+    LegacyWriteLeaseResult blockedWriter;
+    TargetWriteLeaseResult blockedTarget;
+    var fence = new LocalSingleWriterFence(lockPath);
+    {
+        acquired = await fence.AcquireAsync(new("phase9.8-production-like-qualification", 1, "phase9.8-fence-drain"));
+        if (!acquired.Acquired) throw new InvalidOperationException(acquired.Reason);
+        writer = await gate.EnterLegacyWriteAsync(0);
+        if (!writer.Acquired) throw new InvalidOperationException(writer.Reason);
+        Task<WriteDrainLeaseResult> drainTask = gate.AcquireDrainAsync();
+        blockedWriter = await gate.EnterLegacyWriteAsync(0);
+        if (blockedWriter.Acquired) throw new InvalidOperationException("A legacy writer survived the drain barrier.");
+        await writer.Lease!.DisposeAsync();
+        drained = await drainTask;
+        if (!drained.Acquired) throw new InvalidOperationException(drained.Reason);
+        blockedTarget = await gate.EnterTargetWriteAsync(1);
+        if (blockedTarget.Acquired) throw new InvalidOperationException("Target write admitted while routing is disabled.");
+        await drained.Lease!.DisposeAsync();
+        await acquired.Lease!.DisposeAsync();
+    }
+    WriterFenceAcquireResult restart;
+    var restartedFence = new LocalSingleWriterFence(lockPath);
+    {
+        restart = await restartedFence.AcquireAsync(new("phase9.8-production-like-qualification", 2, "phase9.8-fence-restart"));
+        if (!restart.Acquired) throw new InvalidOperationException(restart.Reason);
+        await restart.Lease!.DisposeAsync();
+    }
+    await WriteJsonAsync(Path.Combine(evidence, "fence-drain-receipt.json"), new
+    {
+        generatedUtc = DateTimeOffset.UtcNow,
+        fencePath = Path.GetFullPath(lockPath),
+        writerInventory = new { isolatedWriterCountBeforeDrain = 1, isolatedWriterCountAfterDrain = 0, writerLeaseReleased = true },
+        fenceAcquire = new { acquired.Status, acquired.Reason, recoveredFromAbandonment = acquired.Lease?.WasRecoveredFromAbandonment ?? false },
+        drain = new { drained.Status, drained.Reason, noWriterSurvivesBarrier = !blockedWriter.Acquired },
+        routingGuard = new { blockedTarget.Status, blockedTarget.Reason, targetRoutingEnabled = false },
+        restart = new { restart.Status, restart.Reason, restartClassification = "RESTART_READY_NO_ORPHANED_WRITER" },
+        result = "PASS",
+        qualificationOnly = true
+    });
+}
+
+static async Task VerifyStartupAsync(string authorityDirectory, string evidence)
+{
+    string authorityPath = Path.Combine(authorityDirectory, "authority-state.json");
+    string transitionPath = Path.Combine(authorityDirectory, "authority-transition.json");
+    AuthorityStartupResult startup = await new AuthorityStartupResolver(new FileAuthorityStateStore(authorityPath))
+        .ResolveCanonicalAsync(new FileTransitionStateStore(transitionPath));
+    await WriteJsonAsync(Path.Combine(evidence, "authority-startup-readback.json"), new
+    {
+        generatedUtc = DateTimeOffset.UtcNow,
+        paths = new { authorityPath, transitionPath, auditPath = Path.Combine(authorityDirectory, "authority-audit.jsonl") },
+        startup,
+        legacyAuthoritative = startup.EffectiveAuthority.LegacyAuthoritative,
+        targetNonAuthoritative = !startup.EffectiveAuthority.TargetAuthoritative,
+        targetRoutingDisabled = !startup.EffectiveAuthority.TargetRoutingEnabled,
+        productionActivationUnauthorized = true,
+        productionCutoverUnauthorized = true,
+        targetOperationalRoutingAllowed = AuthorityRoutingGuard.IsTargetOperationalRoutingAllowed(startup.EffectiveAuthority),
+        result = startup.EffectiveAuthority.State == AuthorityState.LegacyAuthoritative &&
+            startup.EffectiveAuthority.LegacyAuthoritative && !startup.EffectiveAuthority.TargetAuthoritative &&
+            !startup.EffectiveAuthority.TargetRoutingEnabled && !AuthorityRoutingGuard.IsTargetOperationalRoutingAllowed(startup.EffectiveAuthority)
+            ? "PASS" : "FAIL"
+    });
+}
+
+static async Task SeedGenericTargetIdentityAsync(string path)
+{
+    await using var connection = new SqliteConnection(new SqliteConnectionStringBuilder
+    {
+        DataSource = path, Mode = SqliteOpenMode.ReadWrite, Pooling = false
+    }.ToString());
+    await connection.OpenAsync();
+    await using SqliteTransaction transaction = (SqliteTransaction)await connection.BeginTransactionAsync();
+    await using (SqliteCommand command = connection.CreateCommand())
+    {
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO Stations(StationId,StationName,CreatedAtUtc,Revision)
+            VALUES ('qualification-station','Production-Like Qualification Station','2026-09-07T00:00:00Z',1);
+            """;
+        await command.ExecuteNonQueryAsync();
+    }
+    for (int unit = 1; unit <= 3; unit++)
+    {
+        await using SqliteCommand command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO Units(StationId,UnitId,UnitNumber,UnitName,IsActive,Revision)
+            VALUES ($station,$id,$number,$name,1,1);
+            """;
+        command.Parameters.AddWithValue("$station", "qualification-station");
+        command.Parameters.AddWithValue("$id", $"qualification-unit-{unit}");
+        command.Parameters.AddWithValue("$number", unit);
+        command.Parameters.AddWithValue("$name", $"Qualification Unit {unit}");
+        await command.ExecuteNonQueryAsync();
+    }
+    await transaction.CommitAsync();
+    await using SqliteCommand pragma = connection.CreateCommand();
+    pragma.CommandText = $"PRAGMA user_version = {UnifiedTargetMigrationChain.FinalVersion};";
+    await pragma.ExecuteNonQueryAsync();
+}
+
+static async Task CheckpointAsync(string path)
+{
+    await using var connection = new SqliteConnection(new SqliteConnectionStringBuilder
+    {
+        DataSource = path, Mode = SqliteOpenMode.ReadWrite, Pooling = false
+    }.ToString());
+    await connection.OpenAsync();
+    await using SqliteCommand command = connection.CreateCommand();
+    command.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
+    await command.ExecuteNonQueryAsync();
+}
+
+static void DeleteGenerated(string path)
+{
+    foreach (string candidate in new[] { path, path + "-wal", path + "-shm" })
+        if (File.Exists(candidate)) File.Delete(candidate);
 }
 
 static ManagedSqliteBackupRestoreBoundary CreateServices()

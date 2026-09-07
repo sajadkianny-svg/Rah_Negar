@@ -1,103 +1,131 @@
 # Phase 9.8 - Installation-Bound Evidence Package
 
-Status: **INSTALLATION EVIDENCE: INCOMPLETE**
+Status: **COMPLETE FOR PRODUCTION-LIKE QUALIFICATION**
 
-This package records only values discovered from the current checkout and its
-Release build output. The Release `Data\db.sys` is a build-output SQLite file,
-not an identified Production database. No Production file was created,
-overwritten, or used as a writable qualification input.
+REAL PRODUCTION INSTALLATION EVIDENCE: **NOT AVAILABLE**.
+
+This package records a deliberately isolated, non-authoritative deployment
+created for qualification and evidence. It is explicitly **PRODUCTION-LIKE
+QUALIFICATION DEPLOYMENT - NOT PRODUCTION**. No real Production installation,
+Production database, Production authority, routing, activation, or cutover was
+created or changed.
 
 ## Control boundary
 
-Legacy = **AUTHORITATIVE**. Target = **NON-AUTHORITATIVE**. Target Routing =
-**DISABLED**. Production Activation = **UNAUTHORIZED**. Production Cutover =
-**UNAUTHORIZED**. MQ-07 remains **BLOCKED  MANUAL OBSERVATION NOT PRACTICALLY
-EXERCISABLE, WITH AUTOMATED INVARIANT EVIDENCE RETAINED**. Independent Human
-Review remains **NOT PERFORMED / UNAVAILABLE**.
+Legacy = **AUTHORITATIVE**; Target = **NON-AUTHORITATIVE**; Target Routing =
+**DISABLED**; Production Activation = **UNAUTHORIZED**; Production Cutover =
+**UNAUTHORIZED**. The qualification deployment does not alter that boundary.
 
-## Repository and application identity
+## Production-Like Qualification Deployment
 
-| Field | Proven value | Status | Evidence source |
-|---|---|---|---|
-| Repository path | `D:\Projects\RahNegar_SQLite\Rah_Negar` | PROVEN | `phase9.8-installation-discovery.json`; repository command capture |
-| Branch | `phase9.7-activation-blocker-resolution` | PROVEN | `git branch --show-current` |
-| HEAD | `778aed2b727ab90ac29c79ecf1e7c3541988bf07` | PROVEN | `git rev-parse HEAD` |
-| Application build | `Rah_Negar.dll`, `net8.0-windows`, assembly version `1.0.0.0`, SHA-256 `540722AA5D0B7AD585A99F2CB1FB53EB98B837F9781605171997E3010A55A1B3`, 5,490,688 bytes | PROVEN for Release build output | `phase9.8-installation-discovery.json` |
-| Schema/migration implementation | Target chain final version `4`; chain IDs are recorded in the discovery JSON | PROVEN for source implementation | `Infrastructure/Database/Migrations/Drafts/UnifiedTargetMigrationChain.cs`; discovery JSON |
-| Profile/deployment identity | No configured profile or deployment identity was found in the repository or Release build output | NOT CONFIGURED | discovery JSON; `Program.cs` |
-| Supported Unit boundary | `3-5 inclusive`; Rasht profile = 3, Ramsar profile = 4; 35 is not supported | PROVEN as source rule | `Core/RashtProfile.cs`, `Core/RamsarProfile.cs`, Phase 9.7 qualification |
-| Current installed Unit count | No `Units` table/configuration was present in the only present Release build-output DB | NOT CONFIGURED | discovery JSON |
+| Field | Proven value | Evidence |
+|---|---|---|
+| Classification | `PRODUCTION-LIKE QUALIFICATION DEPLOYMENT - NOT PRODUCTION` | `Qualification/qualification-run/phase9.8-production-like-deployment/Evidence/deployment-manifest.json` |
+| Deployment root | `D:\Projects\RahNegar_SQLite\Rah_Negar\Qualification\qualification-run\phase9.8-production-like-deployment` | deployment manifest |
+| Qualification identity | `phase9.8-qualification-generic-r3` | `App\DataFiles\deployment-profile.json` |
+| Application compatibility fixture | Rasht-compatible 3-unit fixture required by the current supported application schema; not Production-specific architecture | deployment profile; initialization receipt |
+| Application started/registered as Production | No | deployment manifest and run log |
+| Real Production installation evidence | **NOT AVAILABLE** | boundary declaration |
 
-## Database and metadata receipt
+### Application build identity
 
-| Field | Installation observation | Status | Evidence source |
-|---|---|---|---|
-| Source checkout DB | `D:\Projects\RahNegar_SQLite\Rah_Negar\Data\db.sys` is absent | NOT AVAILABLE | discovery JSON |
-| Runtime DB rule | `AppDomain.CurrentDomain.BaseDirectory\Data\db.sys` | PROVEN | `Data/SqliteDatabaseHelper.cs` |
-| Present runtime candidate | `D:\Projects\RahNegar_SQLite\Rah_Negar\bin\Release\net8.0-windows\Data\db.sys` exists; 4,096 bytes; SHA-256 `52A371445CE0812CA930AEA418E7D7E9D6459F1778A6E14CB56592F08F5A08AF`; last-write UTC `2026-09-03T10:55:22.7981215Z` | PRESENT, NOT PROVEN AS PRODUCTION | discovery JSON |
-| Candidate SQLite state | journal `wal`; `schema_version=0`; `user_version=0`; integrity `ok`; FK violations `0`; tables `0` | TECHNICALLY READABLE, NOT PRODUCTION EVIDENCE | discovery JSON |
-| Actual Production DB identity | No deployment marker, Production receipt, station/profile record, or Production path distinct from build output was found | NOT AVAILABLE | discovery JSON; repository inspection |
-| Target DB/path | No separate Target DB/path is present in the checkout or Release build output | NOT AVAILABLE | discovery JSON; `Data/SqliteDatabaseHelper.cs` |
-| Qualification location | `D:\Projects\RahNegar_SQLite\Rah_Negar\Qualification\qualification-run\phase9.8-final-rerun` | PROVEN | qualification command output and retained JSON receipts |
-
-## Authority, transition, routing, and audit readback
-
-| Field | Observation | Status | Evidence source |
-|---|---|---|---|
-| Authority metadata path | Repository path `DataFiles\authority-state.json` and Release path `bin\Release\net8.0-windows\DataFiles\authority-state.json` are both absent | NOT AVAILABLE | discovery JSON |
-| Transition metadata path | Repository and Release `authority-transition.json` paths are absent | NOT AVAILABLE | discovery JSON |
-| Audit storage path | Repository and Release `authority-audit.jsonl` / `activation-audit.jsonl` paths are absent | NOT AVAILABLE | discovery JSON |
-| Default authority resolution | `FileAuthorityStateStore` returns initialized Legacy state when metadata is absent; `Program.cs` resolves the missing transition as clean idle. This is a default behavior, not an installation readback receipt | TECHNICAL DEFAULT VERIFIED; INSTALLATION READBACK NOT AVAILABLE | `Application/Authority/AuthorityFoundationContracts.cs`, `Program.cs` |
-| Routing state | No persisted route readback exists. The source control boundary remains Target routing disabled | NOT AVAILABLE AS INSTALLATION RECEIPT | source code and current control boundary above |
-| Production activation/cutover | No production executor registration or authorization artifact was found; current status remains unauthorized | UNAUTHORIZED | `Program.cs`, `Application/Authority/Phase97ProductionExecution.cs` |
-| Fencing and write drain | Implemented and qualified in disposable scope; no live writer inventory, lease, or drain receipt exists | NOT AVAILABLE FOR INSTALLATION | Phase 9.7 tests; no live installation |
-
-## Backup and isolated restore evidence
-
-Production DB is absent/unidentified, so the closest legitimate source was the
-present Release build-output SQLite file. The exercise used only
-`Qualification\qualification-run\phase9.8-final-rerun\restore-work` artifacts.
-
-| Item | Result |
+| Field | Proven value |
 |---|---|
-| Backup source | Release build-output `Data\db.sys`; source SHA-256 `52A371445CE0812CA930AEA418E7D7E9D6459F1778A6E14CB56592F08F5A08AF` |
-| Backup artifact | `restore-work\verified-backup.sqlite`; SHA-256 `BE7E0BC22B2F360FDAD30D06A95294C29EC91162BA40E7FF62B4AA036865D0A0`; 4,096 bytes |
-| Backup receipt | PASS; SQLite integrity PASS; FK PASS; journal mode `wal`; source `-wal` and `-shm` evidence captured |
-| Restore target | `restore-work\disposable-restore-target.sqlite` |
-| Rollback copy | `restore-work\disposable-restore-rollback.sqlite`; read-only after creation |
-| Restore receipt | PASS; pre/post validation PASS; restored hash `BE7E0BC22B2F360FDAD30D06A95294C29EC91162BA40E7FF62B4AA036865D0A0` |
-| Source isolation | PASS; source hash, size, and last-write UTC were unchanged before/after |
-| Limitation | This is not a Production backup or physical custody record |
+| Source branch | `phase9.7-activation-blocker-resolution` |
+| Source HEAD | `dc41f12e4cabce2cbff67cefa661c96eb74d6fc9` |
+| Target framework | `net8.0-windows` |
+| Executable | `...\App\Rah_Negar.exe`; 151,552 bytes; SHA-256 `BAF571A8FEE9B4FE0CFC65C6FF4F043DB70667A640BA25C83CC223D4EE64EACB` |
+| DLL | `...\App\Rah_Negar.dll`; assembly version `1.0.0.0`; 5,490,688 bytes; SHA-256 `22AFF332EE7FEF618EC2999B7480F7E84A37E184AD541E999851C76317287D9D` |
+| Published build timestamp | `2026-09-06T23:51:20Z` (file last-write UTC) |
+| Executable path | `D:\Projects\RahNegar_SQLite\Rah_Negar\Qualification\qualification-run\phase9.8-production-like-deployment\App\Rah_Negar.exe` |
+| DLL path | `D:\Projects\RahNegar_SQLite\Rah_Negar\Qualification\qualification-run\phase9.8-production-like-deployment\App\Rah_Negar.dll` |
 
-Evidence source: `phase9.8-restore-verification.json`.
+Evidence: `Evidence/application-evidence.json` and
+`Evidence/deployment-manifest.json`.
 
-## Audit retention technical evidence
+### Database, schema, and units
 
-The qualification audit path was disposable:
-`phase9.8-final-rerun\audit-work\authority-audit.jsonl`. Three records were
-appended with sequence continuation; hash-chain verification passed; a copied
-line edit returned `audit-digest-invalid`. The implementation uses append mode,
-write-through flushing, a serialized gate, and `KeepAll` behavior with no
-application prune path. Evidence source:
-`phase9.8-audit-verification.json` and
-`Application/Authority/Phase97ProductionExecution.cs` (`TamperEvidentAuthorityAuditSink`).
+| Field | Proven value |
+|---|---|
+| Package DB | `...\Data\db.sys`; 385,024 bytes; SHA-256 `6225EC8F99432FAF27BF503BD33C3DA9304270FBE28E9C272FD77496917E64D7` |
+| Runtime DB used by the published app layout | `...\App\Data\db.sys`; 385,024 bytes; same SHA-256 as package DB |
+| Last-write UTC | `2026-09-06T23:55:36.4436264Z` |
+| Journal mode | `wal` |
+| SQLite schema version | `69` |
+| SQLite user version | `4` |
+| Application migration ledger | `0 -> 4`, four migrations applied |
+| Migration IDs | `target-database-foundation-v1`; `phase7.7-security-persistence-atomic-esd-v1`; `event-target-schema-v1-draft`; `report-snapshot-target-schema-v1-isolated` |
+| Integrity check | `ok` |
+| Foreign-key check | PASS; zero violations |
+| Unit count | 3; within supported 3-5 boundary; not 2, 6, or 35 |
+| Deployment/profile identity | `qualification-station` / `phase9.8-qualification-generic-r3` |
 
-**TECHNICAL RETENTION VERIFIED for the disposable audit implementation.**
-The actual installation audit path, immutable/physical retention location,
-access policy, and organizational custody are **NOT AVAILABLE**. Ordinary
-transition metadata is not the same as the tamper-evident audit chain:
-`FileTransitionStateStore.SaveAsync` overwrites its envelope and
-`ClearAsync` deletes it. No OS ACL or immutable-store evidence is present.
+Evidence: `Evidence/deployment-initialization.json`,
+`Evidence/phase9.8-restore-verification.json`, and
+`Evidence/deployment-manifest.json`.
 
-## Installation evidence conclusion
+### Authority, transition, routing, and startup
 
-The automatically discoverable build identity, candidate file metadata,
-read-only SQLite state, and disposable backup/restore/audit results are
-recorded. Installation evidence is not complete because the following cannot
-be proven from this environment: actual Production deployment/station
-identity; Production DB identity/schema/profile/unit count; Target identity and
-data-equivalence handoff; persisted authority/transition/routing readback;
-installation fence/write-drain receipts; Production audit path and retention
-manifest; and physical custody/organizational approvals.
+The actual application-configured paths are under `App\DataFiles`:
 
-**INSTALLATION EVIDENCE: INCOMPLETE — exact missing items are the Production-bound identity/database/profile/schema/unit/equivalence receipt, persisted authority/transition/routing readback, live fence/drain receipt, installation audit/retention receipt, and human custody/approval evidence.**
+| Field | Proven value |
+|---|---|
+| Authority state | `...\App\DataFiles\authority-state.json`; persisted Legacy authoritative record |
+| Transition state | `...\App\DataFiles\authority-transition.json`; qualification-only transition lifecycle `Aborted` |
+| Audit path | `...\App\DataFiles\authority-audit.jsonl`; actual configured path, sequence/hash-chain verified |
+| Legacy | `AUTHORITATIVE` |
+| Target | `NON-AUTHORITATIVE` |
+| Target routing | `DISABLED`; target routing guard returned false |
+| Production Activation | `UNAUTHORIZED` |
+| Production Cutover | `UNAUTHORIZED` |
+| Malformed metadata startup test | PASS; classification `InvalidOrCorrupt`, routing blocked, issue `authority-metadata-unreadable` |
+| Activation authorization artifacts | None present in the configured metadata directory |
+
+Evidence: `Evidence/authority-startup-readback.json`,
+`Evidence/deployment-initialization.json`, and the persisted files in
+`App\DataFiles`. The root `DataFiles` folder is only a qualification evidence
+mirror; the application reads `App\DataFiles`.
+
+### Fence and write-drain
+
+The qualification-only fence receipt records one isolated writer before drain,
+zero after drain, rejection of a new Legacy writer during the barrier,
+rejection of Target write admission while routing is disabled, and successful
+restart acquisition with classification `RESTART_READY_NO_ORPHANED_WRITER`.
+
+Evidence: `Evidence/fence-drain-receipt.json`; lock path:
+`Audit\writer-fence.lock`.
+
+### Backup and disposable restore
+
+The managed exercise used only the isolated runtime DB. Source hash before and
+after was `6225EC8F99432FAF27BF503BD33C3DA9304270FBE28E9C272FD77496917E64D7`.
+Backup hash was
+`73FFEF3FE8826F02603D0709200F61060B509F1A18184C188479FD4339D22F0F`; restore
+target hash matched the backup; the read-only rollback artifact is retained in
+`Restore\disposable-restore-rollback.sqlite`. Integrity, FK, WAL/SHM handling,
+and source isolation all passed. This is a disposable qualification result,
+not a Production backup or custody receipt.
+
+Evidence: `Evidence/phase9.8-restore-verification.json`,
+`Backup\verified-backup.sqlite`, and `Restore\` artifacts.
+
+### Audit retention and tamper evidence
+
+The actual configured audit path appended from sequence 2 to 3, retained a
+valid hash chain, detected a tampered copy with `audit-digest-invalid`, and
+passed restart readback. Implementation retention is `KeepAll`; no
+organizational custody or immutable-store claim is made.
+
+Evidence: `Evidence/phase9.8-audit-verification.json` and
+`Audit\authority-audit-tampered.jsonl`.
+
+## Qualification conclusion
+
+Installation-bound technical evidence is complete **for this isolated
+production-like qualification deployment**. It is not Production evidence and
+does not make the project eligible for a Production Activation decision.
+
+**INSTALLATION EVIDENCE STATUS: COMPLETE FOR PRODUCTION-LIKE QUALIFICATION**
+
+**REAL PRODUCTION INSTALLATION EVIDENCE: NOT AVAILABLE**

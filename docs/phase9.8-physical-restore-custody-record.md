@@ -1,46 +1,46 @@
 # Phase 9.8 - Physical Restore Custody Record
 
-Status: **TECHNICAL RESTORE VERIFIED — AWAITING HUMAN CUSTODY CONFIRMATION**
+Status: **TECHNICAL RESTORE VERIFIED FOR PRODUCTION-LIKE QUALIFICATION - HUMAN CUSTODY CONFIRMATION OPEN**
 
-This record separates disposable technical verification from physical custody.
-It does not authorize restore, Production Activation, or Production Cutover.
+This record separates the disposable technical exercise from human and
+organizational custody. It does not authorize restore, Production Activation,
+or Production Cutover. REAL PRODUCTION INSTALLATION EVIDENCE: **NOT AVAILABLE**.
 
-## TECHNICALLY VERIFIED
+## Technically verified qualification exercise
 
-| Field | Recorded value / reference |
+| Field | Recorded value |
 |---|---|
-| Source | `bin\Release\net8.0-windows\Data\db.sys`; build-output SQLite file, not proven Production |
-| Backup artifact | `Qualification\qualification-run\phase9.8-final-rerun\restore-work\verified-backup.sqlite` |
-| Backup SHA-256 | `BE7E0BC22B2F360FDAD30D06A95294C29EC91162BA40E7FF62B4AA036865D0A0` |
-| Source SHA-256 | `52A371445CE0812CA930AEA418E7D7E9D6459F1778A6E14CB56592F08F5A08AF` |
-| Backup created UTC | `2026-09-06T23:34:33.6374412Z` (receipt timestamp) |
-| Restore target | `...\restore-work\disposable-restore-target.sqlite` |
-| Rollback copy | `...\restore-work\disposable-restore-rollback.sqlite`; read-only after creation |
-| SQLite integrity | PASS before and after restore (`ok`) |
+| Classification | `PRODUCTION-LIKE QUALIFICATION DEPLOYMENT - NOT PRODUCTION` |
+| Source DB | `Qualification/qualification-run/phase9.8-production-like-deployment/App/Data/db.sys` |
+| Source SHA-256 before/after | `6225EC8F99432FAF27BF503BD33C3DA9304270FBE28E9C272FD77496917E64D7` |
+| Backup artifact | `.../Backup/verified-backup.sqlite` |
+| Backup SHA-256 | `73FFEF3FE8826F02603D0709200F61060B509F1A18184C188479FD4339D22F0F` |
+| Restore target | `.../Restore/disposable-restore-target.sqlite` |
+| Rollback artifact | `.../Restore/disposable-restore-rollback.sqlite`; read-only |
+| SQLite integrity | PASS; `ok` before and after restore |
 | Foreign-key integrity | PASS; zero violations before and after restore |
-| WAL/SHM handling | Source `-wal` present, 0 bytes; source `-shm` present, 32,768 bytes; destination sidecars captured and preserved through the managed boundary |
+| WAL/SHM handling | PASS; source WAL present at 0 bytes and SHM at 32,768 bytes; sidecar evidence retained |
 | Restore result | PASS; managed boundary pre/post validation passed |
-| Restored SHA-256 | `BE7E0BC22B2F360FDAD30D06A95294C29EC91162BA40E7FF62B4AA036865D0A0` |
-| Source isolation | PASS; source hash, size, and last-write UTC unchanged after the exercise |
-| Evidence receipt | `Qualification\qualification-run\phase9.8-final-rerun\phase9.8-restore-verification.json` |
+| Restored SHA-256 | `73FFEF3FE8826F02603D0709200F61060B509F1A18184C188479FD4339D22F0F` |
+| Source isolation | PASS; source hash unchanged after exercise |
+| Evidence receipt | `Qualification/qualification-run/phase9.8-production-like-deployment/Evidence/phase9.8-restore-verification.json` |
 
-The selected source had no application tables, station identity, or Unit rows;
-therefore this result proves restore mechanics and integrity only. It does not
-prove Production data compatibility or Production rollback readiness.
+This proves isolated restore mechanics and integrity only. It is not a
+Production backup, physical-retention record, or organizational custody claim.
 
-## HUMAN CUSTODY CONFIRMATION REQUIRED
+## Human custody confirmation required
 
 | Field | Required human completion |
 |---|---|
-| Physical/retained artifact identity and location | A named custodian records the non-disposable retained artifact and storage location |
-| Restore operator | Named operator records the controlled restore observation |
-| Independent verifier | Named verifier confirms the receipt and observed result |
+| Physical/retained artifact identity and location | Named custodian records a non-disposable retained artifact and storage location |
+| Restore operator | Named operator records a controlled restore observation |
+| Independent verifier | Named verifier confirms receipt and observed result |
 | Custody holder | Named person/role accepts physical or governed retention custody |
 | Accessibility and recovery-time observation | Human records access confirmation and observed recovery time |
 | Signature/reference and UTC time | Human signs or supplies an auditable approval reference and UTC timestamp |
 
-No custodian, operator, verifier, signature, physical storage acknowledgement,
-or Production backup exists in the repository. The synthetic identity
-`phase9.8-qualification` in the technical receipt is not a human approval.
+No custodian, operator, verifier, signature, physical-storage acknowledgement,
+or Production backup is supplied by this package. The synthetic technical
+identity `phase9.8-qualification` is not human approval.
 
-**Final status: TECHNICAL RESTORE VERIFIED — AWAITING HUMAN CUSTODY CONFIRMATION.**
+**Final status: TECHNICAL RESTORE VERIFIED FOR PRODUCTION-LIKE QUALIFICATION - HUMAN CUSTODY CONFIRMATION OPEN.**

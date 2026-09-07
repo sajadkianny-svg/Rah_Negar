@@ -1,7 +1,8 @@
 # Phase 9.8 - Activation Readiness Reassessment
 
-This reassessment uses only current repository evidence and the Phase 9.8
-disposable qualification receipts. It creates no waiver and no authorization.
+This reassessment uses the isolated production-like qualification receipts. It
+creates no waiver and no authorization. REAL PRODUCTION INSTALLATION EVIDENCE:
+**NOT AVAILABLE**.
 
 ## Current authority boundary
 
@@ -11,47 +12,45 @@ Legacy = **AUTHORITATIVE**; Target = **NON-AUTHORITATIVE**; Target Routing =
 
 ## Prerequisite reassessment
 
-| ID | Technical evidence | Human/operational evidence | Governance status | Result |
-|---|---|---|---|---|
-| PR-01 | Contract validates binding fields | No installation-bound Production package | No owner authorization | OPEN |
-| PR-02 | Prior technical package retained | No current Production scope/version revalidation | Historical only | PARTIALLY_RESOLVED |
-| PR-03 | MQ evidence retained | MQ-07 manual observation unavailable | Existing narrow exception remains | PARTIALLY_RESOLVED; NOT A PASS |
-| PR-04 | Evidence classes remain separated | Independent human review unavailable | Requirement unsatisfied | OPEN |
-| PR-05 | Exact MQ-07 treatment retained | No new observation | Existing owner acceptance applies only to MQ-07 | RESOLVED for narrow exception |
-| PR-06 | Execution/fence/drain/audit boundary tested | No Production composition | No execution authorization | RESOLVED for future qualification |
-| PR-07 | Managed disposable backup/restore passed | No physical Production rollback/custody | No approved custody receipt | PARTIALLY_RESOLVED |
-| PR-08 | Disposable handoff infrastructure retained | No actual Target data-equivalence/handoff | No installation acceptance | OPEN |
-| PR-09 | 3/4/5 boundary and 2/6/35 rejection tested | No live station composition | No station-specific Production branch | PARTIALLY_RESOLVED |
-| PR-10 | ShiftProfile/proof contracts retained | No Production provisioning/custody | No operational approval | PARTIALLY_RESOLVED |
-| PR-11 | ESD action/scope binding retained | No Production transition | No vendor custody claim | RESOLVED for reviewed technical boundary |
-| PR-12 | Runtime/event/date/duplicate rules tested | No live reconciliation | No installation receipt | PARTIALLY_RESOLVED |
-| PR-13 | Snapshot/lock/checksum/export protections tested | Target route remains disabled | No route approval | RESOLVED for reviewed technical boundary |
-| PR-14 | Qualification isolation passed | No actual installation evidence | No installation package | RESOLVED for isolation; installation gap OPEN |
-| PR-15 | Historical DPI evidence retained | No new human observation | Fresh installation validation absent | PARTIALLY_RESOLVED |
-| PR-16 | Runbook technical consistency review passed | Operator/supervisor/training evidence absent | Approval absent | OPEN |
-| PR-17 | Commit/drain/rollback/recovery lifecycle tested in isolation | No Production executor/custody handoff | Production execution unauthorized | OPEN |
-| PR-18 | Disposable audit append/hash-chain/tamper test passed | Installation path/physical retention/custody absent | Retention governance absent | PARTIALLY_RESOLVED |
-| PR-19 | Authority ordering/epoch/routing guard tested | No Production route registration | No execution authorization | RESOLVED for future qualification |
-| PR-20 | Contract rejects incomplete decisions | No completed Phase 9.8 decision | Project Owner decision absent | OPEN |
+| ID | Result | Basis and remaining limitation |
+|---|---|---|
+| PR-01 | OPEN | No real installation-bound package or owner authorization |
+| PR-02 | PARTIALLY_RESOLVED | Qualification build identity is current; no real Production scope/version revalidation |
+| PR-03 | PARTIALLY_RESOLVED; NOT A PASS | MQ-07 manual observation remains unavailable |
+| PR-04 | OPEN | Independent human review unavailable |
+| PR-05 | RESOLVED FOR NARROW EXISTING EXCEPTION | Exact MQ-07 treatment retained; no new waiver |
+| PR-06 | RESOLVED FOR PRODUCTION-LIKE QUALIFICATION | Execution boundary and disabled authorization were exercised in isolation |
+| PR-07 | RESOLVED FOR PRODUCTION-LIKE QUALIFICATION; CUSTODY OPEN | Managed restore passed; no physical Production custody |
+| PR-08 | RESOLVED FOR PRODUCTION-LIKE QUALIFICATION; REAL HANDOFF OPEN | Generic 3-unit DB is migrated and verified; no real Target data-equivalence handoff |
+| PR-09 | RESOLVED FOR PRODUCTION-LIKE QUALIFICATION; LIVE COMPOSITION OPEN | 3-unit supported fixture proven; no live station composition |
+| PR-10 | RESOLVED FOR PRODUCTION-LIKE QUALIFICATION; HUMAN APPROVAL OPEN | Generic profile and unit identity proven; no Production provisioning/custody |
+| PR-11 | RESOLVED FOR REVIEWED TECHNICAL BOUNDARY | No Production transition or vendor custody claim |
+| PR-12 | PARTIALLY_RESOLVED | Fixture compatibility is proven; no live reconciliation |
+| PR-13 | RESOLVED FOR REVIEWED TECHNICAL BOUNDARY | Snapshot/lock protections remain tested; Target route stays disabled |
+| PR-14 | RESOLVED FOR PRODUCTION-LIKE QUALIFICATION | Isolated app, DB, metadata, and evidence paths are recorded |
+| PR-15 | PARTIALLY_RESOLVED | Historical DPI evidence retained; no new human installation observation |
+| PR-16 | TECHNICALLY RESOLVED FOR PRODUCTION-LIKE QUALIFICATION; APPROVAL OPEN | Script consistency passed; operator/supervisor approval absent |
+| PR-17 | RESOLVED FOR PRODUCTION-LIKE QUALIFICATION; PRODUCTION HANDOFF OPEN | Fence, drain, backup, restore, and audit lifecycle exercised only in qualification |
+| PR-18 | RESOLVED FOR PRODUCTION-LIKE QUALIFICATION; CUSTODY OPEN | Actual configured qualification audit path passes append/tamper/restart checks; no organizational custody |
+| PR-19 | RESOLVED FOR PRODUCTION-LIKE QUALIFICATION | Authority ordering and disabled route guard read back correctly |
+| PR-20 | OPEN | Project Owner decision remains absent |
 
 ## Evidence references
 
 - `docs/phase9.8-installation-bound-evidence-package.md`
-- `Qualification/qualification-run/phase9.8-final-rerun/phase9.8-installation-discovery.json`
-- `Qualification/qualification-run/phase9.8-final-rerun/phase9.8-restore-verification.json`
-- `Qualification/qualification-run/phase9.8-final-rerun/phase9.8-audit-verification.json`
-- Focused tests: 145 passed, 0 failed, 0 skipped.
-- Full suite: 759 passed, 0 failed, 0 skipped.
-- Solution build: 0 errors, 6 known NU1701 warnings.
+- `Qualification/qualification-run/phase9.8-production-like-deployment/Evidence/deployment-manifest.json`
+- `.../Evidence/deployment-initialization.json`
+- `.../Evidence/authority-startup-readback.json`
+- `.../Evidence/fence-drain-receipt.json`
+- `.../Evidence/phase9.8-restore-verification.json`
+- `.../Evidence/phase9.8-audit-verification.json`
+- Focused tests: **41/41 passed**; full suite: **759/759 passed**; build: **0 errors, 6 known NU1701 warnings**.
 
 ## Aggregate
 
 **NOT_ELIGIBLE_FOR_ACTIVATION_DECISION**
 
-The unresolved activation-decision prerequisites are PR-01, PR-04, PR-07,
-PR-08, PR-16, PR-17, PR-18, and PR-20. PR-09/10/12/15 remain partly limited
-until installation evidence exists. Physical restore custody, installation
-identity/data equivalence, operator approval, Independent Human Review, and
-Project Owner governance remain human-required.
-
-This aggregate does not authorize Production Activation or Production Cutover.
+Qualification evidence resolves technical items only within its isolated scope.
+Human custody, operator/supervisor approval, Independent Human Review, Project
+Owner governance, real Production installation, and real Target handoff remain
+open. This aggregate does not authorize Production Activation or Cutover.
