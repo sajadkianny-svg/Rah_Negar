@@ -1,11 +1,15 @@
 # Phase 9.8 - Operator Runbook Approval Record
 
-Status: **AWAITING OPERATOR/RUNBOOK APPROVAL**
+Status: **AWAITING EXPLICIT OPERATOR/SUPERVISOR/PROJECT OWNER ACKNOWLEDGEMENT OR APPROVAL**
 
 Reference: [`docs/phase9.6g-operator-cutover-runbook.md`](phase9.6g-operator-cutover-runbook.md)
 
 This record prepares human approval evidence. It does not approve or execute
 Production Activation or Cutover.
+
+Independent Human Review: **NOT PERFORMED / UNAVAILABLE**. Sajad Kiyani is
+not an Independent Verifier, and these role assignments do not represent
+self-verification or independent verification.
 
 ## Technical consistency review
 
@@ -32,9 +36,12 @@ field is not implied by this prepared form.
 
 | Reviewer | Exact fields to complete | Required evidence | Status |
 |---|---|---|---|
-| Operator | Name, role, scope; acknowledge STOP/ABORT/ROLLBACK/`RECOVERY_REQUIRED`, no manual flag edits/bypass, routing ordering, evidence handoff, and current Legacy-authoritative state | Signature or auditable acknowledgement reference and UTC timestamp | AWAITING |
-| Operational Supervisor | Name, role; confirm runbook version, operator readiness/training, write-drain/fence responsibility, restore escalation, and evidence custody handoff | Signature or auditable approval reference and UTC timestamp | AWAITING |
-| Project Owner | Name; acknowledge residual MQ-07 wording, open evidence gaps, and that approval is not activation/cutover authorization | Separate governed decision record; no entry may be inferred here | AWAITING |
+| Operator — Sajad Kiyani | Name, role, scope; acknowledge STOP/ABORT/ROLLBACK/`RECOVERY_REQUIRED`, no manual flag edits/bypass, routing ordering, evidence handoff, and current Legacy-authoritative state | Signature or auditable acknowledgement reference and UTC timestamp | AWAITING EXPLICIT ACKNOWLEDGEMENT |
+| Operational Supervisor — Sajad Kiyani | Name, role; confirm runbook version, operator readiness/training, write-drain/fence responsibility, restore escalation, and evidence custody handoff | Signature or auditable approval reference and UTC timestamp | AWAITING EXPLICIT ACKNOWLEDGEMENT/APPROVAL |
+| Project Owner — Sajad Kiyani | Name; acknowledge residual MQ-07 wording, open evidence gaps, and that approval is not activation/cutover authorization | Separate governed decision record; no entry may be inferred here | AWAITING EXPLICIT ACKNOWLEDGEMENT/DECISION |
+
+The names above record the assigned roles only. No signature, timestamp,
+acknowledgement, training confirmation, or approval is being inferred.
 
 Required checkbox set for the operator and supervisor:
 
@@ -45,4 +52,4 @@ Required checkbox set for the operator and supervisor:
 - [ ] Backup, restore, audit, retention, and handoff evidence responsibilities understood.
 - [ ] Legacy authoritative / Target non-authoritative / Target routing disabled state understood.
 
-**Final status: AWAITING OPERATOR/RUNBOOK APPROVAL.**
+**Final status: AWAITING EXPLICIT OPERATOR/SUPERVISOR/PROJECT OWNER ACKNOWLEDGEMENT OR APPROVAL.**
