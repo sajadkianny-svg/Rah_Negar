@@ -455,46 +455,22 @@ namespace Rah_Negar.UI.Forms
         /// </summary>
         private void ApplyRecordsButtonTheme()
         {
-            Button[] buttons =
+            Button[] primaryButtons =
+            [btnLoad, btnPaste, btnSave, btnSaveEdit, btnAdd];
+            Button[] secondaryButtons =
+            [btnEdit, btnMissing, btnReset, btnCancelEdit, btnDeleteItem, btnEndSelection];
+
+            foreach (Button button in primaryButtons)
             {
-                btnPaste,
-                btnLoad,
-                btnEdit,
-                btnMissing,
-                btnReset,
-                btnSave,
-                btnSaveEdit,
-                btnCancelEdit,
-                btnAdd,
-                btnDeleteItem,
-                btnEndSelection
-            };
+                UiStyleService.ApplyButtonConventions(button, AppThemeManager.CurrentPalette);
+                AppThemeManager.ApplyToPrimaryButton(button);
+            }
 
-            foreach (Button button in buttons)
-                ApplyStandardButton(button);
-        }
-
-
-        private static void ApplyStandardButton(Button button)
-        {
-            AppThemePalette palette = AppThemeManager.CurrentPalette;
-
-            Color backColor = palette.PrimaryButtonBackColor;
-            Color hoverColor = palette.PrimaryButtonHoverColor;
-            Color downColor = palette.PrimaryButtonDownColor;
-
-            button.UseVisualStyleBackColor = false;
-            button.FlatStyle = FlatStyle.Flat;
-
-            button.BackColor = backColor;
-            button.ForeColor = GetReadableTextColor(backColor);
-
-            button.FlatAppearance.BorderSize = 0;
-            button.FlatAppearance.MouseOverBackColor = hoverColor;
-            button.FlatAppearance.MouseDownBackColor = downColor;
-
-            button.Font = new Font("Tahoma", 8F, FontStyle.Regular);
-            button.Cursor = Cursors.Hand;
+            foreach (Button button in secondaryButtons)
+            {
+                UiStyleService.ApplyButtonConventions(button, AppThemeManager.CurrentPalette);
+                AppThemeManager.ApplyToSecondaryButton(button);
+            }
         }
 
         /// <summary>
@@ -513,7 +489,7 @@ namespace Rah_Negar.UI.Forms
             ApplyComboBoxTheme(cmbUnits);
             ApplyComboBoxTheme(cmbType);
 
-            dtpTime.Font = new Font("tahoma", 8F);
+            dtpTime.Font = UiStyleService.CreateFont();
         }
 
         /// <summary>
@@ -526,7 +502,7 @@ namespace Rah_Negar.UI.Forms
             textBox.BackColor = palette.CardBackColor;
             textBox.ForeColor = palette.TextPrimaryColor;
             textBox.BorderStyle = BorderStyle.FixedSingle;
-            textBox.Font = new Font("tahoma", 8F);
+            textBox.Font = UiStyleService.CreateFont();
         }
 
         /// <summary>
@@ -539,7 +515,7 @@ namespace Rah_Negar.UI.Forms
             comboBox.BackColor = palette.CardBackColor;
             comboBox.ForeColor = palette.TextPrimaryColor;
             comboBox.FlatStyle = FlatStyle.Flat;
-            comboBox.Font = new Font("tahoma", 8F);
+            comboBox.Font = UiStyleService.CreateFont();
         }
 
         /// <summary>
@@ -551,16 +527,18 @@ namespace Rah_Negar.UI.Forms
         {
             AppThemePalette palette = AppThemeManager.CurrentPalette;
 
-            Color headerBack = Lighten(palette.GridHeaderBackColor, 0.72f);
+            UiStyleService.ApplyGridConventions(dgv, palette);
+
+            Color headerBack = palette.GridHeaderBackColor;
             Color headerLine = headerBack;
 
-            Color selectionBack = Lighten(palette.PrimaryButtonBackColor, 0.80f);
-            Color gridLine = Lighten(palette.GridLineColor, 0.35f);
+            Color selectionBack = palette.NavigationHoverBackColor;
+            Color gridLine = palette.GridLineColor;
 
             dgv.EnableHeadersVisualStyles = false;
 
             dgv.BackgroundColor = palette.ContentBackColor;
-            dgv.BorderStyle = BorderStyle.None;
+            dgv.BorderStyle = BorderStyle.FixedSingle;
 
             dgv.GridColor = gridLine;
             dgv.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
@@ -571,14 +549,14 @@ namespace Rah_Negar.UI.Forms
             dgv.ColumnHeadersDefaultCellStyle.ForeColor = palette.TextPrimaryColor;
             dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = headerBack;
             dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = palette.TextPrimaryColor;
-            dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 8.2F, FontStyle.Bold);
+            dgv.ColumnHeadersDefaultCellStyle.Font = UiStyleService.CreateFont(8.5f, FontStyle.Bold);
             dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             dgv.DefaultCellStyle.BackColor = palette.GridCellBackColor;
             dgv.DefaultCellStyle.ForeColor = palette.TextPrimaryColor;
             dgv.DefaultCellStyle.SelectionBackColor = selectionBack;
             dgv.DefaultCellStyle.SelectionForeColor = palette.TextPrimaryColor;
-            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 8.2F, FontStyle.Regular);
+            dgv.DefaultCellStyle.Font = UiStyleService.CreateFont(8.5f);
 
             dgv.AlternatingRowsDefaultCellStyle.BackColor =
                 Lighten(palette.GridCellBackColor, 0.35f);
@@ -2595,7 +2573,7 @@ ORDER BY unit_no;";
                 txtRemark.Text = row.Cells[4].Value?.ToString()?.Trim() ?? "";
 
                 _eventEntryMode = EventEntryMode.Apply;
-            btnAdd.Text = "اعمال تغییرات";
+                btnAdd.Text = "Apply";
 
                 btnEndSelection.Enabled = true;
                 btnEndSelection.Visible = true;
@@ -2748,7 +2726,7 @@ ORDER BY unit_no;";
             txtRemark.Enabled = false;
 
             _eventEntryMode = EventEntryMode.Add;
-            btnAdd.Text = "افزودن";
+            btnAdd.Text = "Add";
 
             btnEndSelection.Enabled = false;
             btnEndSelection.Visible = false;

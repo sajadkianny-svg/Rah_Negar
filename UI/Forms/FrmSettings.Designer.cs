@@ -324,7 +324,7 @@
             ChAddHoursAfterEsd.AutoSize = true;
             ChAddHoursAfterEsd.Location = new Point(17, 36);
             ChAddHoursAfterEsd.Name = "ChAddHoursAfterEsd";
-            ChAddHoursAfterEsd.RightToLeft = RightToLeft.No;
+            ChAddHoursAfterEsd.RightToLeft = RightToLeft.Yes;
             ChAddHoursAfterEsd.Size = new Size(128, 17);
             ChAddHoursAfterEsd.TabIndex = 0;
             ChAddHoursAfterEsd.Text = "افزودن ساعت کارکرد پس از ESD";
@@ -350,7 +350,7 @@
             gpPassword.Font = new Font("Tahoma", 8F);
             gpPassword.Location = new Point(381, 79);
             gpPassword.Name = "gpPassword";
-            gpPassword.RightToLeft = RightToLeft.No;
+            gpPassword.RightToLeft = RightToLeft.Yes;
             gpPassword.Size = new Size(308, 114);
             gpPassword.TabIndex = 9;
             gpPassword.TabStop = false;
@@ -559,7 +559,6 @@
             KeyPreview = true;
             MaximizeBox = false;
             Name = "FrmSettings";
-            RightToLeft = RightToLeft.No;
             StartPosition = FormStartPosition.CenterScreen;
             Load += FrmSettings_Load;
             pnlHeader.ResumeLayout(false);

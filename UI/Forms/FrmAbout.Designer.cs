@@ -163,7 +163,6 @@
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FrmAbout";
-            RightToLeft = RightToLeft.No;
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
             Text = "درباره برنامه";

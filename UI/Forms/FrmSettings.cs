@@ -475,7 +475,7 @@ LIMIT 1;";
             BackColor = palette.FormBackColor;
 
             pnlHeader.BackColor = palette.HeaderBackColor;
-            pnlBody.BackColor = Color.White;
+            pnlBody.BackColor = palette.ContentBackColor;
             pnlFooter.BackColor = palette.ContentBackColor;
 
             lblTitle.ForeColor = palette.TextOnAccentColor;
@@ -484,6 +484,8 @@ LIMIT 1;";
             ApplyThemeToGroupBox(gbTheme);
             ApplyThemeToGroupBox(gpDatabase);
             ApplyThemeToGroupBox(gpPassword);
+            ApplyThemeToGroupBox(grpRuntimeSettings);
+            ApplyThemeToGroupBox(grbBaseLine);
 
             ApplyThemeToRadioButton(rdoThemeBlue);
             ApplyThemeToRadioButton(rdoThemeGraphite);
@@ -500,7 +502,8 @@ LIMIT 1;";
             ApplyThemeToSettingsButton(btnAbout);
             ApplyThemeToSettingsButton(btnResetFactory);
             ApplyThemeToSettingsButton(btnClose);
-            ApplyThemeToSettingsButton(btnSave);
+            UiStyleService.ApplyButtonConventions(btnSave, palette);
+            AppThemeManager.ApplyToPrimaryButton(btnSave);
 
             UpdateThemeRadioStyles();
 
@@ -579,9 +582,9 @@ LIMIT 1;";
         {
             AppThemePalette palette = AppThemeManager.CurrentPalette;
 
-            groupBox.BackColor = Color.White;
-            groupBox.ForeColor = Color.FromArgb(35, 35, 35);
-            groupBox.Font = new Font("tahoma", 8F, FontStyle.Regular);
+            groupBox.BackColor = palette.CardBackColor;
+            groupBox.ForeColor = palette.TextPrimaryColor;
+            groupBox.Font = UiStyleService.CreateFont(UiStyleService.SectionFontSize, FontStyle.Bold);
         }
         /// <summary>
         /// اعمال ظاهر پایه روی RadioButton.
@@ -591,9 +594,9 @@ LIMIT 1;";
             AppThemePalette palette = AppThemeManager.CurrentPalette;
 
             radioButton.BackColor = radioButton.Parent?.BackColor ?? palette.CardBackColor;
-            radioButton.ForeColor = Color.FromArgb(45, 45, 45);
+            radioButton.ForeColor = palette.TextPrimaryColor;
             radioButton.FlatStyle = FlatStyle.Flat;
-            radioButton.Font = new Font("tahoma", 8F, FontStyle.Regular);
+            radioButton.Font = UiStyleService.CreateFont();
         }
         /// <summary>
         /// ظاهر RadioButtonهای تم را بر اساس انتخاب‌شدن به‌روزرسانی می‌کند.
@@ -619,12 +622,12 @@ LIMIT 1;";
             if (radioButton.Checked)
             {
                 radioButton.ForeColor = palette.PrimaryButtonBackColor;
-                radioButton.Font = new Font("tahoma", 8F, FontStyle.Bold);
+                radioButton.Font = UiStyleService.CreateFont(9f, FontStyle.Bold);
             }
             else
             {
-                radioButton.ForeColor = Color.FromArgb(45, 45, 45);
-                radioButton.Font = new Font("tahoma", 8F, FontStyle.Regular);
+                radioButton.ForeColor = palette.TextPrimaryColor;
+                radioButton.Font = UiStyleService.CreateFont();
             }
         }
         /// <summary>
@@ -634,14 +637,8 @@ LIMIT 1;";
         {
             AppThemePalette palette = AppThemeManager.CurrentPalette;
 
-            button.FlatStyle = FlatStyle.Flat;
-            button.FlatAppearance.BorderSize = 0;
-            button.BackColor = palette.PrimaryButtonBackColor;
-            button.ForeColor = palette.TextOnAccentColor;
-            button.FlatAppearance.MouseOverBackColor = palette.PrimaryButtonHoverColor;
-            button.FlatAppearance.MouseDownBackColor = palette.PrimaryButtonDownColor;
-            button.Cursor = Cursors.Hand;
-            button.Font = new Font("tahoma", 8F, FontStyle.Regular);
+            UiStyleService.ApplyButtonConventions(button, palette);
+            AppThemeManager.ApplyToSecondaryButton(button);
         }
 
         // ================= Buttons =================

@@ -1,4 +1,6 @@
-﻿using Rah_Negar.Properties;
+﻿using Rah_Negar.Core;
+using Rah_Negar.Properties;
+using Rah_Negar.Utils;
 
 namespace Rah_Negar.UI.Forms.Base;
 
@@ -17,6 +19,7 @@ public class BaseForm : Form
 
     protected override void OnLoad(EventArgs e)
     {
+        AutoScaleMode = AutoScaleMode.Dpi;
         base.OnLoad(e);
 
         if (DeviceDpi > MaximumSupportedDpi)
@@ -29,32 +32,7 @@ public class BaseForm : Form
             return;
         }
 
-        ApplyOperatorSurfaceStyle(this);
+        UiStyleService.ApplyFormConventions(this, AppThemeManager.CurrentPalette);
     }
 
-    private static void ApplyOperatorSurfaceStyle(Control root)
-    {
-        foreach (Control control in root.Controls)
-        {
-            if (control is Button button)
-            {
-                button.MinimumSize = new Size(button.MinimumSize.Width, Math.Max(button.MinimumSize.Height, 30));
-                button.Padding = new Padding(8, 2, 8, 2);
-                button.FlatStyle = FlatStyle.Flat;
-            }
-            else if (control is TextBox textBox)
-            {
-                textBox.RightToLeft = RightToLeft.Yes;
-                textBox.BorderStyle = BorderStyle.FixedSingle;
-            }
-            else if (control is ComboBox comboBox)
-            {
-                comboBox.RightToLeft = RightToLeft.Yes;
-                comboBox.IntegralHeight = false;
-            }
-
-            if (control.HasChildren)
-                ApplyOperatorSurfaceStyle(control);
-        }
-    }
 }

@@ -2,6 +2,7 @@
 using Rah_Negar.Data;
 using Rah_Negar.Services;
 using Rah_Negar.Services.Reports;
+using Rah_Negar.Utils;
 using System.Globalization;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -93,6 +94,7 @@ namespace Rah_Negar.UI.Forms
             pnlBody.BackColor = palette.ContentBackColor;
             pnlFooter.BackColor = footerColor;
             picLogo.BackColor = pnlBody.BackColor;
+            lblProductTitle.ForeColor = palette.TextPrimaryColor;
 
             ConfigureStatusLabel(footerColor);
 
@@ -152,9 +154,9 @@ namespace Rah_Negar.UI.Forms
         /// </summary>
         private void ConfigureCardLabels()
         {
-            ConfigureSingleLabel(lblRecordsTitle, "📝 ثبت داده‌ها", cardRecords.BackColor);
-            ConfigureSingleLabel(lblReportsTitle, "📊 مرکز گزارش", cardReports.BackColor);
-            ConfigureSingleLabel(lblSettingsTitle, "⚙ تنظیمات", cardSettings.BackColor);
+            ConfigureSingleLabel(lblRecordsTitle, "ثبت داده‌ها", cardRecords.BackColor);
+            ConfigureSingleLabel(lblReportsTitle, "مرکز گزارش", cardReports.BackColor);
+            ConfigureSingleLabel(lblSettingsTitle, "تنظیمات", cardSettings.BackColor);
         }
 
         /// <summary>
@@ -165,7 +167,7 @@ namespace Rah_Negar.UI.Forms
             label.Text = text;
             label.Dock = DockStyle.Fill;
             label.TextAlign = ContentAlignment.MiddleCenter;
-            label.Font = new Font("Tahoma", 8F, FontStyle.Bold);
+            label.Font = UiStyleService.CreateFont(10f, FontStyle.Bold);
             label.ForeColor = GetReadableTextColor(cardBackColor);
             label.BackColor = Color.Transparent;
             label.AutoSize = false;
@@ -254,7 +256,7 @@ namespace Rah_Negar.UI.Forms
             lblStatus.Dock = DockStyle.None;
             lblStatus.AutoSize = false;
             // lblStatus.Padding = new Padding(0, 0, 5, 0);
-            lblStatus.Font = new Font("Tahoma", 8F, FontStyle.Regular);
+            lblStatus.Font = UiStyleService.CreateFont(8.5f);
             lblStatus.ForeColor = GetReadableTextColor(footerBackColor);
         }
 
@@ -493,10 +495,10 @@ namespace Rah_Negar.UI.Forms
         {
             _pilotReadOnlyEntry.AutoSize = true;
             _pilotReadOnlyEntry.Text = "Pilot / فقط خواندنی";
-            _pilotReadOnlyEntry.LinkColor = Color.Gold;
+            _pilotReadOnlyEntry.LinkColor = Color.FromArgb(215, 225, 235);
             _pilotReadOnlyEntry.ActiveLinkColor = Color.White;
-            _pilotReadOnlyEntry.VisitedLinkColor = Color.Gold;
-            _pilotReadOnlyEntry.Font = new Font("Tahoma", 8F, FontStyle.Bold);
+            _pilotReadOnlyEntry.VisitedLinkColor = Color.FromArgb(215, 225, 235);
+            _pilotReadOnlyEntry.Font = UiStyleService.CreateFont(8f);
             _pilotReadOnlyEntry.Location = new Point(8, 3);
             _pilotReadOnlyEntry.TabStop = true;
             _pilotReadOnlyEntry.AccessibleName = "ورود صریح به Pilot فقط خواندنی";

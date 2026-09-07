@@ -148,17 +148,17 @@ namespace Rah_Negar.UI.Forms
 
         private void ApplyPersianCaptions()
         {
-            Text = "مرکز گزارش";
-            lblTitle.Text = "مرکز گزارش و تحلیل";
-            label1.Text = "سال:";
-            label2.Text = "ماه:";
-            btnGenerateReport.Text = "تولید گزارش";
-            btnPDF.Text = "صدور PDF";
-            btnFinalizeMonthlyReport.Text = "نهایی‌سازی ماه";
-            btnSummaryPage.Text = "نمای کلی";
-            btnEventsPage.Text = "خلاصه رویدادها";
-            btnServicePage.Text = "تحلیل سرویس";
-            btnLogPage.Text = "لاگ رویدادها";
+            Text = "ReportCenter";
+            lblTitle.Text = "Analytics Dashboard";
+            label1.Text = "Year:";
+            label2.Text = "Month:";
+            btnGenerateReport.Text = "Run Analysis";
+            btnPDF.Text = "PDF Report";
+            btnFinalizeMonthlyReport.Text = "Finalize Month";
+            btnSummaryPage.Text = "Overview";
+            btnEventsPage.Text = "Event Summary";
+            btnServicePage.Text = "Service Analysis";
+            btnLogPage.Text = "Event Log";
 
             SetHeader(dgvSummary, "colParameter", "پارامتر");
             SetHeader(dgvSummary, "colMin", "کمینه");
@@ -362,23 +362,32 @@ namespace Rah_Negar.UI.Forms
             _mostFrequentCombinationLabel.Font = UiScaleService.GetBoldFont(this, 8.5f);
 
             lblTitle.ForeColor = palette.TextOnAccentColor;
+            lblTitle.Font = UiStyleService.CreateFont(UiStyleService.FormHeadingFontSize, FontStyle.Bold);
 
+            UiStyleService.ApplyButtonConventions(btnPDF, palette);
+            UiStyleService.ApplyButtonConventions(btnGenerateReport, palette);
+            UiStyleService.ApplyButtonConventions(btnFinalizeMonthlyReport, palette);
             AppThemeManager.ApplyToPrimaryButton(btnPDF);
             AppThemeManager.ApplyToPrimaryButton(btnGenerateReport);
-            AppThemeManager.ApplyToPrimaryButton(btnFinalizeMonthlyReport);
+            AppThemeManager.ApplyToSecondaryButton(btnFinalizeMonthlyReport);
 
+            UiStyleService.ApplyButtonConventions(btnSummaryPage, palette);
+            UiStyleService.ApplyButtonConventions(btnEventsPage, palette);
+            UiStyleService.ApplyButtonConventions(btnServicePage, palette);
+            UiStyleService.ApplyButtonConventions(btnLogPage, palette);
             AppThemeManager.ApplyToNavigationButton(btnSummaryPage, pnlSummaryPage.Visible);
             AppThemeManager.ApplyToNavigationButton(btnEventsPage, pnlEventsPage.Visible);
             AppThemeManager.ApplyToNavigationButton(btnServicePage, pnlServicePage.Visible);
             AppThemeManager.ApplyToNavigationButton(btnLogPage, pnlLogPage.Visible);
 
-            AppThemeManager.ApplyToReportGrid(dgvSummary);
-            AppThemeManager.ApplyToReportGrid(dgvUniqueSummary);
-            AppThemeManager.ApplyToReportGrid(dgvEventSummary);
-            AppThemeManager.ApplyToReportGrid(dgvServiceDays);
-            AppThemeManager.ApplyToReportGrid(dgvEventLog);
-            AppThemeManager.ApplyToReportGrid(dgvServiceCombination);
-            AppThemeManager.ApplyToReportGrid(dgvExtremeDates);
+            DataGridView[] grids =
+            [dgvSummary, dgvUniqueSummary, dgvEventSummary, dgvServiceDays,
+             dgvEventLog, dgvServiceCombination, dgvExtremeDates];
+            foreach (DataGridView grid in grids)
+            {
+                UiStyleService.ApplyGridConventions(grid, palette);
+                AppThemeManager.ApplyToReportGrid(grid);
+            }
 
             ApplyFixedGridColumnsTheme();
             ApplyThemeToRadioButtons();
@@ -508,7 +517,7 @@ namespace Rah_Negar.UI.Forms
             radioButton.ForeColor = palette.TextPrimaryColor;
             radioButton.FlatStyle = FlatStyle.Flat;
             radioButton.FlatAppearance.BorderSize = 0;
-            radioButton.Font = new Font("tahoma", 8.5F, FontStyle.Regular);
+            radioButton.Font = UiStyleService.CreateFont();
         }
 
         /// <summary>
@@ -542,12 +551,12 @@ namespace Rah_Negar.UI.Forms
             if (radioButton.Checked)
             {
                 radioButton.ForeColor = palette.PrimaryButtonBackColor;
-                radioButton.Font = new Font("tahoma", 8F, FontStyle.Bold);
+                radioButton.Font = UiStyleService.CreateFont(9f, FontStyle.Bold);
             }
             else
             {
                 radioButton.ForeColor = palette.TextPrimaryColor;
-                radioButton.Font = new Font("tahoma", 8F, FontStyle.Regular);
+                radioButton.Font = UiStyleService.CreateFont();
             }
         }
 
@@ -1467,7 +1476,7 @@ namespace Rah_Negar.UI.Forms
             try
             {
                 btnGenerateReport.Enabled = false;
-                btnGenerateReport.Text = "در حال تولید...";
+                btnGenerateReport.Text = "Generating...";
 
                 ClearGeneratedReportCache();
 
@@ -1608,7 +1617,7 @@ namespace Rah_Negar.UI.Forms
                 if (formUpdateStarted)
                     EndFormUpdate();
 
-                btnGenerateReport.Text = "تولید گزارش";
+                btnGenerateReport.Text = "Generate Report";
                 UpdateReportActionButtonsState();
             }
         }

@@ -44,32 +44,32 @@
             // 
             // txtPass
             // 
-            txtPass.BackColor = Color.WhiteSmoke;
-            txtPass.BorderStyle = BorderStyle.None;
-            txtPass.Font = new Font("Tahoma", 9F);
-            txtPass.Location = new Point(3, 4);
+            txtPass.BackColor = Color.White;
+            txtPass.BorderStyle = BorderStyle.FixedSingle;
+            txtPass.Font = new Font("Segoe UI", 10F);
+            txtPass.Location = new Point(0, 0);
             txtPass.Name = "txtPass";
-            txtPass.Size = new Size(132, 15);
-            txtPass.TabIndex = 4;
-            txtPass.TextAlign = HorizontalAlignment.Center;
+            txtPass.Size = new Size(255, 32);
+            txtPass.TabIndex = 0;
+            txtPass.TextAlign = HorizontalAlignment.Left;
             txtPass.UseSystemPasswordChar = true;
             txtPass.WordWrap = false;
             // 
             // btnLogin
             // 
-            btnLogin.BackColor = Color.SteelBlue;
-            btnLogin.FlatAppearance.BorderColor = Color.SteelBlue;
-            btnLogin.FlatAppearance.BorderSize = 0;
-            btnLogin.FlatAppearance.MouseOverBackColor = Color.LightSkyBlue;
+            btnLogin.BackColor = Color.FromArgb(40, 104, 148);
+            btnLogin.FlatAppearance.BorderColor = Color.FromArgb(190, 220, 235);
+            btnLogin.FlatAppearance.BorderSize = 1;
+            btnLogin.FlatAppearance.MouseOverBackColor = Color.FromArgb(58, 126, 171);
             btnLogin.FlatStyle = FlatStyle.Flat;
-            btnLogin.Font = new Font("Tahoma", 11F, FontStyle.Bold, GraphicsUnit.World);
-            btnLogin.ForeColor = Color.WhiteSmoke;
-            btnLogin.Location = new Point(135, 0);
+            btnLogin.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            btnLogin.ForeColor = Color.White;
+            btnLogin.Location = new Point(265, 0);
             btnLogin.Name = "btnLogin";
-            btnLogin.Size = new Size(25, 22);
-            btnLogin.TabIndex = 6;
-            btnLogin.TabStop = false;
-            btnLogin.Text = ">";
+            btnLogin.Size = new Size(95, 32);
+            btnLogin.TabIndex = 1;
+            btnLogin.TabStop = true;
+            btnLogin.Text = "ورود";
             btnLogin.UseVisualStyleBackColor = false;
             btnLogin.Click += btnLogin_Click;
             // 
@@ -77,11 +77,12 @@
             // 
             lblUserValue.AutoSize = true;
             lblUserValue.BackColor = Color.Transparent;
-            lblUserValue.Font = new Font("Tahoma", 9F, FontStyle.Bold);
+            lblUserValue.AutoSize = false;
+            lblUserValue.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             lblUserValue.ForeColor = Color.WhiteSmoke;
-            lblUserValue.Location = new Point(194, 161);
+            lblUserValue.Location = new Point(0, 156);
             lblUserValue.Name = "lblUserValue";
-            lblUserValue.Size = new Size(197, 14);
+            lblUserValue.Size = new Size(500, 24);
             lblUserValue.TabIndex = 8;
             lblUserValue.Text = "تاسیسات تقویت فشار گاز رشــت";
             lblUserValue.TextAlign = ContentAlignment.MiddleCenter;
@@ -91,13 +92,13 @@
             lnkForgot.ActiveLinkColor = Color.DodgerBlue;
             lnkForgot.AutoSize = true;
             lnkForgot.BackColor = Color.Transparent;
-            lnkForgot.Font = new Font("Tahoma", 9F);
+            lnkForgot.Font = new Font("Segoe UI", 9F);
             lnkForgot.LinkBehavior = LinkBehavior.HoverUnderline;
             lnkForgot.LinkColor = Color.WhiteSmoke;
-            lnkForgot.Location = new Point(224, 270);
+            lnkForgot.Location = new Point(0, 286);
             lnkForgot.Name = "lnkForgot";
             lnkForgot.Size = new Size(137, 14);
-            lnkForgot.TabIndex = 10;
+            lnkForgot.TabIndex = 2;
             lnkForgot.TabStop = true;
             lnkForgot.Text = "کلمه عبور را فراموش کردم";
             lnkForgot.VisitedLinkColor = Color.SteelBlue;
@@ -105,19 +106,20 @@
             // 
             // lblTitr
             // 
-            lblTitr.AutoSize = true;
+            lblTitr.AutoSize = false;
             lblTitr.BackColor = Color.DarkGray;
-            lblTitr.Font = new Font("Tahoma", 11F, FontStyle.Bold);
+            lblTitr.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
             lblTitr.ForeColor = Color.White;
-            lblTitr.Location = new Point(252, 120);
+            lblTitr.Location = new Point(0, 62);
             lblTitr.Name = "lblTitr";
-            lblTitr.Size = new Size(81, 18);
+            lblTitr.Size = new Size(500, 34);
             lblTitr.TabIndex = 0;
-            lblTitr.Text = "ره نگـــــــار";
+            lblTitr.Text = "ره‌نگار";
+            lblTitr.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // pnlBack
             // 
-            pnlBack.BackColor = Color.SteelBlue;
+            pnlBack.BackColor = Color.FromArgb(32, 73, 105);
             pnlBack.Controls.Add(lblSubTitr);
             pnlBack.Controls.Add(lnkChangePass);
             pnlBack.Controls.Add(pnlTextBox);
@@ -128,7 +130,7 @@
             pnlBack.Dock = DockStyle.Fill;
             pnlBack.Location = new Point(0, 0);
             pnlBack.Name = "pnlBack";
-            pnlBack.Size = new Size(584, 301);
+            pnlBack.Size = new Size(500, 360);
             pnlBack.TabIndex = 0;
             pnlBack.Paint += pnlBack_Paint;
             // 
@@ -136,11 +138,12 @@
             // 
             lblSubTitr.AutoSize = true;
             lblSubTitr.BackColor = Color.Transparent;
-            lblSubTitr.Font = new Font("Tahoma", 9F, FontStyle.Bold);
+            lblSubTitr.AutoSize = false;
+            lblSubTitr.Font = new Font("Segoe UI", 9.5F, FontStyle.Regular);
             lblSubTitr.ForeColor = Color.WhiteSmoke;
-            lblSubTitr.Location = new Point(173, 143);
+            lblSubTitr.Location = new Point(0, 104);
             lblSubTitr.Name = "lblSubTitr";
-            lblSubTitr.Size = new Size(238, 14);
+            lblSubTitr.Size = new Size(500, 24);
             lblSubTitr.TabIndex = 13;
             lblSubTitr.Text = "سامانه پایش و تحلیل داده های عملیاتی";
             lblSubTitr.TextAlign = ContentAlignment.MiddleCenter;
@@ -150,13 +153,13 @@
             lnkChangePass.ActiveLinkColor = Color.DodgerBlue;
             lnkChangePass.AutoSize = true;
             lnkChangePass.BackColor = Color.Transparent;
-            lnkChangePass.Font = new Font("Tahoma", 9F);
+            lnkChangePass.Font = new Font("Segoe UI", 9F);
             lnkChangePass.LinkBehavior = LinkBehavior.HoverUnderline;
             lnkChangePass.LinkColor = Color.WhiteSmoke;
-            lnkChangePass.Location = new Point(250, 253);
+            lnkChangePass.Location = new Point(0, 252);
             lnkChangePass.Name = "lnkChangePass";
             lnkChangePass.Size = new Size(84, 14);
-            lnkChangePass.TabIndex = 12;
+            lnkChangePass.TabIndex = 1;
             lnkChangePass.TabStop = true;
             lnkChangePass.Text = "تغیـیر کلمه عبور";
             lnkChangePass.VisitedLinkColor = Color.SteelBlue;
@@ -164,32 +167,33 @@
             // 
             // pnlTextBox
             // 
-            pnlTextBox.BackColor = Color.WhiteSmoke;
+            pnlTextBox.BackColor = Color.Transparent;
             pnlTextBox.Controls.Add(btnLogin);
             pnlTextBox.Controls.Add(txtPass);
-            pnlTextBox.Location = new Point(212, 225);
+            pnlTextBox.Location = new Point(65, 202);
             pnlTextBox.Name = "pnlTextBox";
-            pnlTextBox.Size = new Size(160, 22);
-            pnlTextBox.TabIndex = 11;
+            pnlTextBox.Size = new Size(360, 32);
+            pnlTextBox.TabIndex = 0;
             // 
             // lblDownLine
             // 
             lblDownLine.AutoSize = true;
             lblDownLine.BackColor = Color.Transparent;
-            lblDownLine.ForeColor = Color.DarkGray;
-            lblDownLine.Location = new Point(163, 124);
+            lblDownLine.ForeColor = Color.Transparent;
+            lblDownLine.Location = new Point(0, 0);
             lblDownLine.Name = "lblDownLine";
-            lblDownLine.Size = new Size(259, 14);
+            lblDownLine.Size = new Size(0, 0);
             lblDownLine.TabIndex = 14;
-            lblDownLine.Text = "____________________________________";
+            lblDownLine.Text = "";
+            lblDownLine.Visible = false;
             // 
             // FrmLogin
             // 
             AcceptButton = btnLogin;
-            AutoScaleDimensions = new SizeF(7F, 14F);
-            AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.Gainsboro;
-            ClientSize = new Size(584, 301);
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            BackColor = Color.FromArgb(32, 73, 105);
+            ClientSize = new Size(500, 360);
             Controls.Add(pnlBack);
             Font = new Font("Tahoma", 9F);
             ForeColor = Color.White;

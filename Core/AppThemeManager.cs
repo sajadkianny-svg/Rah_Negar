@@ -392,6 +392,21 @@ public static class AppThemeManager
     }
 
     /// <summary>
+    /// Applies the quiet secondary action treatment used for navigation,
+    /// cancellation, and non-destructive maintenance actions.
+    /// </summary>
+    public static void ApplyToSecondaryButton(Button button)
+    {
+        button.BackColor = CurrentPalette.CardBackColor;
+        button.ForeColor = CurrentPalette.TextPrimaryColor;
+        button.FlatStyle = FlatStyle.Flat;
+        button.FlatAppearance.BorderSize = 1;
+        button.FlatAppearance.BorderColor = CurrentPalette.DividerBackColor;
+        button.FlatAppearance.MouseOverBackColor = CurrentPalette.NavigationHoverBackColor;
+        button.FlatAppearance.MouseDownBackColor = CurrentPalette.GridFixedCellBackColor;
+    }
+
+    /// <summary>
     /// اعمال تم روی دکمه ناوبری.
     /// </summary>
     public static void ApplyToNavigationButton(Button button, bool isActive)

@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             pnlBody = new Panel();
             pnlDivider = new Panel();
+            lblProductTitle = new Label();
             cardRecords = new Panel();
             lblRecordsTitle = new Label();
             cardReports = new Panel();
@@ -55,27 +56,28 @@
             pnlBody.Controls.Add(cardReports);
             pnlBody.Controls.Add(cardSettings);
             pnlBody.Controls.Add(picLogo);
+            pnlBody.Controls.Add(lblProductTitle);
             pnlBody.Dock = DockStyle.Fill;
             pnlBody.Location = new Point(0, 0);
             pnlBody.Name = "pnlBody";
             pnlBody.Padding = new Padding(18, 16, 18, 10);
-            pnlBody.Size = new Size(634, 331);
+            pnlBody.Size = new Size(720, 408);
             pnlBody.TabIndex = 1;
             // 
             // pnlDivider
             // 
             pnlDivider.BackColor = Color.Black;
-            pnlDivider.Location = new Point(0, 309);
+            pnlDivider.Location = new Point(18, 324);
             pnlDivider.Name = "pnlDivider";
-            pnlDivider.Size = new Size(645, 1);
+            pnlDivider.Size = new Size(684, 1);
             pnlDivider.TabIndex = 14;
             // 
             // cardRecords
             // 
             cardRecords.Controls.Add(lblRecordsTitle);
-            cardRecords.Location = new Point(0, 269);
+            cardRecords.Location = new Point(22, 338);
             cardRecords.Name = "cardRecords";
-            cardRecords.Size = new Size(211, 40);
+            cardRecords.Size = new Size(216, 58);
             cardRecords.TabIndex = 13;
             // 
             // lblRecordsTitle
@@ -93,9 +95,9 @@
             // cardReports
             // 
             cardReports.Controls.Add(lblReportsTitle);
-            cardReports.Location = new Point(210, 269);
+            cardReports.Location = new Point(252, 338);
             cardReports.Name = "cardReports";
-            cardReports.Size = new Size(213, 40);
+            cardReports.Size = new Size(216, 58);
             cardReports.TabIndex = 12;
             // 
             // lblReportsTitle
@@ -113,9 +115,9 @@
             // cardSettings
             // 
             cardSettings.Controls.Add(lblSettingsTitle);
-            cardSettings.Location = new Point(423, 269);
+            cardSettings.Location = new Point(482, 338);
             cardSettings.Name = "cardSettings";
-            cardSettings.Size = new Size(212, 40);
+            cardSettings.Size = new Size(216, 58);
             cardSettings.TabIndex = 11;
             // 
             // lblSettingsTitle
@@ -134,20 +136,31 @@
             // 
             picLogo.Anchor = AnchorStyles.Top;
             picLogo.Image = (Image)resources.GetObject("picLogo.Image");
-            picLogo.Location = new Point(220, 51);
+            picLogo.Location = new Point(270, 82);
             picLogo.Name = "picLogo";
-            picLogo.Size = new Size(196, 195);
+            picLogo.Size = new Size(180, 180);
             picLogo.SizeMode = PictureBoxSizeMode.Zoom;
             picLogo.TabIndex = 9;
             picLogo.TabStop = false;
+            //
+            // lblProductTitle
+            //
+            lblProductTitle.AutoSize = false;
+            lblProductTitle.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
+            lblProductTitle.Location = new Point(18, 20);
+            lblProductTitle.Name = "lblProductTitle";
+            lblProductTitle.Size = new Size(684, 32);
+            lblProductTitle.TabIndex = 15;
+            lblProductTitle.Text = "ره‌نگار";
+            lblProductTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // pnlFooter
             // 
             pnlFooter.Controls.Add(lblStatus);
             pnlFooter.Dock = DockStyle.Bottom;
-            pnlFooter.Location = new Point(0, 310);
+            pnlFooter.Location = new Point(0, 408);
             pnlFooter.Name = "pnlFooter";
-            pnlFooter.Size = new Size(634, 21);
+            pnlFooter.Size = new Size(720, 32);
             pnlFooter.TabIndex = 3;
             // 
             // lblStatus
@@ -165,7 +178,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.WhiteSmoke;
-            ClientSize = new Size(634, 331);
+            ClientSize = new Size(720, 440);
             Controls.Add(pnlFooter);
             Controls.Add(pnlBody);
             FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -197,6 +210,7 @@
         private Label lblReportsTitle;
         private Label lblRecordsTitle;
         private Label lblStatus;
+        private Label lblProductTitle;
         private Panel pnlDivider;
     }
 }

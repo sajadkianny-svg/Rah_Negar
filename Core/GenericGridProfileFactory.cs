@@ -16,7 +16,6 @@ public static class GenericGridProfileFactory
             new() { Name = "col3", HeaderText = "Outlet Press.", Width = 55 }
         ];
 
-        List<int> averageColumns = [1, 2];
         List<int> hiddenColumns = [];
         for (int unit = 1; unit <= unitCount; unit++)
         {
@@ -26,16 +25,25 @@ public static class GenericGridProfileFactory
             hiddenColumns.Add(statusIndex);
         }
 
-        int ratioIndex = columns.Count;
-        columns.AddRange([
-            new() { Name = $"col{columns.Count + 1}", HeaderText = "Recycle", Width = 55 },
-            new() { Name = $"col{columns.Count + 1}", HeaderText = "Flow", Width = 55 },
-            new() { Name = $"col{columns.Count + 1}", HeaderText = "Inlet Temp", Width = 60 },
-            new() { Name = $"col{columns.Count + 1}", HeaderText = "Outlet Temp", Width = 60 },
-            new() { Name = $"col{columns.Count + 1}", HeaderText = "Ambient Temp", Width = 60 },
-            new() { Name = $"col{columns.Count + 1}", HeaderText = "Ratio", Width = 55 }]);
-        averageColumns.AddRange([ratioIndex - 5, ratioIndex - 4, ratioIndex - 3, ratioIndex - 2, ratioIndex - 1, ratioIndex]);
+        foreach ((string header, int width) in new[]
+        {
+            ("Recycle", 55),
+            ("Flow", 55),
+            ("Inlet Temp", 60),
+            ("Outlet Temp", 60),
+            ("Ambient Temp", 60),
+            ("Ratio", 55)
+        })
+        {
+            columns.Add(new()
+            {
+                Name = $"col{columns.Count + 1}",
+                HeaderText = header,
+                Width = width
+            });
+        }
 
+        int ratioIndex = columns.Count - 1;
         return new GridProfile
         {
             HourColumnIndex = 0,
