@@ -6,6 +6,7 @@ using Rah_Negar.UI.Forms;
 using Rah_Negar.UI.Forms.Base;
 using Rah_Negar.Services.UI;
 using Rah_Negar.Utils;
+using Rah_Negar.Foundation.Application.Provisioning;
 
 namespace Rah_Negar.UI.Startup
 {
@@ -16,17 +17,23 @@ namespace Rah_Negar.UI.Startup
         /// <summary>
         /// نوع ایستگاه انتخاب‌شده توسط کاربر
         /// </summary>
-        private StationType _selectedStation = StationType.Unknown;
-
         /// <summary>
         /// جلوگیری از اجرای ناخواسته رویدادها هنگام بارگذاری فرم
         /// </summary>
-        private bool _isFormReady;
 
         /// <summary>
         /// وضعیت نمایش رمز عبور
         /// </summary>
         private bool _passwordVisible;
+
+        private TextBox _stationNameInput = null!;
+        private ComboBox _unitCountInput = null!;
+        private CheckBox _linePressureInput = null!;
+        private Label _profileReview = null!;
+        private TabControl _wizardSteps = null!;
+        private TextBox? _u5Run;
+        private TextBox? _u5Oh;
+        private ComboBox? _u5Status;
 
 
 
@@ -35,6 +42,8 @@ namespace Rah_Negar.UI.Startup
         public FrmStartup()
         {
             InitializeComponent();
+            ConfigureCanonicalWizard();
+            CreateUnitFiveInputs();
             AcceptButton = btnSave;
             CancelButton = btnCancel;
             LoadMonths();
@@ -67,14 +76,8 @@ namespace Rah_Negar.UI.Startup
         {
             try
             {
-                BindStationEvents();
                 BindRuntimeEvents();
                 BindNumericTextBoxes();
-
-                rbRasht.Checked = true;
-                _isFormReady = true;
-
-                ApplyStationProfileUi();
                 ToggleEsdExtraRuntimeInput(chAddHoursAfterEsd.Checked);
 
             }
@@ -84,6 +87,140 @@ namespace Rah_Negar.UI.Startup
                 UiMessageService.ShowError("آماده‌سازی فرم راه‌اندازی انجام نشد. تنظیمات دسترسی داده را بررسی کنید.", "خطا");
             }
         }
+
+        private void ConfigureCanonicalWizard()
+        {
+            grpStation.Visible = false;
+            grpStation.Text = string.Empty;
+            rbRasht.Visible = false;
+            rbRamsar.Visible = false;
+            rbOther.Visible = false;
+            rbRasht.Text = string.Empty;
+            rbRamsar.Text = string.Empty;
+            rbOther.Text = string.Empty;
+            txtCustom.Visible = false;
+            lblCustom.Visible = false;
+
+            groupBox1.Location = new Point(13, 150);
+            grpSecurity.Location = new Point(262, 150);
+            grpRuntime.Location = new Point(13, 220);
+            btnCancel.Location = new Point(365, 410);
+            btnSave.Location = new Point(481, 410);
+            ClientSize = new Size(664, 445);
+
+            _wizardSteps = new TabControl
+            {
+                Name = "wizardSteps",
+                Location = new Point(13, 10),
+                Size = new Size(638, 130),
+                RightToLeft = RightToLeft.Yes,
+                RightToLeftLayout = true,
+                Font = UiStyleService.CreateFont()
+            };
+
+            TabPage identity = CreateWizardPage("stepIdentity", "۱. نام ایستگاه");
+            _stationNameInput = new TextBox
+            {
+                Name = "txtStationName",
+                Location = new Point(280, 25),
+                Size = new Size(300, 27),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                MaxLength = 120,
+                RightToLeft = RightToLeft.Yes,
+                TextAlign = HorizontalAlignment.Right
+            };
+            identity.Controls.Add(new Label { Text = "نام ایستگاه:", AutoSize = true, Location = new Point(500, 31), Font = UiStyleService.CreateFont() });
+            identity.Controls.Add(_stationNameInput);
+
+            TabPage units = CreateWizardPage("stepUnits", "۲. تعداد واحدها");
+            _unitCountInput = new ComboBox
+            {
+                Name = "cmbUnitCount",
+                Location = new Point(430, 25),
+                Size = new Size(120, 27),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                RightToLeft = RightToLeft.Yes
+            };
+            _unitCountInput.Items.AddRange([3, 4, 5]);
+            _unitCountInput.SelectedIndex = 0;
+            units.Controls.Add(new Label { Text = "تعداد واحدها:", AutoSize = true, Location = new Point(555, 31), Font = UiStyleService.CreateFont() });
+            units.Controls.Add(_unitCountInput);
+            units.Controls.Add(new Label { Text = "فقط ۳، ۴ یا ۵ واحد پشتیبانی می‌شود.", AutoSize = true, Location = new Point(180, 31), Font = UiStyleService.CreateFont(8.5f) });
+
+            TabPage parameters = CreateWizardPage("stepParameters", "۳. پارامترهای مجاز");
+            _linePressureInput = new CheckBox
+            {
+                Name = "chkLinePressureParameters",
+                Text = "پارامترهای فشار خط (FirstLine، 40in، 30in)",
+                AutoSize = true,
+                Location = new Point(300, 30),
+                RightToLeft = RightToLeft.Yes
+            };
+            parameters.Controls.Add(_linePressureInput);
+            parameters.Controls.Add(new Label { Text = "سایر پارامترهای اصلی طبق قرارداد محصول فعال هستند.", AutoSize = true, Location = new Point(35, 65), Font = UiStyleService.CreateFont(8.5f) });
+
+            TabPage review = CreateWizardPage("stepReview", "۴. بازبینی تنظیمات");
+            _profileReview = new Label
+            {
+                Name = "lblProfileReview",
+                Dock = DockStyle.Fill,
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleRight,
+                RightToLeft = RightToLeft.Yes,
+                Padding = new Padding(20)
+            };
+            review.Controls.Add(_profileReview);
+
+            TabPage launch = CreateWizardPage("stepLaunch", "۵. ثبت و راه‌اندازی");
+            launch.Controls.Add(new Label
+            {
+                Text = "پس از تکمیل ورودی‌های پایه، روی «ثبت و راه‌اندازی» کلیک کنید.",
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter,
+                RightToLeft = RightToLeft.Yes
+            });
+            _wizardSteps.TabPages.AddRange([identity, units, parameters, review, launch]);
+            Controls.Add(_wizardSteps);
+            _wizardSteps.BringToFront();
+            _stationNameInput.TextChanged += (_, _) => UpdateProfileReview();
+            _unitCountInput.SelectedIndexChanged += (_, _) => UpdateProfileReview();
+            _linePressureInput.CheckedChanged += (_, _) => UpdateProfileReview();
+            UpdateProfileReview();
+        }
+
+        private static TabPage CreateWizardPage(string name, string text) => new()
+        {
+            Name = name,
+            Text = text,
+            RightToLeft = RightToLeft.Yes,
+            Padding = new Padding(10)
+        };
+
+        private void UpdateProfileReview()
+        {
+            if (_profileReview is null)
+                return;
+            string station = string.IsNullOrWhiteSpace(_stationNameInput.Text) ? "—" : _stationNameInput.Text.Trim();
+            string units = _unitCountInput.SelectedItem?.ToString() ?? "—";
+            string line = _linePressureInput.Checked ? "فعال" : "غیرفعال";
+            _profileReview.Text = $"نام ایستگاه: {station}\r\nتعداد واحدها: {units}\r\nپارامترهای فشار خط: {line}";
+        }
+
+        private void CreateUnitFiveInputs()
+        {
+            _u5Run = CreateRuntimeTextBox("txtU5Run", 64, 169);
+            _u5Oh = CreateRuntimeTextBox("txtU5OH", 160, 169);
+            _u5Status = new ComboBox { Name = "cmbStU5", DropDownStyle = ComboBoxStyle.DropDownList, Items = { "ON", "OFF" }, Location = new Point(250, 169), Size = new Size(83, 23), RightToLeft = RightToLeft.Yes };
+            Label label = new() { Name = "lblU5", Text = "واحد ۵", AutoSize = true, Location = new Point(19, 173), RightToLeft = RightToLeft.Yes };
+            grpRuntime.Controls.AddRange([_u5Run, _u5Oh, _u5Status, label]);
+            SetUnitRowVisible(5, false);
+        }
+
+        private static TextBox CreateRuntimeTextBox(string name, int x, int y) => new()
+        {
+            Name = name, Location = new Point(x, y), Size = new Size(90, 23), BorderStyle = BorderStyle.FixedSingle,
+            TextAlign = HorizontalAlignment.Center, RightToLeft = RightToLeft.No
+        };
 
         /// <summary>
         /// تاریخ شروع مبنای داده‌ها را به صورت عددی برمی‌گرداند
@@ -142,15 +279,6 @@ namespace Rah_Negar.UI.Startup
             cmbDataStartMonth.SelectedIndex = -1;
         }
 
-        /// اتصال رویدادهای انتخاب پروفایل ایستگاه
-        /// </summary> 
-        private void BindStationEvents()
-        {
-            rbRasht.CheckedChanged += StationRadio_CheckedChanged;
-            rbRamsar.CheckedChanged += StationRadio_CheckedChanged;
-            rbOther.CheckedChanged += StationRadio_CheckedChanged;
-        }
-
         /// <summary>
         /// اتصال رویدادهای مرتبط با تنظیمات کارکرد
         /// </summary>
@@ -170,6 +298,7 @@ namespace Rah_Negar.UI.Startup
                 txtU2Run, txtU2OH,
                 txtU3Run, txtU3OH,
                 txtU4Run, txtU4OH,
+                _u5Run, _u5Oh,
                 txtEsdExtraHours
             };
 
@@ -180,99 +309,8 @@ namespace Rah_Negar.UI.Startup
             }
         }
 
-        // ================= Station Profile UI =================
-
-        /// <summary>
-        /// رویداد تغییر انتخاب ایستگاه
-        /// </summary>
-        private void StationRadio_CheckedChanged(object? sender, EventArgs e)
-        {
-            if (!_isFormReady)
-                return;
-
-            try
-            {
-                ApplyStationProfileUi();
-            }
-            catch (Exception ex)
-            {
-                ErrorLogger.Log(ex, "FrmStartup.StationProfile");
-                UiMessageService.ShowError("تغییر پروفایل ایستگاه انجام نشد. ورودی‌ها و دسترسی داده را بررسی کنید.", "خطا");
-            }
-        }
-
-        /// <summary>
-        /// اعمال تغییرات رابط کاربری بر اساس ایستگاه انتخاب‌شده
-        /// </summary>
-        private void ApplyStationProfileUi()
-        {
-            _selectedStation = GetSelectedStationType();
-
-            int unitCount = GetUnitCountByStation(_selectedStation);
-
-            ApplyRuntimeRowVisibility(unitCount);
-            ToggleCustomStationInput();
-
-        }
-
-        /// <summary>
-        /// نمایش یا مخفی کردن فیلد نام ایستگاه سفارشی
-        /// </summary>
-        private void ToggleCustomStationInput()
-        {
-            bool isCustom = rbOther.Checked;
-
-            lblCustom.Visible = isCustom;
-            txtCustom.Visible = isCustom;
-
-            if (isCustom)
-            {
-                BeginInvoke(new Action(() =>
-                {
-                    txtCustom.Focus();
-                }));
-            }
-            else
-            {
-                txtCustom.Clear();
-            }
-        }
-
-        /// <summary>
-        /// تشخیص نوع ایستگاه بر اساس RadioButton انتخاب‌شده
-        /// </summary>
-        private StationType GetSelectedStationType()
-        {
-            if (rbRasht.Checked)
-                return StationType.Rasht;
-
-            if (rbRamsar.Checked)
-                return StationType.Ramsar;
-
-            if (rbOther.Checked)
-                return StationType.Custom;
-
-            return StationType.Unknown;
-        }
-
-        /// <summary>
-        /// تعیین تعداد واحدها بر اساس نوع ایستگاه
-        /// </summary>
-        private static int GetUnitCountByStation(StationType stationType)
-        {
-            if (stationType == StationType.Custom)
-                return 3;
-
-            try
-            {
-                IStationProfile profile = ProfileManager.GetProfile(stationType);
-                return profile.UnitCount;
-            }
-            catch
-            {
-                return 0;
-            }
-        }
+        private int GetSelectedUnitCount() =>
+            _unitCountInput.SelectedItem is int value ? value : 0;
 
         /// <summary>
         /// نمایش یا مخفی کردن ردیف‌های واحدها بر اساس تعداد واحد.
@@ -281,6 +319,7 @@ namespace Rah_Negar.UI.Startup
         {
             SetUnitRowVisible(3, unitCount >= 3);
             SetUnitRowVisible(4, unitCount >= 4);
+            SetUnitRowVisible(5, unitCount >= 5);
         }
 
         /// <summary>
@@ -303,6 +342,13 @@ namespace Rah_Negar.UI.Startup
                     txtU4OH.Visible = visible;
                     cmbStU4.Visible = visible;
                     break;
+                case 5:
+                    if (_u5Run is not null) _u5Run.Visible = visible;
+                    if (_u5Oh is not null) _u5Oh.Visible = visible;
+                    if (_u5Status is not null) _u5Status.Visible = visible;
+                    Control? label = grpRuntime.Controls["lblU5"];
+                    if (label is not null) label.Visible = visible;
+                    break;
             }
         }
 
@@ -319,6 +365,7 @@ namespace Rah_Negar.UI.Startup
                 2 => cmbStU2,
                 3 => cmbStU3,
                 4 => cmbStU4,
+                5 => _u5Status ?? throw new InvalidOperationException("کنترل واحد ۵ آماده نیست"),
                 _ => throw new ArgumentOutOfRangeException(nameof(unitNo))
             };
 
@@ -385,7 +432,7 @@ namespace Rah_Negar.UI.Startup
 
                 StartupSetupService.InitializeApplication(setupData);
 
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     "راه‌اندازی اولیه با موفقیت انجام شد",
                     "موفق",
                     MessageBoxButtons.OK,
@@ -420,33 +467,9 @@ namespace Rah_Negar.UI.Startup
         /// </summary>
         private bool ValidateStartupInputs()
         {
-            if (_selectedStation == StationType.Unknown)
-            {
-                MessageBox.Show(
-                    "لطفاً پروفایل ایستگاه را انتخاب کنید",
-                    "اعتبارسنجی",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
-                return false;
-            }
-
-            if (_selectedStation == StationType.Custom &&
-                string.IsNullOrWhiteSpace(txtCustom.Text))
-            {
-                MessageBox.Show(
-                    "لطفاً نام ایستگاه سفارشی را وارد کنید",
-                    "اعتبارسنجی",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
-                txtCustom.Focus();
-                return false;
-            }
-
             if (string.IsNullOrWhiteSpace(txtPass.Text))
             {
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     "وارد کردن رمز عبور الزامی است",
                     "اعتبارسنجی",
                     MessageBoxButtons.OK,
@@ -458,7 +481,7 @@ namespace Rah_Negar.UI.Startup
 
             if (txtPass.Text != txtConfirm.Text)
             {
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     "رمز عبور و تکرار آن با هم یکسان نیستند",
                     "اعتبارسنجی",
                     MessageBoxButtons.OK,
@@ -474,7 +497,22 @@ namespace Rah_Negar.UI.Startup
                     return false;
             }
 
-            int unitCount = GetUnitCountByStation(_selectedStation);
+            int unitCount = GetSelectedUnitCount();
+
+            if (string.IsNullOrWhiteSpace(_stationNameInput.Text))
+            {
+                UiMessageService.ShowMessageBox("نام ایستگاه را وارد کنید", "اعتبارسنجی", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                _wizardSteps.SelectedIndex = 0;
+                _stationNameInput.Focus();
+                return false;
+            }
+
+            if (!TargetStationProfileRules.IsUnitCountSupported(unitCount))
+            {
+                UiMessageService.ShowMessageBox("تعداد واحدها فقط می‌تواند ۳، ۴ یا ۵ باشد", "اعتبارسنجی", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                _wizardSteps.SelectedIndex = 1;
+                return false;
+            }
 
             for (int i = 1; i <= unitCount; i++)
             {
@@ -486,7 +524,7 @@ namespace Rah_Negar.UI.Startup
 
             if (dataStartDate == 0)
             {
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     "سال و ماه مبنای شروع داده‌ها را انتخاب کنید",
                     "اعتبارسنجی",
                     MessageBoxButtons.OK,
@@ -501,7 +539,7 @@ namespace Rah_Negar.UI.Startup
 
                 if (string.IsNullOrWhiteSpace(initialStatus))
                 {
-                    MessageBox.Show(
+                    UiMessageService.ShowMessageBox(
                         $"وضعیت اولیه واحد {i} را انتخاب کنید",
                         "اعتبارسنجی",
                         MessageBoxButtons.OK,
@@ -603,15 +641,15 @@ namespace Rah_Negar.UI.Startup
         /// </summary>
         private StartupSetupData BuildStartupSetupData()
         {
-            int unitCount = GetUnitCountByStation(_selectedStation);
+            int unitCount = GetSelectedUnitCount();
 
-            string stationName = _selectedStation switch
-            {
-                StationType.Rasht => "Rasht Station",
-                StationType.Ramsar => "Ramsar Station",
-                StationType.Custom => txtCustom.Text.Trim(),
-                _ => string.Empty
-            };
+            string stationName = _stationNameInput.Text.Trim();
+            CanonicalProfileDefinition profileDefinition = CanonicalProfileDefinition.Create(
+                stationName,
+                unitCount,
+                _linePressureInput.Checked
+                    ? ["line_f_p", "line40_p", "line30_p"]
+                    : Array.Empty<string>());
 
             double esdExtraHours = 0;
 
@@ -620,8 +658,9 @@ namespace Rah_Negar.UI.Startup
 
             StartupSetupData data = new()
             {
-                StationType = _selectedStation,
+                StationType = StationType.Custom,
                 StationName = stationName,
+                ProfileDefinition = profileDefinition,
                 ResetPassword = txtPass.Text.Trim(),
                 EsdExtraRuntimeEnabled = chAddHoursAfterEsd.Checked,
                 EsdExtraRuntimeHours = esdExtraHours,
@@ -660,7 +699,7 @@ namespace Rah_Negar.UI.Startup
 
             if (!double.TryParse(txtEsdExtraHours.Text.Trim(), out hours) || hours < 0)
             {
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     "مقدار ساعت اضافه شده معتبر نیست",
                     "اعتبارسنجی",
                     MessageBoxButtons.OK,
@@ -705,11 +744,16 @@ namespace Rah_Negar.UI.Startup
                     txtRun = txtU4Run;
                     txtOH = txtU4OH;
                     break;
+
+                case 5:
+                    txtRun = _u5Run;
+                    txtOH = _u5Oh;
+                    break;
             }
 
             if (txtRun == null || txtOH == null)
             {
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     "کنترل‌های کارکرد واحدها به‌درستی تنظیم نشده‌اند",
                     "خطا",
                     MessageBoxButtons.OK,
@@ -720,7 +764,7 @@ namespace Rah_Negar.UI.Startup
 
             if (!double.TryParse(txtRun.Text.Trim(), out runtime) || runtime < 0)
             {
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     $"مقدار کارکرد واحد {unitNo} معتبر نیست",
                     "اعتبارسنجی",
                     MessageBoxButtons.OK,
@@ -732,7 +776,7 @@ namespace Rah_Negar.UI.Startup
 
             if (!double.TryParse(txtOH.Text.Trim(), out afterOh) || afterOh < 0)
             {
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     $"مقدار کارکرد بعد از اورهال واحد {unitNo} معتبر نیست",
                     "اعتبارسنجی",
                     MessageBoxButtons.OK,

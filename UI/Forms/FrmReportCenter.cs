@@ -25,6 +25,8 @@ namespace Rah_Negar.UI.Forms
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, bool wParam, IntPtr lParam);
 
         private string _stationName = string.Empty;
+        private string _stationDisplayName = StationIdentityProvider.FallbackStationName;
+        private CanonicalProfileDefinition _profileDefinition = null!;
         private long _dataStartDate;
 
         private ReportRequest? _currentGeneratedRequest;
@@ -65,11 +67,13 @@ namespace Rah_Negar.UI.Forms
         /// </summary>
         private EventReportResult? _currentEventReportResult;
         private readonly Label _mostFrequentCombinationLabel = new();
+        private readonly Label _emptyStateLabel = new();
 
         public FrmReportCenter()
         {
             InitializeComponent();
             ConfigureMostFrequentCombinationLabel();
+            ConfigureEmptyStateLabel();
 
             KeyPreview = true;
             KeyDown += Frm_KeyDown;
@@ -88,6 +92,19 @@ namespace Rah_Negar.UI.Forms
             _mostFrequentCombinationLabel.Text = "پرتکرارترین ترکیب واحدها: داده‌ای ثبت نشده است";
             pnlServiceBottom.Controls.Add(_mostFrequentCombinationLabel);
             _mostFrequentCombinationLabel.BringToFront();
+        }
+
+        private void ConfigureEmptyStateLabel()
+        {
+            _emptyStateLabel.Name = "lblEmptyState";
+            _emptyStateLabel.Dock = DockStyle.Fill;
+            _emptyStateLabel.AutoSize = false;
+            _emptyStateLabel.Padding = new Padding(16);
+            _emptyStateLabel.TextAlign = ContentAlignment.MiddleCenter;
+            _emptyStateLabel.RightToLeft = RightToLeft.Yes;
+            _emptyStateLabel.Text = "لطفاً دوره گزارش را انتخاب کرده و روی «تولید گزارش» کلیک کنید.";
+            pnlContent.Controls.Add(_emptyStateLabel);
+            _emptyStateLabel.BringToFront();
         }
         private void FrmReportCenter_Load_1(object sender, EventArgs e)
         {
@@ -110,8 +127,12 @@ namespace Rah_Negar.UI.Forms
             rdoLogByEvent.Visible = false;
             rdoLogByUnit.Visible = false;
 
-            // 🔴 خیلی مهم — قبل از هر استفاده
-            _reportProfile = ReportStationProfileProvider.GetProfile(settings.StationName);
+            _profileDefinition = settings.ProfileDefinition
+                ?? throw new InvalidOperationException("پروفایل canonical معتبر نیست");
+            _stationName = _profileDefinition.StationName;
+            _stationDisplayName = _profileDefinition.StationName;
+
+            _reportProfile = ReportStationProfileProvider.GetProfile(_profileDefinition);
 
             _currentThemeIndex = settings.ThemeIndex;
             AppThemeManager.LoadThemeByIndex(_currentThemeIndex);
@@ -148,17 +169,17 @@ namespace Rah_Negar.UI.Forms
 
         private void ApplyPersianCaptions()
         {
-            Text = "ReportCenter";
-            lblTitle.Text = "Analytics Dashboard";
-            label1.Text = "Year:";
-            label2.Text = "Month:";
-            btnGenerateReport.Text = "Run Analysis";
-            btnPDF.Text = "PDF Report";
-            btnFinalizeMonthlyReport.Text = "Finalize Month";
-            btnSummaryPage.Text = "Overview";
-            btnEventsPage.Text = "Event Summary";
-            btnServicePage.Text = "Service Analysis";
-            btnLogPage.Text = "Event Log";
+            Text = "مرکز گزارش";
+            lblTitle.Text = "مرکز گزارش و تحلیل";
+            label1.Text = "سال:";
+            label2.Text = "ماه:";
+            btnGenerateReport.Text = "تولید گزارش";
+            btnPDF.Text = "گزارش PDF";
+            btnFinalizeMonthlyReport.Text = "نهایی‌سازی ماه";
+            btnSummaryPage.Text = "نمای کلی";
+            btnEventsPage.Text = "خلاصه رویدادها";
+            btnServicePage.Text = "تحلیل سرویس";
+            btnLogPage.Text = "گزارش رویدادها";
 
             SetHeader(dgvSummary, "colParameter", "پارامتر");
             SetHeader(dgvSummary, "colMin", "کمینه");
@@ -349,6 +370,9 @@ namespace Rah_Negar.UI.Forms
             pnlServicePage.BackColor = palette.ContentBackColor;
             pnlServiceTop.BackColor = palette.ContentBackColor;
             pnlServiceBottom.BackColor = palette.ContentBackColor;
+            _emptyStateLabel.BackColor = palette.ContentBackColor;
+            _emptyStateLabel.ForeColor = palette.TextPrimaryColor;
+            _emptyStateLabel.Font = UiStyleService.CreateFont(10f);
 
             pnlLeft.BackColor = palette.ContentBackColor;
             pnlRight.BackColor = palette.ContentBackColor;
@@ -755,14 +779,14 @@ namespace Rah_Negar.UI.Forms
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
             //dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.SteelBlue;
             dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-            dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 8.2F, FontStyle.Bold);
+            dgv.ColumnHeadersDefaultCellStyle.Font = UiStyleService.CreateFont(8.2F, FontStyle.Bold);
             dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgv.ColumnHeadersHeight = 28;
             dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
             dgv.DefaultCellStyle.BackColor = Color.WhiteSmoke;
             dgv.DefaultCellStyle.ForeColor = Color.Black;
-            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 8.2F, FontStyle.Regular);
+            dgv.DefaultCellStyle.Font = UiStyleService.CreateFont(8.2F);
             dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgv.DefaultCellStyle.SelectionBackColor = Color.WhiteSmoke;
             dgv.DefaultCellStyle.SelectionForeColor = Color.Black;
@@ -774,8 +798,9 @@ namespace Rah_Negar.UI.Forms
             dgv.CurrentCell = null;
         }
 
-        private static bool TryRestoreReportGridColumns(DataGridView grid, string cacheKey)
+        private bool TryRestoreReportGridColumns(DataGridView grid, string cacheKey)
         {
+            cacheKey = "report|" + _profileDefinition.Signature + "|" + cacheKey;
             if (!DataGridViewDefinitionCache.TryGet(cacheKey,
                     out IReadOnlyList<DataGridViewColumnDefinition>? definitions) || definitions is null)
                 return false;
@@ -784,8 +809,9 @@ namespace Rah_Negar.UI.Forms
             return true;
         }
 
-        private static void CacheReportGridColumns(DataGridView grid, string cacheKey)
+        private void CacheReportGridColumns(DataGridView grid, string cacheKey)
         {
+            cacheKey = "report|" + _profileDefinition.Signature + "|" + cacheKey;
             DataGridViewColumnDefinition[] definitions = grid.Columns
                 .Cast<DataGridViewColumn>()
                 .Select(column => new DataGridViewColumnDefinition(
@@ -1268,6 +1294,7 @@ namespace Rah_Negar.UI.Forms
         /// </summary>
         private void SetInitialEmptyState()
         {
+            _emptyStateLabel.Visible = true;
             pnlSummaryPage.Visible = false;
             pnlEventsPage.Visible = false;
             pnlServicePage.Visible = false;
@@ -1288,6 +1315,7 @@ namespace Rah_Negar.UI.Forms
         /// </summary>
         private void ShowReportPagesAfterGenerate()
         {
+            _emptyStateLabel.Visible = false;
             btnSummaryPage.Visible = true;
             btnEventsPage.Visible = true;
             btnServicePage.Visible = true;
@@ -1521,7 +1549,7 @@ namespace Rah_Negar.UI.Forms
 
                     ReportResult reportResult = ReportEngineService.BuildReport(
                         conn,
-                        _reportProfile.StationName,
+                        _profileDefinition,
                         request);
 
                     bool hasIncompleteDays = HasIncompleteDays(reportResult);
@@ -2202,7 +2230,7 @@ namespace Rah_Negar.UI.Forms
         private List<string> GetAllReportParameterKeysForFinalize()
         {
             ReportStationProfile profile =
-                ReportStationProfileProvider.GetProfile(_stationName);
+                ReportStationProfileProvider.GetProfile(_profileDefinition);
 
             return profile.Parameters
                 .Select(p => p.Key)
@@ -2660,7 +2688,7 @@ namespace Rah_Negar.UI.Forms
             {
                 Title = "Save Monthly Final Report",
                 Filter = "PDF File (*.pdf)|*.pdf",
-                FileName = $"Monthly_Final_Report_{_reportProfile.StationName}_{year}_{month:00}.pdf",
+                FileName = $"Monthly_Final_Report_{_stationDisplayName}_{year}_{month:00}.pdf",
                 OverwritePrompt = true
             };
 
@@ -2673,7 +2701,7 @@ namespace Rah_Negar.UI.Forms
                     year,
                     month,
                     dialog.FileName,
-                    _reportProfile.StationName);
+                    _profileDefinition);
 
                 UiMessageService.ShowInfo("گزارش نهایی با موفقیت ایجاد شد", "اطلاع");
 

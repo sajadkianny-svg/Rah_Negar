@@ -33,11 +33,11 @@ public static class UiScaleService
 
     public static Font GetDefaultFont(Control control, float baseSize = 9f)
     {
-        return new Font("Segoe UI", baseSize, FontStyle.Regular);
+        return UiStyleService.CreateFont(baseSize);
     }
 
     public static Font GetBoldFont(Control control, float baseSize = 9f)
     {
-        return new Font("Segoe UI", baseSize, FontStyle.Bold);
+        return UiStyleService.CreateFont(baseSize, FontStyle.Bold);
     }
 }

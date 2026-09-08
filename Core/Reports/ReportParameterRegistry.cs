@@ -17,12 +17,10 @@ public static class ReportParameterRegistry
         if (GenericProfileIdentity.TryGetUnitCount(stationName, out int genericUnitCount))
             return GetGenericParameters(genericUnitCount);
 
-        return stationName switch
-        {
-            "Rasht Station" => GetRashtParameters(),
-            "Ramsar Station" => GetRamsarParameters(),
-            _ => throw new NotSupportedException("پارامترهای گزارش برای این ایستگاه پشتیبانی نمی‌شود.")
-        };
+        if (LegacyStationProfileCompatibility.TryGetUnitCount(stationName, out int units, out bool lines))
+            return GetGenericParameters(CanonicalProfileDefinition.Create(stationName, units,
+                lines ? ["line_f_p", "line40_p", "line30_p"] : []));
+        throw new NotSupportedException("پارامترهای گزارش به تعریف canonical نیاز دارند.");
     }
 
     /// <summary>
@@ -117,9 +115,12 @@ public static class ReportParameterRegistry
     }
 
     public static IReadOnlyList<ReportParameterDefinition> GetGenericParameters(int unitCount)
+        => GetGenericParameters(CanonicalProfileDefinition.Create(GenericProfileIdentity.Create(unitCount), unitCount));
+
+    public static IReadOnlyList<ReportParameterDefinition> GetGenericParameters(CanonicalProfileDefinition definition)
     {
-        if (!Rah_Negar.Foundation.Application.Provisioning.TargetStationProfileRules.IsUnitCountSupported(unitCount))
-            throw new ArgumentOutOfRangeException(nameof(unitCount));
+        ArgumentNullException.ThrowIfNull(definition);
+        int unitCount = definition.UnitCount;
 
         List<ReportParameterDefinition> parameters =
         [
@@ -132,6 +133,18 @@ public static class ReportParameterRegistry
             CreateDataParameter("amb_t", "Ambient Temp", ReportParameterCategory.Temperature, "amb_t"),
             CreateDataParameter("ratio", "Ratio", ReportParameterCategory.Ratio, "ratio")
         ];
+
+        foreach (string key in definition.OptionalParameters)
+        {
+            string title = key switch
+            {
+                "line_f_p" => "FirstLine Press",
+                "line40_p" => "40in Press",
+                "line30_p" => "30in Press",
+                _ => key
+            };
+            parameters.Insert(2, CreateDataParameter(key, title, ReportParameterCategory.Pressure, key));
+        }
 
         for (int unit = 1; unit <= unitCount; unit++)
         {

@@ -18,9 +18,18 @@ namespace Rah_Negar.UI.Forms
 
         public string Password { get; private set; } = string.Empty;
 
-        public FrmPasswordConfirm()
+        public FrmPasswordConfirm() : this(null)
+        {
+        }
+
+        internal FrmPasswordConfirm(string? initialCredential)
         {
             InitializeComponent();
+            Text = "مجوز مدیریتی";
+            lblTitle.Text = "برای ادامه عملیات، مجوز مدیریتی را وارد نمایید";
+            lblPassword.Text = "مجوز مدیریتی:";
+            if (!string.IsNullOrWhiteSpace(initialCredential))
+                txtPassword.Text = initialCredential;
             ApplyTheme();
 
             AcceptButton = btnOk;

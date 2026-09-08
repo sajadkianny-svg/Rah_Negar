@@ -16,11 +16,12 @@ public static class PasteProfileProvider
         if (GenericProfileIdentity.TryGetUnitCount(stationName, out int genericUnitCount))
             return GenericPasteProfileFactory.Create(genericUnitCount);
 
-        return stationName switch
-        {
-            "Rasht Station" => RashtPasteProfileFactory.Create(),
-            "Ramsar Station" => RamsarPasteProfileFactory.Create(),
-            _ => throw new NotSupportedException($"Paste profile is not implemented for: {stationName}")
-        };
+        if (LegacyStationProfileCompatibility.TryGetUnitCount(stationName, out int units, out bool lines))
+            return GenericPasteProfileFactory.Create(CanonicalProfileDefinition.Create(stationName, units,
+                lines ? ["line_f_p", "line40_p", "line30_p"] : []));
+        throw new NotSupportedException($"Paste profile requires a canonical persisted definition: {stationName}");
     }
+
+    public static PasteProfile GetProfile(CanonicalProfileDefinition definition) =>
+        GenericPasteProfileFactory.Create(definition);
 }

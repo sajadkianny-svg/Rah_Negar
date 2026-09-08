@@ -2,6 +2,7 @@
 using Rah_Negar.Data;
 using Rah_Negar.Services;
 using Rah_Negar.Services.Reports;
+using Rah_Negar.Services.UI;
 using Rah_Negar.Utils;
 using System.Globalization;
 using System.Reflection.PortableExecutable;
@@ -53,7 +54,7 @@ namespace Rah_Negar.UI.Forms
 
             if (!AppSession.IsLoggedIn)
             {
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     "دسترسی غیرمجاز",
                     "خطا",
                     MessageBoxButtons.OK,
@@ -269,8 +270,7 @@ namespace Rah_Negar.UI.Forms
 
             StringBuilder sb = new();
 
-            string stationName = settings?.StationName ?? "Unknown";
-            string stationFa = GetPersianStationName(stationName);
+            string stationName = StationIdentityProvider.ResolveForLogin(settings?.StationName);
 
             string today = GetPersianSystemDate();
             string dayName = GetPersianDayName();
@@ -283,7 +283,7 @@ namespace Rah_Negar.UI.Forms
 
             sb.Append(isDbOk ? "● آنلاین" : "● خطا در دیتابیس");
 
-            sb.Append($"  |  {stationFa}");
+            sb.Append($"  |  {stationName}");
             sb.Append($"  |  امروز: {dayName} {today}");
             sb.Append($"  |  آخرین ثبت: {lastRecord}");
 
@@ -393,22 +393,6 @@ namespace Rah_Negar.UI.Forms
         }
 
         /// <summary>
-        /// تبدیل نام انگلیسی ایستگاه به نام فارسی.
-        /// </summary>
-        private static string GetPersianStationName(string? stationName)
-        {
-            if (string.IsNullOrWhiteSpace(stationName))
-                return "نامشخص";
-
-            return stationName.Trim() switch
-            {
-                "Rasht Station" => "رشت",
-                "Ramsar Station" => "رامسر",
-                _ => stationName
-            };
-        }
-
-        /// <summary>
         /// تبدیل اعداد انگلیسی به اعداد فارسی برای نمایش در UI.
         /// </summary>
         private static string ToPersianDigits(string input)
@@ -511,7 +495,7 @@ namespace Rah_Negar.UI.Forms
             object? sender,
             LinkLabelLinkClickedEventArgs e)
         {
-            DialogResult confirmation = MessageBox.Show(this,
+            DialogResult confirmation = UiMessageService.ShowMessageBox(this,
                 "این بخش در حالت آزمایشی (Pilot) و فقط خواندنی اجرا می‌شود." +
                 Environment.NewLine +
                 "مرجع بهره‌برداری همچنان برنامه فعلی (Legacy) است." +
@@ -536,7 +520,7 @@ namespace Rah_Negar.UI.Forms
             }
             catch
             {
-                MessageBox.Show(this,
+                UiMessageService.ShowMessageBox(this,
                     "راه‌اندازی سطح Pilot فقط‌خواندنی ناموفق بود. برنامه فعلی بدون تغییر فعال است.",
                     "Pilot فقط‌خواندنی", MessageBoxButtons.OK, MessageBoxIcon.Error,
                     MessageBoxDefaultButton.Button1,

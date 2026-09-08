@@ -85,15 +85,34 @@ public static class DatabaseMaintenanceService
     public static void ImportDatabase(string backupPath,
         ManagementAuthorizationProof managementProof, int currentManagementCredentialVersion)
     {
+        ImportDatabase(backupPath, CreateRestoreRollbackPath(SqliteDatabaseHelper.GetDatabasePath()),
+            managementProof, currentManagementCredentialVersion);
+    }
+
+    public static string CreateRestoreRollbackPath(string databasePath)
+    {
+        if (string.IsNullOrWhiteSpace(databasePath))
+            throw new ArgumentException("مسیر دیتابیس معتبر نیست", nameof(databasePath));
+        string fullPath = Path.GetFullPath(databasePath);
+        string directory = Path.GetDirectoryName(fullPath)
+            ?? throw new InvalidOperationException("مسیر دیتابیس معتبر نیست");
+        return Path.Combine(directory,
+            $"RahNegar_BeforeImport_{DateTime.UtcNow:yyyyMMdd_HHmmss}_{Guid.NewGuid():N}.db");
+    }
+
+    public static void ImportDatabase(string backupPath, string rollbackPath,
+        ManagementAuthorizationProof managementProof, int currentManagementCredentialVersion)
+    {
         if (string.IsNullOrWhiteSpace(backupPath))
             throw new ArgumentException("مسیر پشتیبان معتبر نیست", nameof(backupPath));
         string databasePath = SqliteDatabaseHelper.GetDatabasePath();
+        if (string.IsNullOrWhiteSpace(rollbackPath))
+            throw new ArgumentException("مسیر نسخه بازگشت معتبر نیست", nameof(rollbackPath));
         string backup = Path.GetFullPath(backupPath);
         if (!File.Exists(backup))
             throw new FileNotFoundException("فایل پشتیبان پیدا نشد", backup);
         string backupSha256 = ComputeSha256(backup);
-        string rollback = Path.Combine(Path.GetDirectoryName(databasePath)!,
-            $"RahNegar_BeforeImport_{DateTime.UtcNow:yyyyMMdd_HHmmss}_{Guid.NewGuid():N}.db");
+        string rollback = Path.GetFullPath(rollbackPath);
         string scope = SqliteProtectedActionBinding.CreateRestoreScope(
             backup, backupSha256, databasePath, rollback);
         EnsureAuthorization(managementProof, ProtectedAction.Restore, scope,

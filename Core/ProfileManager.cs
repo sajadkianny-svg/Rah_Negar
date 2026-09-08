@@ -11,16 +11,9 @@ namespace Rah_Negar.Core;
 /// </summary>
 public static class ProfileManager
 {
-    public static IStationProfile GetProfile(StationType stationType)
-    {
-        return stationType switch
-        {
-            StationType.Rasht => new RashtProfile(),
-            StationType.Ramsar => new RamsarProfile(),
-            // فعلاً تا وقتی جزئیات کامل مشخص نشده، عمداً خطا می‌دهیم
-            StationType.Custom => throw new NotSupportedException("Custom profile is not implemented yet."),
+    public static IStationProfile GetProfile(CanonicalProfileDefinition definition) =>
+        new GenericStationProfile(definition);
 
-            _ => throw new InvalidOperationException("Unknown station type.")
-        };
-    }
+    public static IStationProfile GetProfile(StationType stationType)
+        => LegacyStationProfileCompatibility.GetProfile(stationType);
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36109.1
+# Visual Studio Version 18
+VisualStudioVersion = 18.9.12105.275 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rah_Negar", "Rah_Negar.csproj", "{ACD91878-BCB2-4193-835B-2635380713B3}"
 EndProject
@@ -25,12 +25,12 @@ Global
 		{ACD91878-BCB2-4193-835B-2635380713B3}.Release|x64.Build.0 = Release|x64
 		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Debug|x64.Build.0 = Debug|Any CPU
+		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Debug|x64.ActiveCfg = Debug|x64
+		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Debug|x64.Build.0 = Debug|x64
 		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Release|x64.ActiveCfg = Release|Any CPU
-		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Release|x64.Build.0 = Release|x64
+		{6588C08F-DDA5-4DEB-B16B-22B6802FB8D8}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

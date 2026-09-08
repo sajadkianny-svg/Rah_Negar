@@ -6,22 +6,39 @@ public static class GenericGridProfileFactory
 {
     public static GridProfile Create(int unitCount)
     {
-        if (!TargetStationProfileRules.IsUnitCountSupported(unitCount))
-            throw new ArgumentOutOfRangeException(nameof(unitCount));
+        GridProfile profile = Create(CanonicalProfileDefinition.Create(GenericProfileIdentity.Create(unitCount), unitCount));
+        // Preserve the pre-canonical fixture contract for callers that still
+        // request a synthetic Generic Profile by integer count.
+        for (int i = 0; i < profile.Columns.Count; i++)
+            profile.Columns[i].Name = $"col{i + 1}";
+        return profile;
+    }
+
+    public static GridProfile Create(CanonicalProfileDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        int unitCount = definition.UnitCount;
 
         List<GridColumnProfile> columns =
         [
-            new() { Name = "col1", HeaderText = "Time", Width = 50, ReadOnly = true },
-            new() { Name = "col2", HeaderText = "Inlet Press.", Width = 55 },
-            new() { Name = "col3", HeaderText = "Outlet Press.", Width = 55 }
+            new() { Name = "time_rep", HeaderText = "Time", Width = 50, ReadOnly = true },
+            new() { Name = "in_p", HeaderText = "Inlet Press.", Width = 55 },
+            new() { Name = "out_p", HeaderText = "Outlet Press.", Width = 55 }
         ];
+
+        if (definition.HasLinePressureColumns)
+        {
+            columns.Add(new() { Name = "line_f_p", HeaderText = "FirstLine Press.", Width = 55 });
+            columns.Add(new() { Name = "line40_p", HeaderText = "40in Press.", Width = 45 });
+            columns.Add(new() { Name = "line30_p", HeaderText = "30in Press.", Width = 45 });
+        }
 
         List<int> hiddenColumns = [];
         for (int unit = 1; unit <= unitCount; unit++)
         {
             int statusIndex = columns.Count;
-            columns.Add(new() { Name = $"col{columns.Count + 1}", HeaderText = $"Unit{unit} Status", Width = 58 });
-            columns.Add(new() { Name = $"col{columns.Count + 1}", HeaderText = $"Unit{unit} RPM", Width = 58 });
+            columns.Add(new() { Name = $"u{unit}_st", HeaderText = $"Unit{unit} Status", Width = 58 });
+            columns.Add(new() { Name = $"u{unit}_rpm", HeaderText = $"Unit{unit} RPM", Width = 58 });
             hiddenColumns.Add(statusIndex);
         }
 
@@ -37,7 +54,16 @@ public static class GenericGridProfileFactory
         {
             columns.Add(new()
             {
-                Name = $"col{columns.Count + 1}",
+                Name = header switch
+                {
+                    "Recycle" => "rec",
+                    "Flow" => "flow",
+                    "Inlet Temp" => "in_t",
+                    "Outlet Temp" => "out_t",
+                    "Ambient Temp" => "amb_t",
+                    "Ratio" => "ratio",
+                    _ => header
+                },
                 HeaderText = header,
                 Width = width
             });
@@ -65,7 +91,7 @@ public static class GenericGridProfileFactory
                 EditMode = DataGridViewEditMode.EditOnKeystroke,
                 HeaderBackColor = Color.LightGray,
                 HeaderForeColor = Color.Black,
-                HeaderFont = new Font("Segoe UI", 8.25F, FontStyle.Regular),
+                HeaderFont = new Font("Tahoma", 8.25F, FontStyle.Regular),
                 HeaderHeight = 50,
                 GridColor = Color.LightGray,
                 SelectionBackColor = Color.FromArgb(135, 206, 250),

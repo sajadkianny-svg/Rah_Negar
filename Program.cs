@@ -2,6 +2,7 @@ using Rah_Negar.Foundation.Application.Authority;
 using Rah_Negar.Data;
 using Rah_Negar.Infrastructure.Database.Readiness;
 using Rah_Negar.Services;
+using Rah_Negar.Services.UI;
 using Rah_Negar.UI.Forms;
 using Rah_Negar.UI.Startup;
 using Rah_Negar.Infrastructure.ApplicationData;
@@ -28,7 +29,7 @@ namespace Rah_Negar
                 .ResolveCanonicalAsync(new FileTransitionStateStore(transitionPath)).GetAwaiter().GetResult();
             if (startup.RoutingBlocked)
             {
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     RecoveryOperatorMessage.Persian(startup.Classification, startup.Issues),
                     "راه‌نگار",
                     MessageBoxButtons.OK,
@@ -38,9 +39,9 @@ namespace Rah_Negar
 
             if (RecoveryRequiredStateStore.IsRequired(SqliteDatabaseHelper.GetDatabasePath()))
             {
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     "وضعیت بازیابی دیتابیس قابل اثبات نیست. تا اجرای بازیابی تأییدشده، ورود به عملیات عادی مسدود است.",
-                    "Recovery Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    "بازیابی مورد نیاز", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -52,7 +53,7 @@ namespace Rah_Negar
             catch (Exception ex)
             {
                 ErrorLogger.Log(ex, "startup");
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     "داده‌های عملیاتی قابل دسترسی نیستند. مجوز پوشه داده را بررسی کنید یا با مسئول سیستم تماس بگیرید.",
                     "خطا در راه‌اندازی", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }

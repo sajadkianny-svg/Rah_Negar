@@ -1,6 +1,7 @@
 ﻿using Rah_Negar.Core;
 using Rah_Negar.Properties;
 using Rah_Negar.Utils;
+using Rah_Negar.Services.UI;
 
 namespace Rah_Negar.UI.Forms.Base;
 
@@ -24,7 +25,7 @@ public class BaseForm : Form
 
         if (DeviceDpi > MaximumSupportedDpi)
         {
-            MessageBox.Show(this,
+            UiMessageService.ShowMessageBox(this,
                 "این مقیاس نمایش پشتیبانی نمی‌شود. لطفاً مقیاس ویندوز را حداکثر روی ۱۵۰٪ تنظیم کنید.",
                 "مقیاس نمایش پشتیبانی نمی‌شود", MessageBoxButtons.OK, MessageBoxIcon.Warning,
                 MessageBoxDefaultButton.Button1, MessageBoxOptions.RightAlign | MessageBoxOptions.RtlReading);

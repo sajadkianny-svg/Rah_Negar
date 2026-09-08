@@ -20,6 +20,10 @@ public sealed class ReportStationProfile
     /// </summary>
     public string StationName { get; init; } = string.Empty;
 
+    public string ProfileId { get; init; } = string.Empty;
+
+    public int ProfileRevision { get; init; }
+
     /// <summary>
     /// لیست واحدهای ایستگاه (مثلاً U1, U2, ...)
     /// </summary>

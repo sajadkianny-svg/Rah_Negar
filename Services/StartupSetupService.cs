@@ -24,7 +24,10 @@ public static class StartupSetupService
         if (setupData == null)
             throw new ArgumentNullException(nameof(setupData));
 
-        IStationProfile profile = ProfileManager.GetProfile(setupData.StationType);
+        CanonicalProfileDefinition definition = setupData.ProfileDefinition
+            ?? CanonicalProfileDefinition.Create(setupData.StationName, setupData.UnitCount);
+        setupData.ProfileDefinition = definition;
+        IStationProfile profile = ProfileManager.GetProfile(definition);
 
         using SqliteConnection conn = SqliteDatabaseHelper.CreateConnection();
         using SqliteTransaction tx = conn.BeginTransaction();
@@ -67,7 +70,11 @@ CREATE TABLE IF NOT EXISTS app_settings (
     theme_index INTEGER NOT NULL DEFAULT 0,
     esd_extra_runtime_enabled INTEGER NOT NULL DEFAULT 0,
     esd_extra_runtime_hours REAL NOT NULL DEFAULT 0,
-    data_start_date INTEGER NOT NULL DEFAULT 0
+    data_start_date INTEGER NOT NULL DEFAULT 0,
+    profile_id TEXT NOT NULL DEFAULT '',
+    profile_revision INTEGER NOT NULL DEFAULT 0,
+    unit_count INTEGER NOT NULL DEFAULT 0,
+    profile_optional_parameters TEXT NOT NULL DEFAULT ''
 
 );";
 
@@ -207,8 +214,17 @@ CREATE TABLE IF NOT EXISTS tbl_monthly_report_unit_event_summary (
         string salt = PasswordHelper.CreateSalt();
         string hash = PasswordHelper.HashPassword(setupData.ResetPassword, salt);
 
-        // برای اطمینان، قبل از ثبت رکورد جدید جدول پاک می‌شود
-        SqliteCommandHelper.ExecuteNonQuery(conn, "DELETE FROM app_settings;", transaction: tx);
+        CanonicalProfileDefinition definition = setupData.ProfileDefinition
+            ?? throw new InvalidOperationException("تعریف پروفایل canonical ثبت نشده است");
+
+        if (definition.UnitCount != setupData.UnitRuntimeBases.Count)
+            throw new InvalidOperationException("تعداد واحدهای پروفایل با داده‌های اولیه یکسان نیست");
+
+        // Startup is a first-run operation. Do not overwrite an existing profile.
+        object? existing = SqliteCommandHelper.ExecuteScalar(conn,
+            "SELECT COUNT(*) FROM app_settings WHERE is_initialized = 1;", transaction: tx);
+        if (Convert.ToInt32(existing ?? 0) > 0)
+            throw new InvalidOperationException("پروفایل موجود است و بدون مسیر ایمن و مجاز قابل بازنویسی نیست");
 
         const string sql = @"
 INSERT INTO app_settings
@@ -225,6 +241,10 @@ INSERT INTO app_settings
     esd_extra_runtime_enabled,
     esd_extra_runtime_hours,
     data_start_date
+    ,profile_id
+    ,profile_revision
+    ,unit_count
+    ,profile_optional_parameters
 )
 VALUES
 (
@@ -239,7 +259,11 @@ VALUES
     @theme_index,
     @esd_extra_runtime_enabled,
     @esd_extra_runtime_hours,
-    @data_start_date
+    @data_start_date,
+    @profile_id,
+    @profile_revision,
+    @unit_count,
+    @profile_optional_parameters
 );";
 
         var parameters = new List<SqliteParameter>
@@ -259,7 +283,11 @@ VALUES
             SqliteCommandHelper.Param("@esd_extra_runtime_hours",
                 setupData.EsdExtraRuntimeHours),
 
-            SqliteCommandHelper.Param("@data_start_date", setupData.DataStartDateRep)
+            SqliteCommandHelper.Param("@data_start_date", setupData.DataStartDateRep),
+            SqliteCommandHelper.Param("@profile_id", definition.ProfileId),
+            SqliteCommandHelper.Param("@profile_revision", definition.Revision),
+            SqliteCommandHelper.Param("@unit_count", definition.UnitCount),
+            SqliteCommandHelper.Param("@profile_optional_parameters", string.Join(',', definition.OptionalParameters))
 
         };
 

@@ -31,11 +31,25 @@ public static class ReportStationProfileProvider
             };
         }
 
-        return stationName switch
+        if (LegacyStationProfileCompatibility.TryGetUnitCount(stationName, out int units, out bool lines))
         {
-            "Rasht Station" => CreateRashtProfile(),
-            "Ramsar Station" => CreateRamsarProfile(),
-            _ => throw new NotSupportedException("پروفایل گزارش‌گیری برای این ایستگاه پشتیبانی نمی‌شود.")
+            CanonicalProfileDefinition definition = CanonicalProfileDefinition.Create(stationName, units,
+                lines ? ["line_f_p", "line40_p", "line30_p"] : []);
+            return GetProfile(definition);
+        }
+        throw new NotSupportedException("پروفایل گزارش‌گیری به تعریف canonical نیاز دارد.");
+    }
+
+    public static ReportStationProfile GetProfile(CanonicalProfileDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        return new ReportStationProfile
+        {
+            StationName = definition.StationName,
+            ProfileId = definition.ProfileId,
+            ProfileRevision = definition.Revision,
+            Units = Enumerable.Range(1, definition.UnitCount).Select(i => $"U{i}").ToArray(),
+            Parameters = ReportParameterRegistry.GetGenericParameters(definition)
         };
     }
 

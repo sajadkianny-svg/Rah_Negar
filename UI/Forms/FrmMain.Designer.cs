@@ -31,7 +31,6 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             pnlBody = new Panel();
             pnlDivider = new Panel();
-            lblProductTitle = new Label();
             cardRecords = new Panel();
             lblRecordsTitle = new Label();
             cardReports = new Panel();
@@ -39,6 +38,7 @@
             cardSettings = new Panel();
             lblSettingsTitle = new Label();
             picLogo = new PictureBox();
+            lblProductTitle = new Label();
             pnlFooter = new Panel();
             lblStatus = new Label();
             pnlBody.SuspendLayout();
@@ -48,9 +48,9 @@
             ((System.ComponentModel.ISupportInitialize)picLogo).BeginInit();
             pnlFooter.SuspendLayout();
             SuspendLayout();
-            // 
+            //
             // pnlBody
-            // 
+            //
             pnlBody.Controls.Add(pnlDivider);
             pnlBody.Controls.Add(cardRecords);
             pnlBody.Controls.Add(cardReports);
@@ -61,79 +61,79 @@
             pnlBody.Location = new Point(0, 0);
             pnlBody.Name = "pnlBody";
             pnlBody.Padding = new Padding(18, 16, 18, 10);
-            pnlBody.Size = new Size(720, 408);
+            pnlBody.Size = new Size(720, 440);
             pnlBody.TabIndex = 1;
-            // 
+            //
             // pnlDivider
-            // 
+            //
             pnlDivider.BackColor = Color.Black;
             pnlDivider.Location = new Point(18, 324);
             pnlDivider.Name = "pnlDivider";
             pnlDivider.Size = new Size(684, 1);
             pnlDivider.TabIndex = 14;
-            // 
+            //
             // cardRecords
-            // 
+            //
             cardRecords.Controls.Add(lblRecordsTitle);
             cardRecords.Location = new Point(22, 338);
             cardRecords.Name = "cardRecords";
             cardRecords.Size = new Size(216, 58);
             cardRecords.TabIndex = 13;
-            // 
+            //
             // lblRecordsTitle
-            // 
+            //
             lblRecordsTitle.AutoSize = true;
             lblRecordsTitle.Dock = DockStyle.Fill;
             lblRecordsTitle.Font = new Font("Tahoma", 8F, FontStyle.Bold);
             lblRecordsTitle.Location = new Point(0, 0);
             lblRecordsTitle.Name = "lblRecordsTitle";
-            lblRecordsTitle.Size = new Size(67, 13);
+            lblRecordsTitle.Size = new Size(64, 13);
             lblRecordsTitle.TabIndex = 2;
             lblRecordsTitle.Text = "ثبت داده‌ها";
             lblRecordsTitle.TextAlign = ContentAlignment.MiddleCenter;
-            // 
+            //
             // cardReports
-            // 
+            //
             cardReports.Controls.Add(lblReportsTitle);
             cardReports.Location = new Point(252, 338);
             cardReports.Name = "cardReports";
             cardReports.Size = new Size(216, 58);
             cardReports.TabIndex = 12;
-            // 
+            //
             // lblReportsTitle
-            // 
+            //
             lblReportsTitle.AutoSize = true;
             lblReportsTitle.Dock = DockStyle.Fill;
             lblReportsTitle.Font = new Font("Tahoma", 8F, FontStyle.Bold);
             lblReportsTitle.Location = new Point(0, 0);
             lblReportsTitle.Name = "lblReportsTitle";
-            lblReportsTitle.Size = new Size(87, 13);
+            lblReportsTitle.Size = new Size(71, 13);
             lblReportsTitle.TabIndex = 1;
             lblReportsTitle.Text = "مرکز گزارش";
             lblReportsTitle.TextAlign = ContentAlignment.MiddleCenter;
-            // 
+            //
             // cardSettings
-            // 
+            //
             cardSettings.Controls.Add(lblSettingsTitle);
             cardSettings.Location = new Point(482, 338);
             cardSettings.Name = "cardSettings";
             cardSettings.Size = new Size(216, 58);
             cardSettings.TabIndex = 11;
-            // 
+            //
             // lblSettingsTitle
-            // 
+            //
             lblSettingsTitle.AutoSize = true;
             lblSettingsTitle.Dock = DockStyle.Fill;
             lblSettingsTitle.Font = new Font("Tahoma", 8F, FontStyle.Bold);
             lblSettingsTitle.Location = new Point(0, 0);
             lblSettingsTitle.Name = "lblSettingsTitle";
-            lblSettingsTitle.Size = new Size(54, 13);
+            lblSettingsTitle.Size = new Size(49, 13);
             lblSettingsTitle.TabIndex = 0;
             lblSettingsTitle.Text = "تنظیمات";
             lblSettingsTitle.TextAlign = ContentAlignment.MiddleCenter;
-            // 
+            //
             // picLogo
-            // 
+            //
             picLogo.Anchor = AnchorStyles.Top;
             picLogo.Image = (Image)resources.GetObject("picLogo.Image");
             picLogo.Location = new Point(270, 82);
@@ -145,26 +145,25 @@
             //
             // lblProductTitle
             //
-            lblProductTitle.AutoSize = false;
-            lblProductTitle.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
+            lblProductTitle.Font = new Font("Tahoma", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblProductTitle.Location = new Point(18, 20);
             lblProductTitle.Name = "lblProductTitle";
             lblProductTitle.Size = new Size(684, 32);
             lblProductTitle.TabIndex = 15;
             lblProductTitle.Text = "ره‌نگار";
             lblProductTitle.TextAlign = ContentAlignment.MiddleCenter;
-            // 
+            //
             // pnlFooter
-            // 
+            //
             pnlFooter.Controls.Add(lblStatus);
             pnlFooter.Dock = DockStyle.Bottom;
             pnlFooter.Location = new Point(0, 408);
             pnlFooter.Name = "pnlFooter";
             pnlFooter.Size = new Size(720, 32);
             pnlFooter.TabIndex = 3;
-            // 
+            //
             // lblStatus
-            // 
+            //
             lblStatus.AutoSize = true;
             lblStatus.Font = new Font("Tahoma", 8F);
             lblStatus.Location = new Point(628, 2);
@@ -172,15 +171,17 @@
             lblStatus.Size = new Size(41, 13);
             lblStatus.TabIndex = 0;
             lblStatus.Text = "وضعیت";
-            // 
+            //
             // FrmMain
-            // 
+            //
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.WhiteSmoke;
             ClientSize = new Size(720, 440);
             Controls.Add(pnlFooter);
             Controls.Add(pnlBody);
+            Font = new Font("Tahoma", 9F);
+            ForeColor = Color.FromArgb(35, 43, 52);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             Name = "FrmMain";

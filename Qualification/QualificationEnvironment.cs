@@ -1,8 +1,11 @@
 using Microsoft.Data.Sqlite;
 using Rah_Negar.Core;
 using Rah_Negar.Data;
+using Rah_Negar.Foundation.Application.Security;
 using Rah_Negar.Utils;
 using Rah_Negar.Foundation.Application.Provisioning;
+using Rah_Negar.Infrastructure.ApplicationData;
+using Rah_Negar.Infrastructure.Database.Readiness;
 
 namespace Rah_Negar.Qualification;
 
@@ -61,6 +64,7 @@ public static class QualificationEnvironment
             INSERT INTO SecurityShiftProfiles VALUES ('qualification-{station.ToString().ToLowerInvariant()}','{stationId}',1,'Qualification Shift','Qualification','Operator','Q-9.4C','Q-9.4C',1,'2026-09-01T00:00:00Z','2026-09-01T00:00:00Z',1);
             INSERT INTO SecurityShiftProfileCredentials VALUES ('qualification-{station.ToString().ToLowerInvariant()}',1,'qualification-only','fixed-scenario',X'01020304',X'05060708',1,'2026-09-01T00:00:00Z',NULL);
             """);
+        SeedManagementCredential(connection, transaction);
         for (int unit = 1; unit <= unitCount; unit++)
         {
             Execute(connection, transaction, $"INSERT INTO Units VALUES ('{stationId}','{stationId}-unit-{unit}',{unit},'Unit {unit}',1,1);");
@@ -94,12 +98,15 @@ public static class QualificationEnvironment
         using var connection = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = path, Pooling = false }.ToString());
         connection.Open();
         using var transaction = connection.BeginTransaction();
-        Execute(connection, transaction, BaseSchema(new GenericDataSchema(unitCount)));
+        CanonicalProfileDefinition definition = CanonicalProfileDefinition.Create(
+            $"Synthetic Qualification Station {unitCount}", unitCount);
+        Execute(connection, transaction, BaseSchema(new GenericDataSchema(definition)));
         string hash = PasswordHelper.HashPassword(LoginPassword, FixedSalt);
         Execute(connection, transaction, $"""
-            INSERT INTO app_settings(is_initialized,station_type,station_name,user_reset_password_hash,user_reset_password_salt,created_at,theme_index,esd_extra_runtime_enabled,esd_extra_runtime_hours,data_start_date)
-            VALUES (1,'Custom','{profileName}', '{hash}', '{FixedSalt}', '2026-09-01 00:00:00',0,1,1.5,{DataStartDate});
+            INSERT INTO app_settings(is_initialized,station_type,station_name,user_reset_password_hash,user_reset_password_salt,created_at,theme_index,esd_extra_runtime_enabled,esd_extra_runtime_hours,data_start_date,profile_id,profile_revision,unit_count,profile_optional_parameters)
+            VALUES (1,'Custom','{definition.StationName}', '{hash}', '{FixedSalt}', '2026-09-01 00:00:00',0,1,1.5,{DataStartDate},'{definition.ProfileId}',{definition.Revision},{definition.UnitCount},'{string.Join(',', definition.OptionalParameters)}');
             """);
+        SeedManagementCredential(connection, transaction);
         for (int unit = 1; unit <= unitCount; unit++)
         {
             Execute(connection, transaction, $"INSERT INTO unit_runtime_base(unit_no,base_runtime_hours,base_runtime_after_oh_hours,initial_is_running,initial_status) VALUES ({unit},{100 + unit},{20 + unit},0,'OFF');");
@@ -107,11 +114,77 @@ public static class QualificationEnvironment
         transaction.Commit();
     }
 
+    public static void StageRecoveryRequired(string rootDirectory)
+    {
+        string root = ValidateQualificationRoot(rootDirectory);
+        string databasePath = Path.Combine(root, "Data", "db.sys");
+        if (!File.Exists(databasePath))
+            throw new FileNotFoundException("Qualification database was not found.", databasePath);
+
+        string? previous = Environment.GetEnvironmentVariable(ApplicationDataPaths.QualificationRootEnvironmentVariable);
+        Environment.SetEnvironmentVariable(ApplicationDataPaths.QualificationRootEnvironmentVariable, root);
+        try { RecoveryRequiredStateStore.MarkRequired(databasePath, "Qualification-only staged recovery state"); }
+        finally { Environment.SetEnvironmentVariable(ApplicationDataPaths.QualificationRootEnvironmentVariable, previous); }
+    }
+
+    public static void ClearRecoveryRequired(string rootDirectory)
+    {
+        string root = ValidateQualificationRoot(rootDirectory);
+        string databasePath = Path.Combine(root, "Data", "db.sys");
+        string? previous = Environment.GetEnvironmentVariable(ApplicationDataPaths.QualificationRootEnvironmentVariable);
+        Environment.SetEnvironmentVariable(ApplicationDataPaths.QualificationRootEnvironmentVariable, root);
+        try { RecoveryRequiredStateStore.ClearAfterVerifiedRecovery(databasePath); }
+        finally { Environment.SetEnvironmentVariable(ApplicationDataPaths.QualificationRootEnvironmentVariable, previous); }
+    }
+
+    private static string ValidateQualificationRoot(string rootDirectory)
+    {
+        string root = Path.GetFullPath(rootDirectory);
+        if (!root.Contains("\\Qualification\\", StringComparison.OrdinalIgnoreCase) &&
+            !root.Contains("/Qualification/", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Qualification state must remain under the Qualification directory.");
+        return root;
+    }
+
+    private static void SeedManagementCredential(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        string? secret = Environment.GetEnvironmentVariable(
+            QualificationManagementAccess.ManagementSecretEnvironmentVariable);
+        if (string.IsNullOrWhiteSpace(secret) || secret.Length > 256) return;
+
+        byte[] salt = System.Security.Cryptography.RandomNumberGenerator.GetBytes(16);
+        byte[] verifier = Pbkdf2TargetPasswordVerifier.CreateVerifier(secret, salt);
+        try
+        {
+            using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO SecurityManagementCredentials
+                 (SingletonId,CredentialVersion,KdfAlgorithm,KdfParameters,Salt,PasswordVerifier,
+                  IsCurrent,IsActive,CreatedAtUtc,UpdatedAtUtc,RetiredAtUtc)
+                VALUES (1,1,$algorithm,$parameters,$salt,$verifier,1,1,$created,$updated,NULL);
+                """;
+            string now = DateTimeOffset.UtcNow.ToString("O");
+            command.Parameters.AddWithValue("$algorithm", Pbkdf2TargetPasswordVerifier.Algorithm);
+            command.Parameters.AddWithValue("$parameters", Pbkdf2TargetPasswordVerifier.Parameters);
+            command.Parameters.AddWithValue("$salt", salt);
+            command.Parameters.AddWithValue("$verifier", verifier);
+            command.Parameters.AddWithValue("$created", now);
+            command.Parameters.AddWithValue("$updated", now);
+            command.ExecuteNonQuery();
+        }
+        finally
+        {
+            System.Security.Cryptography.CryptographicOperations.ZeroMemory(salt);
+            System.Security.Cryptography.CryptographicOperations.ZeroMemory(verifier);
+        }
+    }
+
     private static string BaseSchema(IStationDataSchema stationSchema)
     {
         string stationTable = stationSchema.GetCreateTableSql();
         return $"""
-        CREATE TABLE app_settings(id INTEGER PRIMARY KEY AUTOINCREMENT,is_initialized INTEGER NOT NULL,station_type TEXT NOT NULL,station_name TEXT NOT NULL,user_reset_password_hash TEXT NOT NULL,user_reset_password_salt TEXT NOT NULL,created_at TEXT NOT NULL,last_backup_at TEXT,password_changed_at TEXT,theme_index INTEGER NOT NULL DEFAULT 0,esd_extra_runtime_enabled INTEGER NOT NULL DEFAULT 0,esd_extra_runtime_hours REAL NOT NULL DEFAULT 0,data_start_date INTEGER NOT NULL);
+        CREATE TABLE app_settings(id INTEGER PRIMARY KEY AUTOINCREMENT,is_initialized INTEGER NOT NULL,station_type TEXT NOT NULL,station_name TEXT NOT NULL,user_reset_password_hash TEXT NOT NULL,user_reset_password_salt TEXT NOT NULL,created_at TEXT NOT NULL,last_backup_at TEXT,password_changed_at TEXT,theme_index INTEGER NOT NULL DEFAULT 0,esd_extra_runtime_enabled INTEGER NOT NULL DEFAULT 0,esd_extra_runtime_hours REAL NOT NULL DEFAULT 0,data_start_date INTEGER NOT NULL,profile_id TEXT NOT NULL DEFAULT '',profile_revision INTEGER NOT NULL DEFAULT 0,unit_count INTEGER NOT NULL DEFAULT 0,profile_optional_parameters TEXT NOT NULL DEFAULT '');
         CREATE TABLE unit_runtime_base(id INTEGER PRIMARY KEY AUTOINCREMENT,unit_no INTEGER NOT NULL,base_runtime_hours REAL NOT NULL,base_runtime_after_oh_hours REAL NOT NULL,initial_is_running INTEGER NOT NULL,initial_status TEXT NOT NULL);
         CREATE TABLE tbl_unique(id INTEGER PRIMARY KEY AUTOINCREMENT,date_rep INTEGER NOT NULL,ir_f REAL,turbine_fuel REAL,turbine_flow REAL,non_turbine_flow REAL,vent REAL);
         CREATE UNIQUE INDEX idx_tbl_unique_date ON tbl_unique(date_rep);
@@ -121,6 +194,10 @@ public static class QualificationEnvironment
         CREATE TABLE Units(StationId TEXT NOT NULL,UnitId TEXT NOT NULL,UnitNumber INTEGER NOT NULL,UnitName TEXT NOT NULL,IsActive INTEGER NOT NULL,Revision INTEGER NOT NULL,PRIMARY KEY(StationId,UnitId));
         CREATE TABLE SecurityShiftProfiles(ShiftProfileId TEXT PRIMARY KEY,StationId TEXT NOT NULL,ShiftNumber INTEGER NOT NULL,ShiftName TEXT NOT NULL,SupervisorFirstName TEXT NOT NULL,SupervisorLastName TEXT NOT NULL,PersonnelNo TEXT NOT NULL,PersonnelNoNormalized TEXT NOT NULL,IsActive INTEGER NOT NULL,CreatedAtUtc TEXT NOT NULL,UpdatedAtUtc TEXT NOT NULL,Revision INTEGER NOT NULL);
         CREATE TABLE SecurityShiftProfileCredentials(ShiftProfileId TEXT NOT NULL,CredentialVersion INTEGER NOT NULL,KdfAlgorithm TEXT NOT NULL,KdfParameters TEXT NOT NULL,Salt BLOB NOT NULL,PasswordVerifier BLOB NOT NULL,IsCurrent INTEGER NOT NULL,CreatedAtUtc TEXT NOT NULL,RetiredAtUtc TEXT,PRIMARY KEY(ShiftProfileId,CredentialVersion));
+        CREATE TABLE SecurityManagementCredentials(SingletonId INTEGER NOT NULL CHECK(SingletonId=1),CredentialVersion INTEGER NOT NULL CHECK(CredentialVersion>0),KdfAlgorithm TEXT NOT NULL,KdfParameters TEXT NOT NULL,Salt BLOB NOT NULL CHECK(length(Salt)>0),PasswordVerifier BLOB NOT NULL CHECK(length(PasswordVerifier)>0),IsCurrent INTEGER NOT NULL CHECK(IsCurrent IN(0,1)),IsActive INTEGER NOT NULL CHECK(IsActive IN(0,1)),CreatedAtUtc TEXT NOT NULL,UpdatedAtUtc TEXT NOT NULL,RetiredAtUtc TEXT,PRIMARY KEY(SingletonId,CredentialVersion));
+        CREATE UNIQUE INDEX UX_SecurityManagementCredentials_Current ON SecurityManagementCredentials(SingletonId) WHERE IsCurrent=1;
+        CREATE TABLE SecurityAuditEntries(AuditEntryId TEXT PRIMARY KEY NOT NULL,InitiatingShiftProfileId TEXT NOT NULL,Action TEXT NOT NULL,Scope TEXT NOT NULL,AuthorizationType TEXT NOT NULL,ResultCategory TEXT NOT NULL,TimestampUtc TEXT NOT NULL,CorrelationId TEXT NOT NULL,RequestId TEXT NULL);
+        CREATE TABLE SecurityAuditMetadata(AuditEntryId TEXT NOT NULL,MetadataKey TEXT NOT NULL,MetadataValue TEXT NOT NULL,PRIMARY KEY(AuditEntryId,MetadataKey),FOREIGN KEY(AuditEntryId) REFERENCES SecurityAuditEntries(AuditEntryId));
         """;
     }
 

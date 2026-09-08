@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Globalization;
 using System.Windows.Forms;
+using Rah_Negar.Services.UI;
 
 namespace ShamsiDatePickerLibrary
 {
@@ -64,7 +65,7 @@ namespace ShamsiDatePickerLibrary
                 ControlStyles.Selectable,
                 true);
 
-            Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            Font = new Font("Tahoma", 9F, FontStyle.Regular);
 
             InitializeToday();
         }
@@ -170,7 +171,7 @@ namespace ShamsiDatePickerLibrary
                 : rect.Height * 0.55f;
 
             using Font font = new(
-                "Segoe UI Symbol",
+                "Tahoma",
                 fontSize,
                 FontStyle.Regular,
                 GraphicsUnit.Point);
@@ -218,7 +219,7 @@ namespace ShamsiDatePickerLibrary
             g.DrawRectangle(linePen, dateRect.X, dateRect.Y, dateRect.Width - 1, dateRect.Height - 1);
 
             using Font dateFont = new(
-                "Segoe UI",
+                "Tahoma",
                 dateRect.Height * 0.32f,
                 FontStyle.Regular,
                 GraphicsUnit.Point);
@@ -797,7 +798,7 @@ namespace ShamsiDatePickerLibrary
                 }
                 catch
                 {
-                    MessageBox.Show(
+                    UiMessageService.ShowMessageBox(
                         "تاریخ انتخابی معتبر نیست",
                         "خطا",
                         MessageBoxButtons.OK,
@@ -862,7 +863,7 @@ namespace ShamsiDatePickerLibrary
             {
                 if (selectedDay <= 0)
                 {
-                    MessageBox.Show(
+                    UiMessageService.ShowMessageBox(
                         "روز انتخاب نشده است",
                         "خطا",
                         MessageBoxButtons.OK,

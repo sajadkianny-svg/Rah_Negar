@@ -1,283 +1,254 @@
-﻿using Microsoft.Data.Sqlite;
 using Rah_Negar.Core;
-using Rah_Negar.Data;
 using Rah_Negar.Models;
 using Rah_Negar.Services;
-using Rah_Negar.Utils;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Rah_Negar.UI.Forms.Base;
 using Rah_Negar.Services.UI;
+using Rah_Negar.UI.Forms.Base;
+using Rah_Negar.Utils;
+using System.Drawing;
+using System.Windows.Forms;
 
-namespace Rah_Negar.UI.Forms
+namespace Rah_Negar.UI.Forms;
+
+public partial class FrmLogin : BaseForm
 {
-    public partial class FrmLogin : BaseForm
+    private AppSettingsModel? _appSettings;
+    private bool _isLoginInProgress;
 
+    public FrmLogin() : this(initializeSettings: true)
     {
+    }
 
-        public FrmLogin()
-        {
-            InitializeComponent();
-            
-            // جلوگیری از flicker
-            this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+    internal FrmLogin(bool initializeSettings)
+    {
+        InitializeComponent();
 
+        SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+        SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+
+        LoadBrandImage();
+
+        if (initializeSettings)
             InitializeLoginForm();
-            
-        }
 
-        private void FrmLogin_Load(object sender, EventArgs e)
+        LayoutLoginCard();
+    }
+
+    private void FrmLogin_Load(object sender, EventArgs e)
+    {
+        ApplyLoginPalette();
+        LayoutLoginCard();
+    }
+
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+        txtPass.Focus();
+    }
+
+    private void InitializeLoginForm()
+    {
+        try
         {
+            _appSettings = AppSettingsService.GetSettings();
 
-        }
+            if (_appSettings == null || !_appSettings.IsInitialized)
+            {
+                UiMessageService.ShowError("برنامه هنوز راه‌اندازی اولیه نشده است", "خطا");
+                Close();
+                return;
+            }
 
-        protected override void OnShown(EventArgs e)
-        {
-            base.OnShown(e);
+            SetConfiguredStationName(_appSettings.StationName);
+            LayoutLoginCard();
             txtPass.Focus();
         }
-        
-
-        /// <summary>
-        /// تنظیمات اصلی برنامه که از دیتابیس خوانده می‌شود
-        /// </summary>
-        private AppSettingsModel? _appSettings;
-
-        /// <summary>
-        /// مقداردهی اولیه فرم لاگین:
-        /// خواندن تنظیمات، نمایش نام فارسی ایستگاه، و آماده‌سازی فرم
-        /// </summary>
-        private void InitializeLoginForm()
+        catch (Exception ex)
         {
-            try
+            UiMessageService.ShowError("خطا در بارگذاری فرم ورود", ex, "خطا");
+            Close();
+        }
+    }
+
+    private void SetConfiguredStationName(string? configuredStationName)
+    {
+        string displayName = StationIdentityProvider.ResolveForLogin(configuredStationName);
+        lblUserValue.Text = displayName;
+        stationNameTip.SetToolTip(lblUserValue, displayName);
+    }
+
+    protected override void OnLayout(LayoutEventArgs e)
+    {
+        base.OnLayout(e);
+        LayoutLoginCard();
+    }
+
+    private void LayoutLoginCard()
+    {
+        if (pnlLoginArea == null || pnlLoginCard == null)
+            return;
+
+        int x = Math.Max(0, (pnlLoginArea.ClientSize.Width - pnlLoginCard.Width) / 2);
+        int y = Math.Max(0, (pnlLoginArea.ClientSize.Height - pnlLoginCard.Height) / 2);
+        Point location = new(x, y);
+
+        // The shared Tahoma/button rule may increase the button height after
+        // Designer scaling. Keep the input row a real RTL composition unit.
+        pnlTextBox.Height = Math.Max(pnlTextBox.Height, btnLogin.Height);
+        txtPass.Width = Math.Max(txtPass.Width, 251);
+
+        if (pnlLoginCard.Location != location)
+            pnlLoginCard.Location = location;
+    }
+
+    private void btnLogin_Click(object sender, EventArgs e)
+    {
+        if (_isLoginInProgress)
+            return;
+
+        _isLoginInProgress = true;
+        btnLogin.Enabled = false;
+        lblLoginError.Visible = false;
+
+        try
+        {
+            if (_appSettings == null)
+            {
+                UiMessageService.ShowError("پیکره‌بندی به‌درستی صورت نگرفته است", "خطا");
+                return;
+            }
+
+            string password = txtPass.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                ShowLoginError("کلمه عبور را وارد کنید.");
+                txtPass.Focus();
+                return;
+            }
+
+            bool isValid = PasswordHelper.VerifyPassword(
+                password,
+                _appSettings.UserResetPasswordSalt,
+                _appSettings.UserResetPasswordHash);
+
+            if (!isValid)
+            {
+                ShowLoginError("کلمه عبور نادرست است.");
+                txtPass.SelectAll();
+                txtPass.Focus();
+                return;
+            }
+
+            AppSession.Login();
+            Hide();
+
+            using FrmMain main = new();
+            main.ShowDialog();
+            Close();
+        }
+        catch (Exception ex)
+        {
+            UiMessageService.ShowError("خطا در هنگام ورود", ex, "خطا");
+        }
+        finally
+        {
+            _isLoginInProgress = false;
+            if (!IsDisposed)
+                btnLogin.Enabled = true;
+        }
+    }
+
+    private void lnkForgot_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+    {
+        try
+        {
+            if (_appSettings == null)
+            {
+                UiMessageService.ShowError("تنظیمات برنامه بارگذاری نشده است", "خطا");
+                return;
+            }
+
+            using FrmRecovery frm = new(_appSettings.StationName);
+            if (frm.ShowDialog() == DialogResult.OK)
             {
                 _appSettings = AppSettingsService.GetSettings();
-
-                if (_appSettings == null || !_appSettings.IsInitialized)
-                {
-                    UiMessageService.ShowError("برنامه هنوز راه‌اندازی اولیه نشده است", "خطا");
-
-                    Close();
-                    return;
-                }
-
-                lblUserValue.Text = GetPersianStationName(_appSettings.StationName);
-
-                CenterControlX(pnlTextBox);
-                CenterControlX(lnkChangePass);
-                CenterControlX(lnkForgot);
-
-                CenterControlX(lblUserValue);
-                CenterControlX(pnlTextBox);
-                CenterControlX(lblTitr);
-
-                CenterControlX(lblDownLine);
-                CenterControlX(lblSubTitr);
-
-
+                txtPass.Clear();
+                lblLoginError.Visible = false;
                 txtPass.Focus();
             }
-            catch (Exception ex)
-            {
-                UiMessageService.ShowError("خطا در بارگذاری فرم ورود", ex, "خطا");
-
-                Close();
-            }
         }
-
-        /// <summary>
-        /// نام انگلیسی ایستگاه را برای نمایش در فرم لاگین به نام فارسی تبدیل می‌کند
-        /// </summary>
-        private static string GetPersianStationName(string? stationName)
+        catch (Exception ex)
         {
-            if (string.IsNullOrWhiteSpace(stationName))
-                return "نامشخص";
-
-            return stationName.Trim() switch
-            {
-                "Rasht Station" => "تاسیسات تقویت فشار گاز رشـت",
-                "Ramsar Station" => "تاسیسات تقویت فشار گاز رامسر",
-                _ => stationName.Trim()
-            };
+            ErrorLogger.Log(ex, "FrmLogin.lnkForgot_LinkClicked");
+            UiMessageService.ShowError("خطا در باز کردن فرم بازیابی", ex, "خطا");
         }
+    }
 
-        /// <summary>
-        /// قرار دادن Label در مرکز فرم در محور X
-        /// (با توجه به تغییر طول متن)
-        /// </summary>
-        private void CenterControlX(Control ctrl)
+    private void lnkChangePass_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+    {
+        try
         {
-            Control? parent = ctrl.Parent;
-            if (parent == null)
-                return;
-
-            int x = (parent.ClientSize.Width - ctrl.Width) / 2;
-            ctrl.Left = x;
+            using FrmChangePassword frm = new(ChangePasswordMode.Normal);
+            if (frm.ShowDialog() == DialogResult.OK)
+            {
+                _appSettings = AppSettingsService.GetSettings();
+                txtPass.Clear();
+                lblLoginError.Visible = false;
+                txtPass.Focus();
+            }
         }
-
-        /// <summary>
-        /// بررسی رمز عبور و ورود به فرم اصلی
-        /// </summary>
-        private void btnLogin_Click(object sender, EventArgs e)
+        catch (Exception ex)
         {
-            try
-            {
-                if (_appSettings == null)
-                {
-                    UiMessageService.ShowError("پیکره بندی به درستی صورت نگرفته است", "خطا");
-                    return;
-                }
-
-                string password = txtPass.Text.Trim();
-
-                if (string.IsNullOrWhiteSpace(password))
-                {
-                    txtPass.Focus();
-                    return;
-                }
-
-                bool isValid = PasswordHelper.VerifyPassword(
-                    password,
-                    _appSettings.UserResetPasswordSalt,
-                    _appSettings.UserResetPasswordHash);
-
-                if (!isValid)
-                {
-                    UiMessageService.ShowError("کلمه عبور نادرست است","خطا");
-
-                    txtPass.SelectAll();
-                    txtPass.Focus();
-                    return;
-                }
-
-
-                AppSession.Login();
-
-                this.Hide();
-                FrmMain main = new FrmMain();
-                main.ShowDialog();
-                this.Close();
-            }
-            catch (Exception ex)
-            {
-                UiMessageService.ShowError("خطا در هنگام ورود", ex, "خطا");
-            }
+            UiMessageService.ShowError("خطا در باز کردن فرم تغییر رمز", ex, "خطا");
         }
+    }
 
-        /// <summary>
-        /// بستن فرم لاگین
-        /// </summary>
-        private void btnCancel_Click(object sender, EventArgs e)
+    private void ApplyLoginPalette()
+    {
+        AppThemePalette palette = AppThemeManager.CurrentPalette;
+        BackColor = palette.FormBackColor;
+        pnlBack.BackColor = palette.FormBackColor;
+        pnlLoginArea.BackColor = palette.FormBackColor;
+        pnlLoginCard.BackColor = palette.CardBackColor;
+        pnlLoginCard.ForeColor = palette.TextPrimaryColor;
+        lblTitr.ForeColor = palette.TextPrimaryColor;
+        lblSubTitr.ForeColor = palette.TextSecondaryColor;
+        lblUserValue.ForeColor = palette.TextPrimaryColor;
+        lblPassword.ForeColor = palette.TextSecondaryColor;
+        lnkChangePass.LinkColor = palette.PrimaryButtonBackColor;
+        lnkChangePass.ActiveLinkColor = palette.PrimaryButtonHoverColor;
+        lnkChangePass.VisitedLinkColor = palette.PrimaryButtonDownColor;
+        lnkForgot.LinkColor = palette.PrimaryButtonBackColor;
+        lnkForgot.ActiveLinkColor = palette.PrimaryButtonHoverColor;
+        lnkForgot.VisitedLinkColor = palette.PrimaryButtonDownColor;
+        btnLogin.BackColor = palette.PrimaryButtonBackColor;
+        btnLogin.FlatAppearance.MouseOverBackColor = palette.PrimaryButtonHoverColor;
+        btnLogin.FlatAppearance.MouseDownBackColor = palette.PrimaryButtonDownColor;
+        btnLogin.FlatAppearance.BorderColor = palette.PrimaryButtonBackColor;
+        lblDivider.BackColor = palette.DividerBackColor;
+        pnlBrand.BackColor = palette.HeaderBackColor;
+    }
+
+    private void LoadBrandImage()
+    {
+        string logoPath = Path.Combine(AppContext.BaseDirectory, "DataFiles", "LOGO.png");
+        if (!File.Exists(logoPath))
+            return;
+
+        try
         {
-            this.Close();
+            using Image source = Image.FromFile(logoPath);
+            picLogo.Image = new Bitmap(source);
         }
-
-        /// <summary>
-        /// ایجاد درخواست بازیابی رمز عبور و هدایت کاربر به فرم FrmRecovery
-        /// </summary>
-        private void lnkForgot_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        catch
         {
-            try
-            {
-                if (_appSettings == null)
-                {
-                    UiMessageService.ShowError("تنظیمات برنامه بارگذاری نشده است", "خطا");
-                    return;
-                }
-
-                string stationName = _appSettings.StationName;
-
-                using (FrmRecovery frm = new FrmRecovery(stationName))
-                {
-                    DialogResult result = frm.ShowDialog();
-
-                    if (result == DialogResult.OK)
-                    {
-                        _appSettings = AppSettingsService.GetSettings();
-
-                        txtPass.Clear();
-                        txtPass.Focus();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorLogger.Log(ex, "FrmLogin.lnkForgot_LinkClicked");
-                UiMessageService.ShowError("خطا در باز کردن فرم بازیابی", ex, "خطا");
-            }
+            picLogo.Image = null;
         }
-        private void lnkChangePass_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
-                using (FrmChangePassword frm = new FrmChangePassword(ChangePasswordMode.Normal))
-                {
-                    DialogResult result = frm.ShowDialog();
+    }
 
-                    if (result == DialogResult.OK)
-                    {
-                        //چون هش و سالت تغییر کرده بارگذاری مجدد تنظیمات 
-                        _appSettings = AppSettingsService.GetSettings();
-
-                        txtPass.Clear();
-                        txtPass.Focus();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                UiMessageService.ShowError("خطا در باز کردن فرم تغییر رمز", ex, "خطا");
-            }
-        }
-
-        private void pnlBack_Paint(object sender, PaintEventArgs e)
-        {
-            Graphics g = e.Graphics;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-
-            Rectangle rect = pnlBack.ClientRectangle;
-
-            // یک بیضی بزرگ‌تر از پنل برای ایجاد fade نرم
-            Rectangle glowRect = new Rectangle(
-                rect.X - rect.Width / 2,
-                rect.Y - rect.Height / 3,
-                rect.Width * 2,
-                rect.Height * 2
-            );
-
-            using (GraphicsPath path = new GraphicsPath())
-            {
-                path.AddEllipse(glowRect);
-
-                using (PathGradientBrush brush = new PathGradientBrush(path))
-                {
-                    // رنگ روشن مرکز
-                    brush.CenterColor = Color.FromArgb(180, Color.LightBlue);
-
-                    // رنگ تیره لبه‌ها
-                    brush.SurroundColors = new[] { Color.MidnightBlue };
-
-                    // محل مرکز نور
-                    brush.CenterPoint = new PointF(
-                        rect.Width / 2f,
-                        rect.Height / 2f
-                    );
-
-                    g.FillRectangle(brush, rect);
-                }
-            }
-        }
-
-
-        
+    private void ShowLoginError(string message)
+    {
+        lblLoginError.Text = message;
+        lblLoginError.Visible = true;
     }
 }

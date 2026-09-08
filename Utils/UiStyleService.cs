@@ -9,7 +9,7 @@ namespace Rah_Negar.Utils;
 /// </summary>
 public static class UiStyleService
 {
-    public const string FontFamily = "Segoe UI";
+    public const string FontFamily = "Tahoma";
     public const float NormalFontSize = 9f;
     public const float SectionFontSize = 9.5f;
     public const float FormHeadingFontSize = 13f;
@@ -42,6 +42,9 @@ public static class UiStyleService
 
         foreach (Control control in root.Controls)
         {
+            ApplyFontFamily(control);
+            control.RightToLeft = RightToLeft.Yes;
+
             switch (control)
             {
                 case Button button:
@@ -50,24 +53,18 @@ public static class UiStyleService
 
                 case TextBox textBox:
                     textBox.Font = CreateFont();
-                    textBox.MinimumSize = new Size(textBox.MinimumSize.Width,
-                        Math.Max(textBox.MinimumSize.Height, UiScaleService.Scale(control, StandardControlHeight)));
                     textBox.BorderStyle = BorderStyle.FixedSingle;
                     textBox.RightToLeft = RightToLeft.Yes;
                     break;
 
                 case ComboBox comboBox:
                     comboBox.Font = CreateFont();
-                    comboBox.MinimumSize = new Size(comboBox.MinimumSize.Width,
-                        Math.Max(comboBox.MinimumSize.Height, UiScaleService.Scale(control, StandardControlHeight)));
                     comboBox.IntegralHeight = false;
                     comboBox.RightToLeft = RightToLeft.Yes;
                     break;
 
                 case DateTimePicker dateTimePicker:
                     dateTimePicker.Font = CreateFont();
-                    dateTimePicker.MinimumSize = new Size(dateTimePicker.MinimumSize.Width,
-                        Math.Max(dateTimePicker.MinimumSize.Height, UiScaleService.Scale(control, StandardControlHeight)));
                     dateTimePicker.RightToLeft = RightToLeft.Yes;
                     break;
 
@@ -85,10 +82,43 @@ public static class UiStyleService
                 case DataGridView grid:
                     ApplyGridConventions(grid, palette);
                     break;
+
+                case ToolStrip toolStrip:
+                    toolStrip.RightToLeft = RightToLeft.Yes;
+                    foreach (ToolStripItem item in toolStrip.Items)
+                        item.Font = CreateFont(item.Font.Size > 0 ? item.Font.Size : NormalFontSize, item.Font.Style);
+                    break;
+
+                case FlowLayoutPanel flow:
+                    flow.FlowDirection = FlowDirection.RightToLeft;
+                    flow.WrapContents = false;
+                    break;
+
+                case TableLayoutPanel table:
+                    table.RightToLeft = RightToLeft.Yes;
+                    break;
             }
 
             if (control.HasChildren)
                 ApplyControlConventions(control, palette);
+        }
+
+    }
+
+    private static void ApplyFontFamily(Control control)
+    {
+        float size = control.Font.Size > 0 ? control.Font.Size : NormalFontSize;
+        control.Font = CreateFont(size, control.Font.Style);
+        if (control is DataGridView grid)
+        {
+            grid.DefaultCellStyle.Font = CreateFont(size);
+            grid.ColumnHeadersDefaultCellStyle.Font = CreateFont(size, FontStyle.Bold);
+            grid.RowHeadersDefaultCellStyle.Font = CreateFont(size);
+            foreach (DataGridViewColumn column in grid.Columns)
+            {
+                column.DefaultCellStyle.Font = CreateFont(size);
+                column.HeaderCell.Style.Font = CreateFont(size, FontStyle.Bold);
+            }
         }
     }
 
@@ -98,12 +128,16 @@ public static class UiStyleService
         ArgumentNullException.ThrowIfNull(palette);
 
         button.Font = CreateFont();
+        int minimumHeight = UiScaleService.Scale(button, StandardButtonHeight);
         button.MinimumSize = new Size(button.MinimumSize.Width,
-            Math.Max(button.MinimumSize.Height, UiScaleService.Scale(button, StandardButtonHeight)));
+            Math.Max(button.MinimumSize.Height, minimumHeight));
+        button.Height = Math.Max(button.Height, minimumHeight);
+        button.AutoSize = false;
+        button.TextAlign = ContentAlignment.MiddleCenter;
         button.Padding = new Padding(UiScaleService.Scale(button, 10),
-            UiScaleService.Scale(button, 3),
+            UiScaleService.Scale(button, 4),
             UiScaleService.Scale(button, 10),
-            UiScaleService.Scale(button, 3));
+            UiScaleService.Scale(button, 4));
         button.FlatStyle = FlatStyle.Flat;
         button.FlatAppearance.BorderColor = palette.DividerBackColor;
         button.FlatAppearance.MouseOverBackColor = palette.NavigationHoverBackColor;

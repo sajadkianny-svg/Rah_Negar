@@ -163,7 +163,7 @@ public sealed class Batch3CompletionTests
             connection.Open();
             using SqliteCommand command = connection.CreateCommand();
             command.CommandText = "SELECT station_name FROM app_settings;";
-            Assert.Equal("Generic Profile (5 Units)", command.ExecuteScalar()?.ToString());
+            Assert.Equal("Synthetic Qualification Station 5", command.ExecuteScalar()?.ToString());
 
             command.CommandText = "SELECT name FROM pragma_table_info('tbl_data') WHERE name='u5_rpm';";
             Assert.Equal("u5_rpm", command.ExecuteScalar()?.ToString());

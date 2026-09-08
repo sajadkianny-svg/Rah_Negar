@@ -41,5 +41,20 @@ public sealed class AppSettingsModel
     public double EsdExtraRuntimeHours { get; set; }
 
     public long DataStartDateRep {  get; set; } 
+
+    public string ProfileId { get; set; } = string.Empty;
+
+    public int ProfileRevision { get; set; }
+
+    public int UnitCount { get; set; }
+
+    public string ProfileOptionalParameters { get; set; } = string.Empty;
+
+    public CanonicalProfileDefinition? ProfileDefinition =>
+        CanonicalProfileDefinition.TryCreateFromLegacySettings(
+            ProfileId, ProfileRevision, StationName, UnitCount,
+            ProfileOptionalParameters, out CanonicalProfileDefinition? definition)
+            ? definition
+            : null;
 }
 

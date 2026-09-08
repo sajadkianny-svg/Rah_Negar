@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Rah_Negar.Data;
+using Rah_Negar.Core;
 
 namespace Rah_Negar.Services;
 
@@ -18,11 +19,7 @@ public static class AppInitializationService
         {
             using var conn = SqliteDatabaseHelper.CreateConnection();
 
-            const string sql = "SELECT COUNT(*) FROM app_settings WHERE is_initialized = 1;";
-            object? result = SqliteCommandHelper.ExecuteScalar(conn, sql);
-
-            int count = Convert.ToInt32(result ?? 0);
-            return count > 0;
+            return CanonicalProfileService.TryLoad(conn) is not null;
         }
         catch
         {

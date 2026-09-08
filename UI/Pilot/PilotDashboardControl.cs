@@ -54,7 +54,7 @@ public sealed class PilotDashboardControl : UserControl,
         {
             AutoSize = true,
             Dock = DockStyle.Top,
-            Font = new Font(FontFamily.GenericSansSerif, 12f, FontStyle.Bold),
+            Font = new Font("Tahoma", 12f, FontStyle.Bold),
             Padding = new Padding(0, 0, 0, 8),
             Text = "Pilot observation dashboard",
             UseMnemonic = false,

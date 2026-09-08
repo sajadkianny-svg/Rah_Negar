@@ -16,6 +16,22 @@ if (args.Length >= 1 && args[0].Equals("--generic", StringComparison.OrdinalIgno
     return;
 }
 
+if (args.Length >= 1 && args[0].Equals("--stage-recovery", StringComparison.OrdinalIgnoreCase))
+{
+    if (args.Length != 2) throw new ArgumentException("Usage: QualificationTool --stage-recovery <qualification-root>");
+    QualificationEnvironment.StageRecoveryRequired(args[1]);
+    Console.WriteLine("Staged qualification-only recovery state.");
+    return;
+}
+
+if (args.Length >= 1 && args[0].Equals("--clear-recovery", StringComparison.OrdinalIgnoreCase))
+{
+    if (args.Length != 2) throw new ArgumentException("Usage: QualificationTool --clear-recovery <qualification-root>");
+    QualificationEnvironment.ClearRecoveryRequired(args[1]);
+    Console.WriteLine("Cleared qualification-only recovery state.");
+    return;
+}
+
 if (args.Length != 1) throw new ArgumentException("Usage: QualificationTool <output-directory>");
 QualificationEnvironment.Prepare(args[0]);
 Console.WriteLine($"Prepared qualification databases under {Path.GetFullPath(args[0])}");

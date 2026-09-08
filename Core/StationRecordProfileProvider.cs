@@ -20,11 +20,11 @@ public static class StationRecordProfileProvider
         if (GenericProfileIdentity.TryGetUnitCount(stationName, out int genericUnitCount))
             return new GenericStationRecordProfile(stationName, genericUnitCount);
 
-        return stationName switch
-        {
-            "Rasht Station" => new RashtStationRecordProfile(),
-            "Ramsar Station" => new RamsarStationRecordProfile(),
-            _ => throw new NotSupportedException($"Station profile is not implemented for: {stationName}")
-        };
+        if (LegacyStationProfileCompatibility.TryGetUnitCount(stationName, out int units, out _))
+            return units == 3 ? new RashtStationRecordProfile() : new RamsarStationRecordProfile();
+        throw new NotSupportedException($"Station profile requires a canonical persisted definition: {stationName}");
     }
+
+    public static IStationUiProfile GetProfile(CanonicalProfileDefinition definition) =>
+        new GenericStationRecordProfile(definition);
 }

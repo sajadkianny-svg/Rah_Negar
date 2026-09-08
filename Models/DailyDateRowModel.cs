@@ -28,6 +28,12 @@ public sealed class DailyDataRowModel
     public string U3St { get; set; } = string.Empty;
     public int U3Rpm { get; set; }
 
+    public string U4St { get; set; } = string.Empty;
+    public int U4Rpm { get; set; }
+
+    public string U5St { get; set; } = string.Empty;
+    public int U5Rpm { get; set; }
+
     public double Rec { get; set; }
     public double Flow { get; set; }
     public double InT { get; set; }

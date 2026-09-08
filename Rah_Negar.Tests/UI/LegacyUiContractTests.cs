@@ -51,16 +51,49 @@ public sealed class LegacyUiContractTests
     {
         string designer = File.ReadAllText(Path.Combine(RepositoryRoot(), "UI", "Forms", "FrmRecords.Designer.cs"));
 
-        Assert.Contains("colUnit.HeaderText = \"Unit\"", designer, StringComparison.Ordinal);
-        Assert.Contains("colEventType.HeaderText = \"Type\"", designer, StringComparison.Ordinal);
-        Assert.Contains("colEventTime.HeaderText = \"Time\"", designer, StringComparison.Ordinal);
-        Assert.Contains("colRemark.HeaderText = \"Remark\"", designer, StringComparison.Ordinal);
+        Assert.Contains("colUnit.HeaderText = \"واحد\"", designer, StringComparison.Ordinal);
+        Assert.Contains("colEventType.HeaderText = \"نوع\"", designer, StringComparison.Ordinal);
+        Assert.Contains("colEventTime.HeaderText = \"ساعت\"", designer, StringComparison.Ordinal);
+        Assert.Contains("colRemark.HeaderText = \"شرح\"", designer, StringComparison.Ordinal);
 
         int unit = designer.IndexOf("colUnit.HeaderText", StringComparison.Ordinal);
         int type = designer.IndexOf("colEventType.HeaderText", StringComparison.Ordinal);
         int time = designer.IndexOf("colEventTime.HeaderText", StringComparison.Ordinal);
         int remark = designer.IndexOf("colRemark.HeaderText", StringComparison.Ordinal);
         Assert.True(unit < type && type < time && time < remark);
+    }
+
+    [Fact]
+    public void Surrounding_legacy_forms_restore_approved_persian_captions()
+    {
+        string records = File.ReadAllText(Path.Combine(RepositoryRoot(), "UI", "Forms", "FrmRecords.Designer.cs"));
+        string reports = File.ReadAllText(Path.Combine(RepositoryRoot(), "UI", "Forms", "FrmReportCenter.Designer.cs"));
+        string settings = File.ReadAllText(Path.Combine(RepositoryRoot(), "UI", "Forms", "FrmSettings.cs"));
+
+        Assert.Contains("tabPage1.Text = \"پارامترهای عملیاتی\"", records, StringComparison.Ordinal);
+        Assert.Contains("tabPage2.Text = \"سوخت، جریان و رویدادها\"", records, StringComparison.Ordinal);
+        Assert.Contains("btnSave.Text = \"ثبت\"", records, StringComparison.Ordinal);
+        Assert.Contains("label16.Text = \"سوخت و جریان\"", records, StringComparison.Ordinal);
+        Assert.Contains("btnGenerateReport.Text = \"تولید گزارش\"", reports, StringComparison.Ordinal);
+        Assert.Contains("btnFinalizeMonthlyReport.Text = \"نهایی‌سازی ماه\"", reports, StringComparison.Ordinal);
+        Assert.Contains("راه‌اندازی اولیه:", settings, StringComparison.Ordinal);
+        Assert.Contains("آخرین پشتیبان‌گیری:", settings, StringComparison.Ordinal);
+        Assert.Contains("حجم دیتابیس:", settings, StringComparison.Ordinal);
+        Assert.Contains("آخرین تغییر رمز عبور:", settings, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Settings_layout_uses_bounded_fill_for_dynamic_database_details()
+    {
+        string designer = File.ReadAllText(Path.Combine(RepositoryRoot(), "UI", "Forms", "FrmSettings.Designer.cs"));
+        string source = File.ReadAllText(Path.Combine(RepositoryRoot(), "UI", "Forms", "FrmSettings.cs"));
+
+        Assert.Contains("ClientSize = new Size(860, 580)", designer, StringComparison.Ordinal);
+        Assert.Contains("MinimumSize = new Size(860, 580)", designer, StringComparison.Ordinal);
+        Assert.Contains("lblDatabaseDetails.Dock = DockStyle.Fill", source, StringComparison.Ordinal);
+        Assert.Contains("lblDatabaseDetails.AutoSize = false", source, StringComparison.Ordinal);
+        Assert.Contains("lblPasswordDetails.AutoSize = false", source, StringComparison.Ordinal);
+        Assert.Contains("ApplySettingsLayout();", source, StringComparison.Ordinal);
     }
 
     [Fact]

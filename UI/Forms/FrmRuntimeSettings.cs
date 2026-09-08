@@ -8,9 +8,12 @@ namespace Rah_Negar.UI.Forms;
 
 public partial class FrmRuntimeSettings : BaseForm
 {
+    private TextBox? _u5Run;
+    private TextBox? _u5Oh;
     public FrmRuntimeSettings()
     {
         InitializeComponent();
+        CreateUnitFiveControls();
 
         ApplyAdvancedRuntimeUnitVisibility();
         LoadRuntimeBaseInputs();
@@ -28,6 +31,7 @@ public partial class FrmRuntimeSettings : BaseForm
         SetUnitRuntimeControlsVisible(2, unitCount >= 2);
         SetUnitRuntimeControlsVisible(3, unitCount >= 3);
         SetUnitRuntimeControlsVisible(4, unitCount >= 4);
+        SetUnitRuntimeControlsVisible(5, unitCount >= 5);
     }
 
     /// <summary>
@@ -60,20 +64,17 @@ public partial class FrmRuntimeSettings : BaseForm
                 txtU4Run.Visible = visible;
                 txtU4OH.Visible = visible;
                 break;
+            case 5:
+                if (_u5Run is not null) _u5Run.Visible = visible;
+                if (_u5Oh is not null) _u5Oh.Visible = visible;
+                if (pnlContainer.Controls["lblU5"] is Control label) label.Visible = visible;
+                break;
         }
     }
 
     private static int LoadUnitCount()
     {
-        using SqliteConnection conn = SqliteDatabaseHelper.CreateConnection();
-        using SqliteCommand cmd = conn.CreateCommand();
-
-        cmd.CommandText = """
-        SELECT COUNT(*)
-        FROM unit_runtime_base;
-        """;
-
-        return Convert.ToInt32(cmd.ExecuteScalar());
+        return Rah_Negar.Core.CanonicalProfileService.Require().UnitCount;
     }
 
     /// <summary>
@@ -130,16 +131,14 @@ public partial class FrmRuntimeSettings : BaseForm
 
     private void BindNumericTextBoxes()
     {
-        TextBox[] boxes =
+        TextBox?[] boxes =
         [
-            txtU1Run, txtU1OH,
-            txtU2Run, txtU2OH,
-            txtU3Run, txtU3OH,
-            txtU4Run, txtU4OH
+            txtU1Run, txtU1OH, txtU2Run, txtU2OH,
+            txtU3Run, txtU3OH, txtU4Run, txtU4OH, _u5Run, _u5Oh
         ];
 
-        foreach (TextBox box in boxes)
-            box.KeyPress += NumericTextBox_KeyPress;
+        foreach (TextBox? box in boxes)
+            if (box is not null) box.KeyPress += NumericTextBox_KeyPress;
     }
 
     private static void NumericTextBox_KeyPress(object? sender, KeyPressEventArgs e)
@@ -169,7 +168,7 @@ public partial class FrmRuntimeSettings : BaseForm
     {
         try
         {
-            DialogResult result = MessageBox.Show(
+            DialogResult result = UiMessageService.ShowMessageBox(
                 "این بخش برای اصلاح مقدار پایه ساعت کارکرد واحدها استفاده می‌شود" +
                 Environment.NewLine +
                 Environment.NewLine +
@@ -202,10 +201,12 @@ public partial class FrmRuntimeSettings : BaseForm
 
             if (unitCount >= 4)
                 UpdateRuntimeBaseForUnit(conn, tx, 4, txtU4Run, txtU4OH);
+            if (unitCount >= 5 && _u5Run is not null && _u5Oh is not null)
+                UpdateRuntimeBaseForUnit(conn, tx, 5, _u5Run, _u5Oh);
 
             tx.Commit();
 
-            MessageBox.Show(
+            UiMessageService.ShowMessageBox(
                 "مقادیر پایه ساعت کارکرد با موفقیت ذخیره شد",
                 "تنظیمات کارکرد",
                 MessageBoxButtons.OK,
@@ -260,5 +261,13 @@ public partial class FrmRuntimeSettings : BaseForm
     private void btnCancel_Click(object sender, EventArgs e)
     {
         Close();
+    }
+
+    private void CreateUnitFiveControls()
+    {
+        _u5Run = new TextBox { Name = "txtU5Run", Location = new Point(119, 120), Size = new Size(90, 23), TextAlign = HorizontalAlignment.Center, BorderStyle = BorderStyle.FixedSingle };
+        _u5Oh = new TextBox { Name = "txtU5OH", Location = new Point(212, 120), Size = new Size(90, 23), TextAlign = HorizontalAlignment.Center, BorderStyle = BorderStyle.FixedSingle };
+        Label label = new() { Name = "lblU5", Text = "واحد ۵", AutoSize = true, Location = new Point(80, 124), RightToLeft = RightToLeft.Yes };
+        pnlContainer.Controls.AddRange([_u5Run, _u5Oh, label]);
     }
 }

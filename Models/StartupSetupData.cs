@@ -30,6 +30,10 @@ namespace Rah_Negar.Models
 
         public int ThemeIndex { get; set; }
 
-        public long DataStartDateRep { get; set; }
-    }
+    public long DataStartDateRep { get; set; }
+
+    public CanonicalProfileDefinition? ProfileDefinition { get; set; }
+
+    public int UnitCount => ProfileDefinition?.UnitCount ?? UnitRuntimeBases.Count;
+}
 }

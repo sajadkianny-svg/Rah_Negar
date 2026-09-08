@@ -3,6 +3,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using Rah_Negar.Core.Reports;
+using Rah_Negar.Core;
 using Rah_Negar.Data;
 using Rah_Negar.Models.Reports;
 
@@ -23,6 +24,25 @@ public static class MonthlyFinalPdfService
         string filePath,
         string stationName)
     {
+        if (CanonicalProfileDefinition.TryCreateFromLegacySettings(
+                null, 1, stationName,
+                GenericProfileIdentity.TryGetUnitCount(stationName, out int units) ? units : 3,
+                null, out CanonicalProfileDefinition? compatibilityDefinition))
+        {
+            GenerateMonthlyFinalPdf(year, month, filePath, compatibilityDefinition!);
+            return;
+        }
+
+        throw new NotSupportedException("گزارش PDF فقط با پروفایل canonical تولید می‌شود.");
+    }
+
+    public static void GenerateMonthlyFinalPdf(
+        int year,
+        int month,
+        string filePath,
+        CanonicalProfileDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
         QuestPDF.Settings.License = LicenseType.Community;
 
         using SqliteConnection conn = SqliteDatabaseHelper.CreateConnection();
@@ -40,7 +60,7 @@ public static class MonthlyFinalPdfService
             MonthlyFinalReportReadService.LoadRecycleChangeCount(conn, year, month);
 
         IReadOnlyList<ReportParameterDefinition> parameters =
-            ReportParameterRegistry.GetParameters(stationName);
+            ReportParameterRegistry.GetGenericParameters(definition);
 
         List<EventDatePdfRow> eventDates =
             LoadEventDates(conn, year, month);
@@ -48,7 +68,7 @@ public static class MonthlyFinalPdfService
         const float rowHeight = 12f;
 
         int actualRows = CountValidOperationalParams(parameters);
-        int standardRowCount = GetStandardOperationalRowCount();
+        int standardRowCount = GetStandardOperationalRowCount(definition);
         int missingRows = Math.Max(0, standardRowCount - actualRows);
         float spacerHeight = missingRows * rowHeight;
 
@@ -63,11 +83,11 @@ public static class MonthlyFinalPdfService
 
                 page.DefaultTextStyle(x => x
                     .FontSize(7)
-                    .FontFamily("Arial")
+                    .FontFamily("Tahoma")
                     .FontColor(Colors.Grey.Darken4));
 
                 page.Header().Element(e =>
-                    BuildHeader(e, stationName, year, month, reportId));
+                    BuildHeader(e, definition.StationName, year, month, reportId));
 
                 page.Content().Column(col =>
                 {
@@ -677,17 +697,9 @@ ORDER BY unit, date_rep, event_time;";
     /// بیشترین تعداد سطر Operational Summary بین پروفایل‌های فعلی.
     /// برای ثابت نگه داشتن چیدمان بین ایستگاه‌ها استفاده می‌شود.
     /// </summary>
-    private static int GetStandardOperationalRowCount()
+    private static int GetStandardOperationalRowCount(CanonicalProfileDefinition definition)
     {
-        IReadOnlyList<ReportParameterDefinition> rasht =
-            ReportParameterRegistry.GetParameters("Rasht Station");
-
-        IReadOnlyList<ReportParameterDefinition> ramsar =
-            ReportParameterRegistry.GetParameters("Ramsar Station");
-
-        return Math.Max(
-            CountValidOperationalParams(rasht),
-            CountValidOperationalParams(ramsar));
+        return CountValidOperationalParams(ReportParameterRegistry.GetGenericParameters(definition));
     }
 
     /// <summary>
@@ -724,12 +736,7 @@ ORDER BY unit, date_rep, event_time;";
     /// </summary>
     private static string GetOfficialStationTitle(string stationName)
     {
-        return stationName switch
-        {
-            "Rasht Station" => "RASHT GAS COMPRESSION STATION",
-            "Ramsar Station" => "RAMSAR GAS COMPRESSION STATION",
-            _ => stationName.ToUpperInvariant()
-        };
+        return stationName.ToUpperInvariant();
     }
 
     /// <summary>

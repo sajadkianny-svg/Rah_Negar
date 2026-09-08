@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Data.Sqlite;
 using Rah_Negar.Core.Reports;
+using Rah_Negar.Core;
 using Rah_Negar.Models.Reports;
 
 namespace Rah_Negar.Services.Reports;
@@ -94,6 +95,34 @@ public static class ReportEngineService
             ChartPoints = chartPoints,
             DailyStatuses = dailyStatuses,
             Warnings = warnings
+        };
+    }
+
+    public static ReportResult BuildReport(
+        SqliteConnection conn,
+        CanonicalProfileDefinition definition,
+        ReportRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(conn);
+        ArgumentNullException.ThrowIfNull(request);
+
+        ReportStationProfile profile = ReportStationProfileProvider.GetProfile(definition);
+        IReadOnlyList<ReportParameterDefinition> selectedParameters = profile.Parameters
+            .Where(p => request.SelectedParameters.Contains(p.Key))
+            .ToList();
+        if (selectedParameters.Count == 0)
+            return new ReportResult { Request = request, Warnings = ["هیچ پارامتر معتبری برای گزارش انتخاب نشده است."] };
+
+        List<Dictionary<string, object>> dataRows = ReportQueryService.LoadDataRows(conn, request, selectedParameters);
+        List<Dictionary<string, object>> uniqueRows = ReportQueryService.LoadUniqueRows(conn, request, selectedParameters);
+        return new ReportResult
+        {
+            Request = request,
+            SummaryItems = ReportAggregationService.BuildSummary(dataRows, uniqueRows, selectedParameters),
+            ChartPoints = ChartDataBuilder.BuildChartPoints(dataRows, uniqueRows, selectedParameters),
+            DailyStatuses = request.IncludeMissingDays ? ReportCompletenessService.CheckRange(conn, request.DateFrom, request.DateTo) : [],
+            Warnings = dataRows.Count == 0 && uniqueRows.Count == 0 ? ["در بازه انتخاب‌شده هیچ داده‌ای برای گزارش یافت نشد."] : []
         };
     }
 }

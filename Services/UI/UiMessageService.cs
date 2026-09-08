@@ -2,6 +2,7 @@
 using System.Text;
 using System.Windows.Forms;
 using Rah_Negar.Utils;
+using System.Runtime.InteropServices;
 
 namespace Rah_Negar.Services.UI;
 
@@ -147,15 +148,15 @@ public static class UiMessageService
     }
 
     /// <summary>
-    /// نمایش پیام تأیید با گزینه‌های OK / Cancel.
-    /// خروجی true یعنی کاربر OK را انتخاب کرده است.
+    /// نمایش پیام تأیید با گزینه‌های تأیید / انصراف.
+    /// خروجی true یعنی کاربر تأیید را انتخاب کرده است.
     /// </summary>
     public static bool ConfirmOkCancel(
         string message,
         string title = "تأیید",
         MessageBoxIcon icon = MessageBoxIcon.Question)
     {
-        DialogResult result = MessageBox.Show(
+        DialogResult result = ShowMessageBox(
             message,
             title,
             MessageBoxButtons.OKCancel,
@@ -288,6 +289,38 @@ public static class UiMessageService
     // ================= Internal Core Methods =================
 
     /// <summary>
+    /// نمایش MessageBox بومی ویندوز با عنوان دکمه‌های فارسی.
+    /// این متد همان پنجره و قرارداد DialogResult ویندوز را حفظ می‌کند.
+    /// </summary>
+    public static DialogResult ShowMessageBox(
+        string message,
+        string title,
+        MessageBoxButtons buttons,
+        MessageBoxIcon icon,
+        MessageBoxDefaultButton defaultButton = MessageBoxDefaultButton.Button1,
+        MessageBoxOptions options = MessageBoxOptions.RightAlign | MessageBoxOptions.RtlReading)
+    {
+        return ShowNativeMessageBox(
+            () => MessageBox.Show(message, title, buttons, icon, defaultButton, options), buttons);
+    }
+
+    /// <summary>
+    /// نسخه دارای مالک پنجره برای حفظ جای‌گذاری صحیح پیام‌های فرم‌ها.
+    /// </summary>
+    public static DialogResult ShowMessageBox(
+        IWin32Window owner,
+        string message,
+        string title,
+        MessageBoxButtons buttons,
+        MessageBoxIcon icon,
+        MessageBoxDefaultButton defaultButton = MessageBoxDefaultButton.Button1,
+        MessageBoxOptions options = MessageBoxOptions.RightAlign | MessageBoxOptions.RtlReading)
+    {
+        return ShowNativeMessageBox(
+            () => MessageBox.Show(owner, message, title, buttons, icon, defaultButton, options), buttons);
+    }
+
+    /// <summary>
     /// نمایش پیام OK محور.
     /// </summary>
     private static void ShowOk(
@@ -295,7 +328,7 @@ public static class UiMessageService
         string title,
         MessageBoxIcon icon)
     {
-        MessageBox.Show(
+        ShowMessageBox(
             message,
             title,
             MessageBoxButtons.OK,
@@ -313,7 +346,7 @@ public static class UiMessageService
         MessageBoxIcon icon,
         MessageBoxDefaultButton defaultButton)
     {
-        DialogResult result = MessageBox.Show(
+        DialogResult result = ShowMessageBox(
             message,
             title,
             MessageBoxButtons.YesNo,
@@ -341,4 +374,99 @@ public static class UiMessageService
     {
         return MessageBoxOptions.RightAlign | MessageBoxOptions.RtlReading;
     }
+
+    private static DialogResult ShowNativeMessageBox(
+        Func<DialogResult> show,
+        MessageBoxButtons buttons)
+    {
+        using NativeMessageBoxHook hook = new(buttons);
+        return show();
+    }
+
+    private sealed class NativeMessageBoxHook : IDisposable
+    {
+        private const int WhCbt = 5;
+        private const int HcbtActivate = 5;
+        private readonly HookProc _callback;
+        private readonly MessageBoxButtons _buttons;
+        private IntPtr _hookHandle;
+
+        public NativeMessageBoxHook(MessageBoxButtons buttons)
+        {
+            _buttons = buttons;
+            _callback = OnHook;
+            _hookHandle = SetWindowsHookEx(WhCbt, _callback, IntPtr.Zero, GetCurrentThreadId());
+        }
+
+        private IntPtr OnHook(int code, IntPtr windowHandle, IntPtr data)
+        {
+            if (code == HcbtActivate)
+                LocalizeButtons(windowHandle, _buttons);
+
+            return CallNextHookEx(_hookHandle, code, windowHandle, data);
+        }
+
+        public void Dispose()
+        {
+            if (_hookHandle == IntPtr.Zero)
+                return;
+
+            UnhookWindowsHookEx(_hookHandle);
+            _hookHandle = IntPtr.Zero;
+        }
+    }
+
+    private static void LocalizeButtons(IntPtr dialogHandle, MessageBoxButtons buttons)
+    {
+        EnumChildWindows(dialogHandle, (buttonHandle, _) =>
+        {
+            string? caption = GetPersianButtonCaption(GetDlgCtrlID(buttonHandle), buttons);
+            if (caption is not null)
+                SetWindowText(buttonHandle, caption);
+            return true;
+        }, IntPtr.Zero);
+    }
+
+    private static string? GetPersianButtonCaption(int controlId, MessageBoxButtons buttons)
+    {
+        return controlId switch
+        {
+            1 when buttons is MessageBoxButtons.OK or MessageBoxButtons.OKCancel => "تأیید",
+            2 when buttons is MessageBoxButtons.OKCancel or MessageBoxButtons.RetryCancel => "انصراف",
+            2 when buttons == MessageBoxButtons.YesNoCancel => "انصراف",
+            3 when buttons == MessageBoxButtons.AbortRetryIgnore => "لغو",
+            4 when buttons is MessageBoxButtons.AbortRetryIgnore or MessageBoxButtons.RetryCancel => "تلاش مجدد",
+            5 when buttons == MessageBoxButtons.AbortRetryIgnore => "نادیده گرفتن",
+            6 when buttons is MessageBoxButtons.YesNo or MessageBoxButtons.YesNoCancel => "بله",
+            7 when buttons is MessageBoxButtons.YesNo or MessageBoxButtons.YesNoCancel => "خیر",
+            _ => null
+        };
+    }
+
+    internal static string? GetLocalizedButtonCaptionForTesting(int controlId, MessageBoxButtons buttons) =>
+        GetPersianButtonCaption(controlId, buttons);
+
+    private delegate IntPtr HookProc(int code, IntPtr windowHandle, IntPtr data);
+    private delegate bool EnumChildProc(IntPtr windowHandle, IntPtr data);
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetCurrentThreadId();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetWindowsHookEx(int idHook, HookProc callback, IntPtr moduleHandle, uint threadId);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool UnhookWindowsHookEx(IntPtr hookHandle);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr CallNextHookEx(IntPtr hookHandle, int code, IntPtr windowHandle, IntPtr data);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumChildWindows(IntPtr parentHandle, EnumChildProc callback, IntPtr data);
+
+    [DllImport("user32.dll")]
+    private static extern int GetDlgCtrlID(IntPtr windowHandle);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool SetWindowText(IntPtr windowHandle, string text);
 }

@@ -46,6 +46,7 @@ namespace Rah_Negar.UI.Forms
         /// این مقدار از تنظیمات برنامه خوانده می‌شود و برای انتخاب GridProfile، PasteProfile و StationProfile استفاده می‌شود
         /// </summary>
         private string _stationName = string.Empty;
+        private CanonicalProfileDefinition _profileDefinition = null!;
 
         /// <summary>
         /// پروفایل ساختار و ظاهر گرید اصلی داده‌ها
@@ -103,6 +104,10 @@ namespace Rah_Negar.UI.Forms
         /// </summary>
         private List<DailyEventRowModel> _loadedEventsRows = new();
 
+        private const string AddEventCaption = "افزودن";
+        private const string ApplyEventChangesCaption = "اعمال تغییرات";
+        private bool _isApplyingRecordsLayout;
+
         #endregion
 
         #region سازنده و رویدادهای اصلی فرم
@@ -112,11 +117,15 @@ namespace Rah_Negar.UI.Forms
         /// کنترل‌های اصلی فرم، تاریخ شمسی، گرید، ComboBoxهای رویداد، محدودیت‌های ورودی و DoubleBuffering را مقداردهی می‌کند
         /// مقداردهی نهایی وابسته به دیتابیس فعال در رویداد Load انجام می‌شود
         /// </summary>
-        public FrmRecords()
+        public FrmRecords() : this(loadUnitsFromDatabase: true)
+        {
+        }
+
+        public FrmRecords(bool loadUnitsFromDatabase)
         {
             InitializeComponent();
             AutoScaleMode = AutoScaleMode.Dpi;
-            Font = UiScaleService.GetDefaultFont(this, 9f);
+            Font = UiStyleService.CreateFont(9f);
 
             EnableDoubleBuffering(this);
             EnableDoubleBuffering(tabControl1);
@@ -128,9 +137,9 @@ namespace Rah_Negar.UI.Forms
             ApplyThemeToRecordsForm();
             InitializeShamsiDatePicker();
 
-            string stationName = "Rasht Station";
-
-            GridProfile profile = GridProfileProvider.GetProfile(stationName);
+            CanonicalProfileDefinition placeholder = CanonicalProfileDefinition.Create("پروفایل موقت", 3);
+            _profileDefinition = placeholder;
+            GridProfile profile = GridProfileProvider.GetProfile(placeholder);
             ApplyGridProfileToDataGridView(profile);
 
             dtpTime.Format = DateTimePickerFormat.Custom;
@@ -141,7 +150,8 @@ namespace Rah_Negar.UI.Forms
             dgvEvents.ReadOnly = true;
 
             LoadEventComboBoxes();
-            LoadUnits();
+            if (loadUnitsFromDatabase)
+                LoadUnits();
 
             txtRemark.MaxLength = 55;
             txtRemark.Enabled = false;
@@ -160,6 +170,8 @@ namespace Rah_Negar.UI.Forms
 
             dgvData.SizeChanged += (_, _) => FitDgvDataColumnsByProfile();
             dgvEvents.SizeChanged += (_, _) => FitEventsGridColumns();
+            SizeChanged += (_, _) => ApplyRecordsLayout();
+            tabControl1.SizeChanged += (_, _) => ApplyRecordsLayout();
 
             dgvData.CellValidating += dgvData_CellValidating;
 
@@ -180,6 +192,7 @@ namespace Rah_Negar.UI.Forms
                 ReinitializeFormByCurrentDatabase();
                // _isThemeApplied = false;
                 ApplyThemeToRecordsForm();
+                ApplyRecordsLayout();
 
                 DataGridViewUiService.ConfigureBaseGrid(
                     dgvEvents,
@@ -421,6 +434,158 @@ namespace Rah_Negar.UI.Forms
         }
 
         /// <summary>
+        /// هماهنگ‌سازی ساختاری فرم رکورد در اندازه‌های پشتیبانی‌شده.
+        /// این متد فقط فاصله‌ها و اندازه نواحی را تنظیم می‌کند و ترتیب یا معنای کنترل‌ها را تغییر نمی‌دهد.
+        /// </summary>
+        private void ApplyRecordsLayout()
+        {
+            if (_isApplyingRecordsLayout || IsDisposed || tabControl1.IsDisposed)
+                return;
+
+            _isApplyingRecordsLayout = true;
+
+            try
+            {
+                int outerMargin = UiScaleService.Scale(this, 8);
+                int sectionGap = UiScaleService.Scale(this, 8);
+
+                pnlButtom.Height = Math.Max(
+                    pnlButtom.Height,
+                    UiScaleService.Scale(this, 56));
+
+                int tabWidth = Math.Max(0, ClientSize.Width - (outerMargin * 2));
+                int tabHeight = Math.Max(0, pnlButtom.Top - outerMargin - sectionGap);
+                tabControl1.SetBounds(outerMargin, outerMargin, tabWidth, tabHeight);
+
+                ApplyOperationalTabLayout(outerMargin, sectionGap);
+                ApplyEventsTabLayout(outerMargin, sectionGap);
+            }
+            finally
+            {
+                _isApplyingRecordsLayout = false;
+            }
+        }
+
+        private void ApplyOperationalTabLayout(int outerMargin, int sectionGap)
+        {
+            if (tabPage1.ClientSize.Width <= 0 || tabPage1.ClientSize.Height <= 0)
+                return;
+
+            int pageWidth = tabPage1.ClientSize.Width;
+            int pageHeight = tabPage1.ClientSize.Height;
+
+            pnlDate.Height = Math.Max(pnlDate.Height, UiScaleService.Scale(this, 30));
+            pnlDate.SetBounds(
+                outerMargin,
+                outerMargin,
+                Math.Max(0, pageWidth - (outerMargin * 2)),
+                pnlDate.Height);
+
+            pnlDateText.Height = Math.Max(0, pnlDate.ClientSize.Height);
+            pnl8.SetBounds(
+                outerMargin,
+                pnlDate.Bottom + UiScaleService.Scale(this, 3),
+                Math.Max(0, pageWidth - (outerMargin * 2)),
+                UiScaleService.Scale(this, 1));
+
+            int gridTop = pnl8.Bottom + UiScaleService.Scale(this, 5);
+            dgvData.SetBounds(
+                outerMargin,
+                gridTop,
+                Math.Max(0, pageWidth - (outerMargin * 2)),
+                Math.Max(0, pageHeight - gridTop - outerMargin));
+        }
+
+        private void ApplyEventsTabLayout(int outerMargin, int sectionGap)
+        {
+            if (tabPage2.ClientSize.Width <= 0 || tabPage2.ClientSize.Height <= 0)
+                return;
+
+            int pageWidth = tabPage2.ClientSize.Width;
+            int pageHeight = tabPage2.ClientSize.Height;
+
+            pnl_Date.SetBounds(
+                outerMargin,
+                outerMargin,
+                UiScaleService.Scale(this, 112),
+                UiScaleService.Scale(this, 24));
+
+            int contentTop = pnl_Date.Bottom + sectionGap;
+            int contentHeight = Math.Max(0, pageHeight - contentTop - outerMargin);
+            int availableWidth = Math.Max(0, pageWidth - (outerMargin * 2) - sectionGap);
+            int fuelWidth = Math.Clamp(
+                (int)Math.Round(availableWidth * 0.4),
+                UiScaleService.Scale(this, 320),
+                UiScaleService.Scale(this, 380));
+
+            if (fuelWidth > availableWidth - UiScaleService.Scale(this, 420))
+                fuelWidth = Math.Max(UiScaleService.Scale(this, 280),
+                    availableWidth - UiScaleService.Scale(this, 420));
+
+            int eventsWidth = Math.Max(0, availableWidth - fuelWidth);
+
+            pnlBodyUnique.SetBounds(
+                outerMargin,
+                contentTop,
+                fuelWidth,
+                contentHeight);
+
+            pnlBodyEvents.SetBounds(
+                pnlBodyUnique.Right + sectionGap,
+                contentTop,
+                eventsWidth,
+                contentHeight);
+
+            int innerGap = UiScaleService.Scale(this, 8);
+            int sectionHeaderHeight = UiScaleService.Scale(this, 24);
+            pnlEvents.Height = sectionHeaderHeight;
+
+            pnlOperation.SetBounds(
+                innerGap,
+                pnlEvents.Bottom + innerGap,
+                Math.Max(0, pnlBodyEvents.ClientSize.Width - (innerGap * 2)),
+                UiScaleService.Scale(this, 112));
+
+            int buttonGap = UiScaleService.Scale(this, 4);
+            int buttonTop = UiScaleService.Scale(this, 6);
+            int actionLeft = Math.Max(0,
+                pnlOperation.ClientSize.Width - btnAdd.Width - innerGap);
+
+            foreach (Button button in new[] { btnAdd, btnDeleteItem, btnEndSelection })
+                button.Left = actionLeft;
+
+            btnAdd.Top = buttonTop;
+            btnDeleteItem.Top = btnAdd.Bottom + buttonGap;
+            btnEndSelection.Top = btnDeleteItem.Bottom + buttonGap;
+
+            label12.Left = 0;
+            cmbUnits.Left = label12.Right + UiScaleService.Scale(this, 2);
+            cmbUnits.Width = UiScaleService.Scale(this, 82);
+            label13.Left = cmbUnits.Right + UiScaleService.Scale(this, 5);
+            cmbType.Left = label13.Right + UiScaleService.Scale(this, 2);
+            cmbType.Width = UiScaleService.Scale(this, 82);
+            label14.Left = cmbType.Right + UiScaleService.Scale(this, 5);
+            dtpTime.Left = label14.Right + UiScaleService.Scale(this, 2);
+
+            txtRemark.Left = 0;
+            txtRemark.Top = btnEndSelection.Top;
+            txtRemark.Width = Math.Max(
+                UiScaleService.Scale(this, 200),
+                actionLeft - innerGap - txtRemark.Left);
+            txtRemark.Height = Math.Max(txtRemark.Height, btnEndSelection.Height);
+            label15.Left = txtRemark.Left;
+            label15.Top = Math.Max(0, txtRemark.Top - label15.Height - UiScaleService.Scale(this, 3));
+
+            panel7.SetBounds(
+                innerGap,
+                pnlOperation.Bottom + innerGap,
+                Math.Max(0, pnlBodyEvents.ClientSize.Width - (innerGap * 2)),
+                Math.Max(0, pnlBodyEvents.ClientSize.Height - pnlOperation.Bottom - (innerGap * 2)));
+
+            FitEventsGridColumns();
+        }
+
+        /// <summary>
         /// رنگ پنل‌های اصلی فرم رکورد را با تم فعال هماهنگ می‌کند
         /// پنل‌های Header با رنگ قوی‌تر و پنل‌های Body با رنگ آرام‌تر تنظیم می‌شوند
         /// </summary>
@@ -565,7 +730,7 @@ namespace Rah_Negar.UI.Forms
             dgv.RowHeadersDefaultCellStyle.ForeColor = palette.TextPrimaryColor;
             dgv.RowHeadersDefaultCellStyle.SelectionBackColor = headerLine;
             dgv.RowHeadersDefaultCellStyle.SelectionForeColor = palette.TextPrimaryColor;
-            dgv.RowHeadersDefaultCellStyle.Font = new Font("Segoe UI", 8.2F, FontStyle.Regular);
+            dgv.RowHeadersDefaultCellStyle.Font = UiStyleService.CreateFont(8.2F);
         }
 
 
@@ -844,8 +1009,7 @@ namespace Rah_Negar.UI.Forms
         }
 
         /// <summary>
-        /// واحدهای واقعی موجود در جدول unit_runtime_base را بارگذاری می‌کند
-        /// این روش باعث می‌شود تعداد واحدها بر اساس دیتابیس و پروفایل راه‌اندازی‌شده مشخص شود
+        /// واحدها را مستقیماً از پروفایل canonical راه‌اندازی‌شده بارگذاری می‌کند
         /// </summary>
         private void LoadUnits()
         {
@@ -853,25 +1017,8 @@ namespace Rah_Negar.UI.Forms
 
             try
             {
-                using SqliteConnection conn = SqliteDatabaseHelper.CreateConnection();
-
-                using SqliteCommand cmd = conn.CreateCommand();
-                cmd.CommandText = @"
-SELECT DISTINCT unit_no
-FROM unit_runtime_base
-ORDER BY unit_no;";
-
-                using SqliteDataReader reader = cmd.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    if (reader["unit_no"] == DBNull.Value)
-                        continue;
-
-                    int unitNo = Convert.ToInt32(reader["unit_no"]);
-
+                for (int unitNo = 1; unitNo <= _profileDefinition.UnitCount; unitNo++)
                     cmbUnits.Items.Add($"Unit {unitNo}");
-                }
 
                 if (cmbUnits.Items.Count > 0)
                     cmbUnits.SelectedIndex = -1;
@@ -893,11 +1040,13 @@ ORDER BY unit_no;";
             if (_appSettings == null || !_appSettings.IsInitialized)
                 throw new InvalidOperationException("تنظیمات برنامه به‌درستی بارگذاری نشده است");
 
-            _stationName = _appSettings.StationName;
+            _profileDefinition = _appSettings.ProfileDefinition
+                ?? throw new InvalidOperationException("پروفایل canonical معتبر نیست");
+            _stationName = _profileDefinition.StationName;
 
-            _gridProfile = GridProfileProvider.GetProfile(_stationName);
-            _pasteProfile = PasteProfileProvider.GetProfile(_stationName);
-            _stationProfile = StationRecordProfileProvider.GetProfile(_stationName);
+            _gridProfile = GridProfileProvider.GetProfile(_profileDefinition);
+            _pasteProfile = PasteProfileProvider.GetProfile(_profileDefinition);
+            _stationProfile = StationRecordProfileProvider.GetProfile(_profileDefinition);
         }
 
         /// <summary>
@@ -953,10 +1102,20 @@ ORDER BY unit_no;";
                 .Select(x => x.Width)
                 .ToList();
 
-            DataGridViewUiService.FitColumnsByBaseWidths(
+            bool allowHorizontalOverflow = GenericProfileIdentity.TryGetUnitCount(
+                _stationName,
+                out int genericUnitCount)
+                && genericUnitCount >= 4;
+
+            bool hasHorizontalOverflow = DataGridViewUiService.FitColumnsByBaseWidths(
                 dgvData,
                 widths,
-                minimumWidth: 25);
+                minimumWidth: 25,
+                allowHorizontalOverflow: allowHorizontalOverflow);
+
+            dgvData.ScrollBars = hasHorizontalOverflow
+                ? ScrollBars.Both
+                : ScrollBars.Vertical;
         }
         private void FitEventsGridColumns()
         {
@@ -1036,7 +1195,7 @@ ORDER BY unit_no;";
                             ? profile.Visual.AlternateBackColor1
                             : profile.Visual.AlternateBackColor2))
                     .ToArray();
-                string cacheKey = "records|" + string.Join("|", definitions.Select(x =>
+                string cacheKey = "records|" + _profileDefinition.Signature + "|" + string.Join("|", definitions.Select(x =>
                     $"{x.Name}:{x.HeaderText}:{x.Width}:{x.ReadOnly}:{x.Alignment}:{x.BackColor.ToArgb()}"));
                 DataGridViewDefinitionCache.EnsureColumns(dgvData, cacheKey, definitions);
 
@@ -1105,7 +1264,7 @@ ORDER BY unit_no;";
 
                 EnforceCalculatedCellsLock();
                 ApplyDgvDataCalculatedCellsTheme();
-                dgvData.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 8.2f, FontStyle.Bold, GraphicsUnit.Point);
+                dgvData.ColumnHeadersDefaultCellStyle.Font = UiStyleService.CreateFont(8.2f, FontStyle.Bold);
                 dgvData.ClearSelection();
             }
             finally
@@ -2310,81 +2469,6 @@ ORDER BY unit_no;";
             return list;
         }
 
-        /// <summary>
-        /// داده‌های فعلی dgvData را برای ایستگاه رشت استخراج می‌کند
-        /// خروجی این متد برای ساخت مدل ذخیره‌سازی tbl_data رشت استفاده می‌شود
-        /// </summary>
-        public List<RashtRowDto> ExtractRashtGridData()
-        {
-            List<RashtRowDto> list = new();
-
-            for (int r = 0; r < 12; r++)
-            {
-                DataGridViewRow row = dgvData.Rows[r];
-
-                list.Add(new RashtRowDto
-                {
-                    TimeRep = row.Cells[0].Value?.ToString() ?? "",
-                    InP = TryGetDouble(row.Cells[1].Value),
-                    OutP = TryGetDouble(row.Cells[2].Value),
-                    LineFP = TryGetDouble(row.Cells[3].Value),
-                    Line40P = TryGetDouble(row.Cells[4].Value),
-                    Line30P = TryGetDouble(row.Cells[5].Value),
-                    U1St = row.Cells[6].Value?.ToString(),
-                    U1Rpm = TryGetInt(row.Cells[7].Value),
-                    U2St = row.Cells[8].Value?.ToString(),
-                    U2Rpm = TryGetInt(row.Cells[9].Value),
-                    U3St = row.Cells[10].Value?.ToString(),
-                    U3Rpm = TryGetInt(row.Cells[11].Value),
-                    Rec = TryGetDouble(row.Cells[12].Value),
-                    Flow = TryGetDouble(row.Cells[13].Value),
-                    InT = TryGetDouble(row.Cells[14].Value),
-                    OutT = TryGetDouble(row.Cells[15].Value),
-                    AmbT = TryGetDouble(row.Cells[16].Value),
-                    Ratio = TryGetDouble(row.Cells[17].Value)
-                });
-            }
-
-            return list;
-        }
-
-        /// <summary>
-        /// داده‌های فعلی dgvData را برای ایستگاه رامسر استخراج می‌کند
-        /// خروجی این متد برای ساخت مدل ذخیره‌سازی tbl_data رامسر استفاده می‌شود
-        /// </summary>
-        public List<RamsarRowDto> ExtractRamsarGridData()
-        {
-            List<RamsarRowDto> list = new();
-
-            for (int r = 0; r < 12; r++)
-            {
-                DataGridViewRow row = dgvData.Rows[r];
-
-                list.Add(new RamsarRowDto
-                {
-                    TimeRep = row.Cells[0].Value?.ToString() ?? "",
-                    InP = TryGetDouble(row.Cells[1].Value),
-                    OutP = TryGetDouble(row.Cells[2].Value),
-                    U1St = row.Cells[3].Value?.ToString(),
-                    U1Rpm = TryGetInt(row.Cells[4].Value),
-                    U2St = row.Cells[5].Value?.ToString(),
-                    U2Rpm = TryGetInt(row.Cells[6].Value),
-                    U3St = row.Cells[7].Value?.ToString(),
-                    U3Rpm = TryGetInt(row.Cells[8].Value),
-                    U4St = row.Cells[9].Value?.ToString(),
-                    U4Rpm = TryGetInt(row.Cells[10].Value),
-                    Rec = TryGetDouble(row.Cells[11].Value),
-                    Flow = TryGetDouble(row.Cells[12].Value),
-                    InT = TryGetDouble(row.Cells[13].Value),
-                    OutT = TryGetDouble(row.Cells[14].Value),
-                    AmbT = TryGetDouble(row.Cells[15].Value),
-                    Ratio = TryGetDouble(row.Cells[16].Value)
-                });
-            }
-
-            return list;
-        }
-
         #endregion
 
         #region عملیات رویدادها
@@ -2539,7 +2623,7 @@ ORDER BY unit_no;";
 
         /// <summary>
         /// با کلیک روی سطر رویداد، اطلاعات آن سطر را وارد کنترل‌های ورودی می‌کند
-        /// پس از این کار فرم ورود رویداد وارد حالت Apply می‌شود تا کاربر بتواند همان سطر را اصلاح کند
+        /// پس از این کار فرم ورود رویداد وارد حالت اعمال تغییرات می‌شود تا کاربر بتواند همان سطر را اصلاح کند
         /// </summary>
         private void dgvEvents_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
@@ -2573,7 +2657,7 @@ ORDER BY unit_no;";
                 txtRemark.Text = row.Cells[4].Value?.ToString()?.Trim() ?? "";
 
                 _eventEntryMode = EventEntryMode.Apply;
-                btnAdd.Text = "Apply";
+                btnAdd.Text = ApplyEventChangesCaption;
 
                 btnEndSelection.Enabled = true;
                 btnEndSelection.Visible = true;
@@ -2587,7 +2671,7 @@ ORDER BY unit_no;";
         }
 
         /// <summary>
-        /// انتخاب فعلی رویداد را لغو می‌کند و فرم ورود رویداد را از حالت Apply به حالت Add برمی‌گرداند
+        /// انتخاب فعلی رویداد را لغو می‌کند و فرم ورود رویداد را به حالت افزودن برمی‌گرداند
         /// </summary>
         private void btnEndSelection_Click(object sender, EventArgs e)
         {
@@ -2713,7 +2797,7 @@ ORDER BY unit_no;";
 
         /// <summary>
         /// کنترل‌های ورود رویداد را پاک می‌کند و دکمه btnAdd را به حالت افزودن رویداد برمی‌گرداند
-        /// این متد بعد از Add، Apply یا پایان انتخاب سطر استفاده می‌شود
+        /// این متد بعد از افزودن، اعمال تغییرات یا پایان انتخاب سطر استفاده می‌شود
         /// </summary>
         private void ClearEventEntryControls()
         {
@@ -2726,7 +2810,7 @@ ORDER BY unit_no;";
             txtRemark.Enabled = false;
 
             _eventEntryMode = EventEntryMode.Add;
-            btnAdd.Text = "Add";
+            btnAdd.Text = AddEventCaption;
 
             btnEndSelection.Enabled = false;
             btnEndSelection.Visible = false;
@@ -2735,77 +2819,6 @@ ORDER BY unit_no;";
         #endregion
 
         #region بارگذاری داده‌ها
-
-        /// <summary>
-        /// داده‌های لودشده جدول tbl_data ایستگاه رشت را داخل dgvData قرار می‌دهد
-        /// این متد فقط مسئول نمایش داده است و منطق Query یا Mapping در سرویس‌های جداگانه انجام می‌شود
-        /// </summary>
-        public void LoadRashtRowsIntoGrid(List<DailyDataRowModel> rows)
-        {
-            if (rows == null || rows.Count == 0)
-                return;
-
-            int maxRows = Math.Min(rows.Count, 12);
-
-            for (int r = 0; r < maxRows; r++)
-            {
-                DailyDataRowModel row = rows[r];
-
-                dgvData.Rows[r].Cells[0].Value = row.TimeRep;
-                dgvData.Rows[r].Cells[1].Value = row.InP.ToString("F1");
-                dgvData.Rows[r].Cells[2].Value = row.OutP.ToString("F1");
-                dgvData.Rows[r].Cells[3].Value = row.LineFP.ToString("F1");
-                dgvData.Rows[r].Cells[4].Value = row.Line40P.ToString("F1");
-                dgvData.Rows[r].Cells[5].Value = row.Line30P.ToString("F1");
-                dgvData.Rows[r].Cells[6].Value = row.U1St;
-                dgvData.Rows[r].Cells[7].Value = row.U1Rpm;
-                dgvData.Rows[r].Cells[8].Value = row.U2St;
-                dgvData.Rows[r].Cells[9].Value = row.U2Rpm;
-                dgvData.Rows[r].Cells[10].Value = row.U3St;
-                dgvData.Rows[r].Cells[11].Value = row.U3Rpm;
-                dgvData.Rows[r].Cells[12].Value = row.Rec.ToString("F1");
-                dgvData.Rows[r].Cells[13].Value = row.Flow.ToString("F1");
-                dgvData.Rows[r].Cells[14].Value = row.InT.ToString("F1");
-                dgvData.Rows[r].Cells[15].Value = row.OutT.ToString("F1");
-                dgvData.Rows[r].Cells[16].Value = row.AmbT.ToString("F1");
-                dgvData.Rows[r].Cells[17].Value = row.Ratio.ToString("F2");
-            }
-        }
-
-        /// <summary>
-        /// داده‌های لودشده جدول tbl_data ایستگاه رامسر را داخل dgvData قرار می‌دهد
-        /// این متد با ساختار متفاوت ستون‌های رامسر هماهنگ است و فقط مسئول نمایش داده در گرید است
-        /// </summary>
-        public void LoadRamsarRowsIntoGrid(List<RamsarDailyDataRowModel> rows)
-        {
-            if (rows == null || rows.Count == 0)
-                return;
-
-            int maxRows = Math.Min(rows.Count, 12);
-
-            for (int r = 0; r < maxRows; r++)
-            {
-                RamsarDailyDataRowModel row = rows[r];
-
-                dgvData.Rows[r].Cells[0].Value = row.TimeRep;
-                dgvData.Rows[r].Cells[1].Value = row.InP.ToString("F1");
-                dgvData.Rows[r].Cells[2].Value = row.OutP.ToString("F1");
-                dgvData.Rows[r].Cells[3].Value = row.U1St;
-                dgvData.Rows[r].Cells[4].Value = row.U1Rpm;
-                dgvData.Rows[r].Cells[5].Value = row.U2St;
-                dgvData.Rows[r].Cells[6].Value = row.U2Rpm;
-                dgvData.Rows[r].Cells[7].Value = row.U3St;
-                dgvData.Rows[r].Cells[8].Value = row.U3Rpm;
-                dgvData.Rows[r].Cells[9].Value = row.U4St;
-                dgvData.Rows[r].Cells[10].Value = row.U4Rpm;
-                dgvData.Rows[r].Cells[11].Value = row.Rec.ToString("F1");
-                dgvData.Rows[r].Cells[12].Value = row.Flow.ToString("F1");
-                dgvData.Rows[r].Cells[13].Value = row.InT.ToString("F1");
-                dgvData.Rows[r].Cells[14].Value = row.OutT.ToString("F1");
-                dgvData.Rows[r].Cells[15].Value = row.AmbT.ToString("F1");
-                dgvData.Rows[r].Cells[16].Value = row.Ratio.ToString("F2");
-            }
-        }
 
         /// <summary>
         /// داده‌های تاریخ انتخاب‌شده را از سه جدول tbl_data، tbl_unique و tbl_events بارگذاری می‌کند
@@ -2925,21 +2938,10 @@ ORDER BY unit_no;";
         /// </summary>
         private void LoadStationDailyData(long dateRep)
         {
-            if (_stationProfile is RashtStationRecordProfile)
-            {
-                List<DailyDataRowModel> rows = RashtRecordSaveService.LoadDailyData(dateRep);
-                LoadRashtRowsIntoGrid(rows);
-                return;
-            }
-
-            if (_stationProfile is RamsarStationRecordProfile)
-            {
-                List<RamsarDailyDataRowModel> rows = RamsarRecordPersistenceService.LoadDailyData(dateRep);
-                LoadRamsarRowsIntoGrid(rows);
-                return;
-            }
-
-            throw new NotSupportedException("پروفایل ایستگاه پشتیبانی نمی‌شود");
+            using SqliteConnection conn = SqliteDatabaseHelper.CreateConnection();
+            List<DailyDataRowModel> rows = GenericRecordPersistenceService.LoadDailyData(
+                conn, _profileDefinition, dateRep);
+            LoadGenericRowsIntoGrid(rows);
         }
 
         /// <summary>
@@ -2948,71 +2950,73 @@ ORDER BY unit_no;";
         /// </summary>
         private void CaptureStationLoadedSnapshot(long dateRep)
         {
-            if (_stationProfile is RashtStationRecordProfile)
-            {
-                List<DailyDataRowModel> rows = RashtRecordSaveService.LoadDailyData(dateRep);
-
-                List<DailyDataRowModel> snapshot = rows
-                    .Select(x => new DailyDataRowModel
-                    {
-                        TimeRep = x.TimeRep,
-                        InP = x.InP,
-                        OutP = x.OutP,
-                        LineFP = x.LineFP,
-                        Line40P = x.Line40P,
-                        Line30P = x.Line30P,
-                        U1St = x.U1St,
-                        U1Rpm = x.U1Rpm,
-                        U2St = x.U2St,
-                        U2Rpm = x.U2Rpm,
-                        U3St = x.U3St,
-                        U3Rpm = x.U3Rpm,
-                        Rec = x.Rec,
-                        Flow = x.Flow,
-                        InT = x.InT,
-                        OutT = x.OutT,
-                        AmbT = x.AmbT,
-                        Ratio = x.Ratio
-                    })
-                    .ToList();
-
-                SetLoadedDailyDataSnapshot(snapshot);
-                return;
-            }
-
-            if (_stationProfile is RamsarStationRecordProfile)
-            {
-                List<RamsarDailyDataRowModel> rows = RamsarRecordPersistenceService.LoadDailyData(dateRep);
-
-                List<RamsarDailyDataRowModel> snapshot = rows
-                    .Select(x => new RamsarDailyDataRowModel
-                    {
-                        TimeRep = x.TimeRep,
-                        InP = x.InP,
-                        OutP = x.OutP,
-                        U1St = x.U1St,
-                        U1Rpm = x.U1Rpm,
-                        U2St = x.U2St,
-                        U2Rpm = x.U2Rpm,
-                        U3St = x.U3St,
-                        U3Rpm = x.U3Rpm,
-                        U4St = x.U4St,
-                        U4Rpm = x.U4Rpm,
-                        Rec = x.Rec,
-                        Flow = x.Flow,
-                        InT = x.InT,
-                        OutT = x.OutT,
-                        AmbT = x.AmbT,
-                        Ratio = x.Ratio
-                    })
-                    .ToList();
-
-                SetLoadedDailyDataSnapshot(snapshot);
-                return;
-            }
-
-            throw new NotSupportedException("پروفایل ایستگاه پشتیبانی نمی‌شود");
+            using SqliteConnection conn = SqliteDatabaseHelper.CreateConnection();
+            List<DailyDataRowModel> rows = GenericRecordPersistenceService.LoadDailyData(
+                conn, _profileDefinition, dateRep);
+            SetLoadedDailyDataSnapshot(rows.Select(CloneRow).ToList());
         }
+
+        private void LoadGenericRowsIntoGrid(IReadOnlyList<DailyDataRowModel> rows)
+        {
+            if (_gridProfile is null)
+                return;
+            Dictionary<string, int> indexes = _gridProfile.Columns
+                .Select((column, index) => (column.Name, index))
+                .ToDictionary(x => x.Name, x => x.index, StringComparer.OrdinalIgnoreCase);
+
+            for (int rowIndex = 0; rowIndex < Math.Min(12, rows.Count); rowIndex++)
+            {
+                DailyDataRowModel row = rows[rowIndex];
+                foreach (string column in GenericRecordPersistenceService.DataColumns(_profileDefinition).Where(x => x != "date_rep"))
+                {
+                    if (!indexes.TryGetValue(column, out int columnIndex))
+                        continue;
+                    dgvData.Rows[rowIndex].Cells[columnIndex].Value = GenericGridValue(row, column);
+                }
+            }
+        }
+
+        private static object GenericGridValue(DailyDataRowModel row, string column) => column switch
+        {
+            "time_rep" => row.TimeRep,
+            "in_p" => row.InP.ToString("F1"),
+            "out_p" => row.OutP.ToString("F1"),
+            "line_f_p" => row.LineFP.ToString("F1"),
+            "line40_p" => row.Line40P.ToString("F1"),
+            "line30_p" => row.Line30P.ToString("F1"),
+            "rec" => row.Rec.ToString("F1"),
+            "flow" => row.Flow.ToString("F1"),
+            "in_t" => row.InT.ToString("F1"),
+            "out_t" => row.OutT.ToString("F1"),
+            "amb_t" => row.AmbT.ToString("F1"),
+            "ratio" => row.Ratio.ToString("F2"),
+            _ when column.StartsWith('u') && column.EndsWith("_st") => GenericUnitValue(row, column, false),
+            _ when column.StartsWith('u') && column.EndsWith("_rpm") => GenericUnitValue(row, column, true),
+            _ => string.Empty
+        };
+
+        private static object GenericUnitValue(DailyDataRowModel row, string column, bool rpm)
+        {
+            int unit = int.Parse(column.AsSpan(1, column.IndexOf('_') - 1));
+            return unit switch
+            {
+                1 => rpm ? row.U1Rpm : row.U1St,
+                2 => rpm ? row.U2Rpm : row.U2St,
+                3 => rpm ? row.U3Rpm : row.U3St,
+                4 => rpm ? row.U4Rpm : row.U4St,
+                5 => rpm ? row.U5Rpm : row.U5St,
+                _ => string.Empty
+            };
+        }
+
+        private static DailyDataRowModel CloneRow(DailyDataRowModel row) => new()
+        {
+            TimeRep = row.TimeRep, InP = row.InP, OutP = row.OutP, LineFP = row.LineFP,
+            Line40P = row.Line40P, Line30P = row.Line30P, U1St = row.U1St, U1Rpm = row.U1Rpm,
+            U2St = row.U2St, U2Rpm = row.U2Rpm, U3St = row.U3St, U3Rpm = row.U3Rpm,
+            U4St = row.U4St, U4Rpm = row.U4Rpm, U5St = row.U5St, U5Rpm = row.U5Rpm,
+            Rec = row.Rec, Flow = row.Flow, InT = row.InT, OutT = row.OutT, AmbT = row.AmbT, Ratio = row.Ratio
+        };
 
         /// <summary>
         /// داده‌های tbl_unique را داخل کنترل‌های خلاصه روزانه قرار می‌دهد
@@ -3182,29 +3186,8 @@ ORDER BY unit_no;";
         /// </summary>
         private void InsertStationDailyData(SqliteConnection conn, SqliteTransaction tx, long dateRep)
         {
-            if (_stationProfile is RashtStationRecordProfile)
-            {
-                List<RashtRowDto> rows = ExtractRashtGridData();
-
-                DailyDataSaveModel model =
-                    RashtRecordMapperService.BuildSaveModel(rows, dateRep);
-
-                RashtRecordSaveService.InsertDailyDataOnly(conn, tx, model);
-                return;
-            }
-
-            if (_stationProfile is RamsarStationRecordProfile)
-            {
-                List<RamsarRowDto> rows = ExtractRamsarGridData();
-
-                RamsarDailyDataSaveModel model =
-                    RamsarRecordMapperService.BuildSaveModel(rows, dateRep);
-
-                RamsarRecordPersistenceService.InsertDailyDataOnly(conn, tx, model);
-                return;
-            }
-
-            throw new NotSupportedException("پروفایل ایستگاه پشتیبانی نمی‌شود");
+            GenericRecordPersistenceService.InsertDailyDataOnly(
+                conn, tx, _profileDefinition, ExtractGenericGridData(dateRep));
         }
 
         /// <summary>
@@ -3213,38 +3196,59 @@ ORDER BY unit_no;";
         /// </summary>
         private bool HasStationDailyDataChanges(long dateRep)
         {
-            if (_stationProfile is RashtStationRecordProfile)
-            {
-                object? rawSnapshot = GetLoadedDailyDataSnapshot();
-
-                if (rawSnapshot is not List<DailyDataRowModel> loadedRows)
-                    return true;
-
-                List<RashtRowDto> rows = ExtractRashtGridData();
-
-                DailyDataSaveModel current =
-                    RashtRecordMapperService.BuildSaveModel(rows, dateRep);
-
-                return RashtRecordComparisonService.HasDailyDataChanges(loadedRows, current);
-            }
-
-            if (_stationProfile is RamsarStationRecordProfile)
-            {
-                object? rawSnapshot = GetLoadedDailyDataSnapshot();
-
-                if (rawSnapshot is not List<RamsarDailyDataRowModel> loadedRows)
-                    return true;
-
-                List<RamsarRowDto> rows = ExtractRamsarGridData();
-
-                RamsarDailyDataSaveModel current =
-                    RamsarRecordMapperService.BuildSaveModel(rows, dateRep);
-
-                return RamsarRecordComparisonService.HasDailyDataChanges(loadedRows, current);
-            }
-
-            throw new NotSupportedException("پروفایل ایستگاه فعال پشتیبانی نمی‌شود");
+            if (GetLoadedDailyDataSnapshot() is not List<DailyDataRowModel> loadedRows)
+                return true;
+            DailyDataSaveModel current = ExtractGenericGridData(dateRep);
+            return !RowsEqual(loadedRows, current.Rows);
         }
+
+        private DailyDataSaveModel ExtractGenericGridData(long dateRep)
+        {
+            if (_gridProfile is null)
+                throw new InvalidOperationException("پروفایل گرید آماده نیست");
+            Dictionary<string, int> indexes = _gridProfile.Columns
+                .Select((column, index) => (column.Name, index))
+                .ToDictionary(x => x.Name, x => x.index, StringComparer.OrdinalIgnoreCase);
+            List<DailyDataRowModel> rows = [];
+            for (int rowIndex = 0; rowIndex < 12; rowIndex++)
+            {
+                string Cell(string key) => indexes.TryGetValue(key, out int index)
+                    ? dgvData.Rows[rowIndex].Cells[index].Value?.ToString() ?? string.Empty : string.Empty;
+                DailyDataRowModel row = new()
+                {
+                    TimeRep = Cell("time_rep"), InP = ConvertToDouble(Cell("in_p")), OutP = ConvertToDouble(Cell("out_p")),
+                    Rec = ConvertToDouble(Cell("rec")), Flow = ConvertToDouble(Cell("flow")), InT = ConvertToDouble(Cell("in_t")),
+                    OutT = ConvertToDouble(Cell("out_t")), AmbT = ConvertToDouble(Cell("amb_t")), Ratio = ConvertToDouble(Cell("ratio"))
+                };
+                if (_profileDefinition.HasLinePressureColumns)
+                {
+                    row.LineFP = ConvertToDouble(Cell("line_f_p")); row.Line40P = ConvertToDouble(Cell("line40_p")); row.Line30P = ConvertToDouble(Cell("line30_p"));
+                }
+                for (int unit = 1; unit <= _profileDefinition.UnitCount; unit++)
+                    SetGenericUnit(row, unit, Cell($"u{unit}_st"), int.TryParse(Cell($"u{unit}_rpm"), out int rpm) ? rpm : 0);
+                rows.Add(row);
+            }
+            return new DailyDataSaveModel { DateRep = dateRep, Rows = rows };
+        }
+
+        private static void SetGenericUnit(DailyDataRowModel row, int unit, string status, int rpm)
+        {
+            switch (unit)
+            {
+                case 1: row.U1St = status; row.U1Rpm = rpm; break; case 2: row.U2St = status; row.U2Rpm = rpm; break;
+                case 3: row.U3St = status; row.U3Rpm = rpm; break; case 4: row.U4St = status; row.U4Rpm = rpm; break;
+                case 5: row.U5St = status; row.U5Rpm = rpm; break;
+            }
+        }
+
+        private static bool RowsEqual(IReadOnlyList<DailyDataRowModel> left, IReadOnlyList<DailyDataRowModel> right) =>
+            left.Count == right.Count && left.Zip(right).All(x =>
+                x.First.TimeRep == x.Second.TimeRep && x.First.InP == x.Second.InP && x.First.OutP == x.Second.OutP &&
+                x.First.LineFP == x.Second.LineFP && x.First.Line40P == x.Second.Line40P && x.First.Line30P == x.Second.Line30P &&
+                x.First.U1St == x.Second.U1St && x.First.U1Rpm == x.Second.U1Rpm && x.First.U2St == x.Second.U2St && x.First.U2Rpm == x.Second.U2Rpm &&
+                x.First.U3St == x.Second.U3St && x.First.U3Rpm == x.Second.U3Rpm && x.First.U4St == x.Second.U4St && x.First.U4Rpm == x.Second.U4Rpm &&
+                x.First.U5St == x.Second.U5St && x.First.U5Rpm == x.Second.U5Rpm && x.First.Rec == x.Second.Rec && x.First.Flow == x.Second.Flow &&
+                x.First.InT == x.Second.InT && x.First.OutT == x.Second.OutT && x.First.AmbT == x.Second.AmbT && x.First.Ratio == x.Second.Ratio);
 
         #endregion
 

@@ -3,6 +3,7 @@ using Rah_Negar.Foundation.Application.Pilot.Operational;
 using Rah_Negar.UI.Composition.Pilot;
 using Rah_Negar.UI.Forms.Base;
 using Rah_Negar.UI.Pilot;
+using Rah_Negar.Services.UI;
 
 namespace Rah_Negar.UI.Forms.Pilot;
 
@@ -165,7 +166,7 @@ public sealed class FrmLivePilot : BaseForm
         if (_session is not null && !_session.IsTerminal &&
             _session.Lifecycle != ControlledPilotOperationalLifecycle.Created)
         {
-            DialogResult answer = MessageBox.Show(this,
+            DialogResult answer = UiMessageService.ShowMessageBox(this,
                 "برای بازگشت، نشست Pilot متوقف می‌شود. ادامه می‌دهید؟",
                 "بازگشت به برنامه فعلی", MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question, MessageBoxDefaultButton.Button2,
@@ -210,7 +211,7 @@ public sealed class FrmLivePilot : BaseForm
         DialogResult = DialogResult.None;
     }
 
-    private DialogResult ShowUnfinishedSessionConfirmation() => MessageBox.Show(this,
+    private DialogResult ShowUnfinishedSessionConfirmation() => UiMessageService.ShowMessageBox(this,
         "نشست Pilot هنوز تکمیل نشده است. آیا نشست آزمایشی متوقف و پنجره بسته شود؟",
         "توقف Pilot فقط‌خواندنی", MessageBoxButtons.YesNo,
         MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2,
@@ -237,7 +238,7 @@ public sealed class FrmLivePilot : BaseForm
         _return.Enabled = true;
     }
 
-    private void ShowSafeFailure(string message) => MessageBox.Show(this, message,
+    private void ShowSafeFailure(string message) => UiMessageService.ShowMessageBox(this, message,
         "Pilot فقط‌خواندنی", MessageBoxButtons.OK, MessageBoxIcon.Error,
         MessageBoxDefaultButton.Button1,
         MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);

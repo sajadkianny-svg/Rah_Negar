@@ -1,7 +1,11 @@
 ﻿using Microsoft.Data.Sqlite;
 using Rah_Negar.Core;
 using Rah_Negar.Data;
+using Rah_Negar.Foundation.Application.Database.Readiness;
+using Rah_Negar.Foundation.Application.Security;
+using Rah_Negar.Infrastructure.ApplicationData;
 using Rah_Negar.Models;
+using Rah_Negar.Qualification;
 using Rah_Negar.Services;
 using Rah_Negar.Services.UI;
 using Rah_Negar.Utils;
@@ -13,6 +17,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Rah_Negar.UI.Forms.Base;
@@ -24,8 +29,15 @@ namespace Rah_Negar.UI.Forms
 
 
         private int _currentThemeIndex;
-        public FrmSettings()
+        private readonly bool _skipDatabaseLoad;
+        private bool _isApplyingSettingsLayout;
+        public FrmSettings() : this(initializeSettings: true)
         {
+        }
+
+        internal FrmSettings(bool initializeSettings)
+        {
+            _skipDatabaseLoad = !initializeSettings;
             InitializeComponent();
             CancelButton = btnClose;
 
@@ -37,10 +49,13 @@ namespace Rah_Negar.UI.Forms
             btnResetFactory.Width = 200;
             btnResetFactory.Left = 403;
 
-            LoadSettingsForm();
-            //ConfigureThemeRadioButtonsLayout();
+            if (initializeSettings)
+            {
+                LoadSettingsForm();
+                //ConfigureThemeRadioButtonsLayout();
 
-            LoadDataBaselineControls();
+                LoadDataBaselineControls();
+            }
 
             cmbDataStartYear.SelectedIndexChanged += (_, _) => UpdateDataBaselineInfo();
             cmbDataStartMonth.SelectedIndexChanged += (_, _) => UpdateDataBaselineInfo();
@@ -48,10 +63,20 @@ namespace Rah_Negar.UI.Forms
             KeyPreview = true;
             KeyDown += FrmSettings_KeyDown;
 
+            ApplySettingsLayout();
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            ApplySettingsLayout();
         }
 
         private void FrmSettings_Load(object sender, EventArgs e)
         {
+            if (_skipDatabaseLoad)
+                return;
+
             LoadDatabaseDetails();
         }
         // ================= Initialization =================
@@ -74,7 +99,7 @@ namespace Rah_Negar.UI.Forms
 
                 if (settings == null)
                 {
-                    MessageBox.Show(
+                        UiMessageService.ShowMessageBox(
                         "تنظیمات برنامه یافت نشد.",
                         "خطا",
                         MessageBoxButtons.OK,
@@ -154,16 +179,230 @@ LIMIT 1;";
             }
 
             lblDatabaseDetails.Text =
-                $"Initial Setup : {initialSetupText}" +
+                $"راه‌اندازی اولیه: {initialSetupText}" +
                 Environment.NewLine +
+                $"آخرین پشتیبان‌گیری: {lastBackupText}" +
                 Environment.NewLine +
-                $"Last Backup : {lastBackupText}" +
-                Environment.NewLine +
-                Environment.NewLine +
-                $"Database Size : {databaseSizeText}";
+                $"حجم دیتابیس: {databaseSizeText}";
 
             lblPasswordDetails.Text =
-                $"Last Password Change : {passwordChangedText}";
+                $"آخرین تغییر رمز عبور: {passwordChangedText}";
+        }
+
+        private void ApplySettingsLayout()
+        {
+            if (_isApplyingSettingsLayout)
+                return;
+
+            _isApplyingSettingsLayout = true;
+
+            try
+            {
+                int margin = Scale(14);
+                int gap = Scale(10);
+                int sectionGap = Scale(10);
+                int themeHeight = Scale(92);
+                int columnHeight = Scale(148);
+                int bottomHeight = Scale(162);
+                int buttonHeight = Scale(34);
+
+                pnlHeader.Height = Scale(56);
+                pnlFooter.Height = Math.Max(Scale(54), buttonHeight + Scale(28));
+
+                int bodyWidth = Math.Max(0, pnlBody.ClientSize.Width);
+                int contentWidth = Math.Max(0, bodyWidth - (margin * 2));
+
+                gbTheme.SetBounds(margin, margin, contentWidth, themeHeight);
+                LayoutThemeOptions(margin, gap);
+
+                int columnsTop = gbTheme.Bottom + sectionGap;
+                int columnWidth = Math.Max(0, (contentWidth - gap) / 2);
+                gpDatabase.SetBounds(margin, columnsTop, columnWidth, columnHeight);
+                gpPassword.SetBounds(margin + columnWidth + gap, columnsTop, columnWidth, columnHeight);
+
+                LayoutDatabaseSection(margin, gap, buttonHeight);
+                LayoutPasswordSection(margin, buttonHeight);
+
+                int bottomTop = columnsTop + columnHeight + sectionGap;
+                int bottomWidth = Math.Max(0, (contentWidth - gap) / 2);
+
+                if (grbBaseLine.Visible)
+                {
+                    grpRuntimeSettings.SetBounds(margin, bottomTop, bottomWidth, bottomHeight);
+                    grbBaseLine.SetBounds(margin + bottomWidth + gap, bottomTop, bottomWidth, bottomHeight);
+                }
+                else
+                {
+                    grpRuntimeSettings.SetBounds(margin, bottomTop, contentWidth, bottomHeight);
+                    grbBaseLine.SetBounds(0, 0, 0, 0);
+                }
+
+                LayoutRuntimeSection(margin, gap, buttonHeight);
+                LayoutDataBaselineSection(margin, gap, buttonHeight);
+                LayoutFooter(margin, gap, buttonHeight);
+            }
+            finally
+            {
+                _isApplyingSettingsLayout = false;
+            }
+        }
+
+        internal void ApplySettingsLayoutForTesting(bool showDataBaseline = false)
+        {
+            grbBaseLine.Visible = showDataBaseline;
+            ApplySettingsLayout();
+        }
+
+        private int Scale(int value) => UiScaleService.Scale(this, value);
+
+        private void LayoutThemeOptions(int margin, int gap)
+        {
+            RadioButton[] radios =
+            [
+                rdoThemeClassicNeutral,
+                rdoThemeClassicSoftAccent,
+                rdoIndustrialRed,
+                rdoIndigoViolet,
+                rdoThemeTerracottaStone,
+                rdoThemeOlive,
+                rdoThemeGraphite,
+                rdoThemeBlue
+            ];
+
+            int rowHeight = Scale(26);
+            int rowGap = Scale(4);
+            int rowWidth = Math.Max(0, (gbTheme.ClientSize.Width - (margin * 2) - (gap * 3)) / 4);
+
+            for (int i = 0; i < radios.Length; i++)
+            {
+                RadioButton radio = radios[i];
+                int row = i / 4;
+                int column = i % 4;
+                int right = gbTheme.ClientSize.Width - margin - (column * (rowWidth + gap));
+
+                radio.AutoSize = false;
+                radio.RightToLeft = RightToLeft.Yes;
+                radio.CheckAlign = ContentAlignment.MiddleRight;
+                radio.TextAlign = ContentAlignment.MiddleRight;
+                radio.SetBounds(right - rowWidth, Scale(25) + row * (rowHeight + rowGap), rowWidth, rowHeight);
+            }
+        }
+
+        private void LayoutDatabaseSection(int margin, int gap, int buttonHeight)
+        {
+            int buttonWidth = Scale(145);
+            int panelWidth = Math.Min(Scale(225), Math.Max(0, gpDatabase.ClientSize.Width - (margin * 2) - gap - buttonWidth));
+            int top = Scale(29);
+            int rowGap = Scale(4);
+
+            panel1.SetBounds(gpDatabase.ClientSize.Width - margin - panelWidth, top, panelWidth, Scale(108));
+            panel1.Padding = new Padding(Scale(10), Scale(5), Scale(10), Scale(5));
+            panel1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+
+            lblDatabaseDetails.AutoSize = false;
+            lblDatabaseDetails.Dock = DockStyle.Fill;
+            lblDatabaseDetails.Padding = Padding.Empty;
+            lblDatabaseDetails.RightToLeft = RightToLeft.Yes;
+            lblDatabaseDetails.TextAlign = ContentAlignment.MiddleRight;
+            lblDatabaseDetails.Font = UiStyleService.CreateFont(8.5f, FontStyle.Bold);
+
+            Button[] buttons = [btnExportDatabase, btnImportDatabase, btnRepairDatabase];
+            foreach (Button button in buttons)
+            {
+                button.AutoSize = false;
+                button.MinimumSize = new Size(0, buttonHeight);
+            }
+
+            for (int i = 0; i < buttons.Length; i++)
+                buttons[i].SetBounds(margin, top + i * (buttonHeight + rowGap), buttonWidth, buttonHeight);
+        }
+
+        private void LayoutPasswordSection(int margin, int buttonHeight)
+        {
+            int buttonWidth = Scale(145);
+            int top = Scale(27);
+            lblPasswordDetails.AutoSize = false;
+            lblPasswordDetails.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            lblPasswordDetails.SetBounds(margin, top, Math.Max(0, gpPassword.ClientSize.Width - (margin * 2)), Scale(28));
+            lblPasswordDetails.RightToLeft = RightToLeft.Yes;
+            lblPasswordDetails.TextAlign = ContentAlignment.MiddleRight;
+            lblPasswordDetails.Font = UiStyleService.CreateFont(8.5f, FontStyle.Bold);
+
+            Button[] buttons = [btnResetPassword, btnChangeLoginPassword];
+            foreach (Button button in buttons)
+            {
+                button.AutoSize = false;
+                button.MinimumSize = new Size(0, buttonHeight);
+            }
+
+            int buttonLeft = gpPassword.ClientSize.Width - margin - buttonWidth;
+            btnResetPassword.SetBounds(buttonLeft, Scale(61), buttonWidth, buttonHeight);
+            btnChangeLoginPassword.SetBounds(buttonLeft, Scale(101), buttonWidth, buttonHeight);
+        }
+
+        private void LayoutRuntimeSection(int margin, int gap, int buttonHeight)
+        {
+            int contentWidth = grpRuntimeSettings.ClientSize.Width;
+            int rowTop = Scale(63);
+            int inputWidth = Scale(58);
+            int saveWidth = Scale(75);
+            int checkWidth = Math.Min(Scale(230), Math.Max(Scale(180), contentWidth - (margin * 2) - saveWidth - gap - inputWidth - gap));
+
+            ChAddHoursAfterEsd.AutoSize = false;
+            ChAddHoursAfterEsd.RightToLeft = RightToLeft.Yes;
+            ChAddHoursAfterEsd.CheckAlign = ContentAlignment.MiddleRight;
+            ChAddHoursAfterEsd.TextAlign = ContentAlignment.MiddleRight;
+            ChAddHoursAfterEsd.SetBounds(contentWidth - margin - checkWidth, rowTop, checkWidth, buttonHeight);
+
+            int inputLeft = ChAddHoursAfterEsd.Left - gap - inputWidth;
+            txtEsdExtraHours.SetBounds(inputLeft, rowTop, inputWidth, buttonHeight);
+
+            int saveLeft = inputLeft - gap - saveWidth;
+            btnSave.AutoSize = false;
+            btnSave.MinimumSize = new Size(0, buttonHeight);
+            btnSave.SetBounds(Math.Max(margin, saveLeft), rowTop, saveWidth, buttonHeight);
+        }
+
+        private void LayoutDataBaselineSection(int margin, int gap, int buttonHeight)
+        {
+            if (!grbBaseLine.Visible)
+                return;
+
+            int labelWidth = Scale(52);
+            int fieldWidth = Scale(145);
+            int actionWidth = Scale(120);
+            int labelLeft = grbBaseLine.ClientSize.Width - margin - labelWidth;
+            int fieldLeft = labelLeft - gap - fieldWidth;
+
+            label1.AutoSize = false;
+            label1.TextAlign = ContentAlignment.MiddleRight;
+            label1.SetBounds(labelLeft, Scale(36), labelWidth, buttonHeight);
+            label2.AutoSize = false;
+            label2.TextAlign = ContentAlignment.MiddleRight;
+            label2.SetBounds(labelLeft, Scale(73), labelWidth, buttonHeight);
+
+            cmbDataStartYear.SetBounds(fieldLeft, Scale(36), fieldWidth, buttonHeight);
+            cmbDataStartMonth.SetBounds(fieldLeft, Scale(73), fieldWidth, buttonHeight);
+            txtDataStartDateInfo.SetBounds(fieldLeft, Scale(110), fieldWidth, buttonHeight);
+            btnUpdateDataStartDate.SetBounds(margin, Scale(110), actionWidth, buttonHeight);
+        }
+
+        private void LayoutFooter(int margin, int gap, int buttonHeight)
+        {
+            int top = Math.Max(0, (pnlFooter.ClientSize.Height - buttonHeight) / 2);
+            int resetWidth = Scale(220);
+            int closeWidth = Scale(88);
+
+            Button[] buttons = [btnAbout, btnClose, btnResetFactory];
+            foreach (Button button in buttons)
+            {
+                button.AutoSize = false;
+                button.MinimumSize = new Size(0, buttonHeight);
+            }
+
+            btnAbout.SetBounds(margin, top, Scale(100), buttonHeight);
+            btnClose.SetBounds(pnlFooter.ClientSize.Width - margin - closeWidth, top, closeWidth, buttonHeight);
+            btnResetFactory.SetBounds(btnClose.Left - gap - resetWidth, top, resetWidth, buttonHeight);
         }
 
         private static string FormatPersianDate(DateTime dateTime)
@@ -333,7 +572,7 @@ LIMIT 1;";
             {
                 if (CommonRecordQueryService.HasAnyDailyRecord())
                 {
-                    MessageBox.Show(
+                    UiMessageService.ShowMessageBox(
                         "تاریخ مبنای شروع داده‌ها پس از ثبت اولین داده قابل تغییر نیست",
                         "تنظیمات",
                         MessageBoxButtons.OK,
@@ -346,7 +585,7 @@ LIMIT 1;";
 
                 if (dataStartDate <= 0)
                 {
-                    MessageBox.Show(
+                    UiMessageService.ShowMessageBox(
                         "سال و ماه تاریخ مبنای داده‌ها را انتخاب کنید",
                         "اعتبارسنجی",
                         MessageBoxButtons.OK,
@@ -355,7 +594,7 @@ LIMIT 1;";
                     return;
                 }
 
-                DialogResult result = MessageBox.Show(
+                DialogResult result = UiMessageService.ShowMessageBox(
                     "تاریخ مبنای شروع داده‌ها تغییر خواهد کرد" +
                     Environment.NewLine +
                     Environment.NewLine +
@@ -374,7 +613,7 @@ LIMIT 1;";
 
                 AppSettingsService.SaveDataStartDate(dataStartDate);
 
-                MessageBox.Show(
+                UiMessageService.ShowMessageBox(
                     "تاریخ مبنای شروع داده‌ها با موفقیت ذخیره شد",
                     "تنظیمات",
                     MessageBoxButtons.OK,
@@ -506,6 +745,8 @@ LIMIT 1;";
             AppThemeManager.ApplyToPrimaryButton(btnSave);
 
             UpdateThemeRadioStyles();
+
+            ApplySettingsLayout();
 
             Invalidate();
         }
@@ -665,14 +906,64 @@ LIMIT 1;";
         /// </summary>
         private void btnRepairDatabase_Click(object? sender, EventArgs e)
         {
-            ShowProtectedMaintenanceUnavailable();
+            const string scope = "legacy-integrity-repair";
+            if (!TryAuthorizeMaintenance(ProtectedAction.IntegrityRepair, scope,
+                    out ManagementAuthorizationProof? proof, out int version)) return;
+            try
+            {
+                DatabaseMaintenanceService.RepairIndexes(proof!, version);
+                UiMessageService.ShowInfo("تعمیر و نگهداری دیتابیس با موفقیت انجام شد.", "تعمیر و نگهداری");
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.Log(ex, "FrmSettings.RepairDatabase");
+                UiMessageService.ShowError("تعمیر و نگهداری دیتابیس انجام نشد.", "خطا");
+            }
         }
         /// <summary>
         /// خروجی گرفتن از فایل دیتابیس در مسیر انتخاب‌شده.
         /// </summary>
         private void btnExportDatabase_Click(object? sender, EventArgs e)
         {
-            ShowProtectedMaintenanceUnavailable();
+            if (!QualificationManagementAccess.TryGetSession(out QualificationManagementAccess.QualificationSession? session, out _))
+            {
+                ShowProtectedMaintenanceUnavailable();
+                return;
+            }
+
+            using SaveFileDialog dialog = new()
+            {
+                Filter = "نسخه پشتیبان رمزنگاری‌شده (*.rnbk)|*.rnbk",
+                DefaultExt = "rnbk",
+                AddExtension = true,
+                InitialDirectory = ApplicationDataPaths.Default.BackupsDirectory,
+                FileName = $"RahNegar_Qualification_{DateTime.Now:yyyyMMdd_HHmmss}.rnbk",
+                Title = "انتخاب محل پشتیبان‌گیری"
+            };
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+            if (!IsWithinQualificationRoot(session!.DataRoot, dialog.FileName))
+            {
+                UiMessageService.ShowWarning("مقصد باید داخل مسیر داده جداشده باشد.", "مسیر نامعتبر");
+                return;
+            }
+
+            string destination = Path.GetFullPath(dialog.FileName);
+            string scope = SqliteProtectedActionBinding.CreateBackupScope(
+                SqliteDatabaseHelper.GetDatabasePath(), destination, BackupOverwritePolicy.Deny);
+            if (!TryAuthorizeMaintenance(ProtectedAction.BackupPolicy, scope,
+                    out ManagementAuthorizationProof? proof, out int version)) return;
+            if (UiMessageService.ShowMessageBox("نسخه پشتیبان ایجاد می‌شود. ادامه می‌دهید؟", "تأیید پشتیبان‌گیری",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) != DialogResult.Yes) return;
+            try
+            {
+                DatabaseMaintenanceService.ExportDatabase(destination, proof!, version);
+                UiMessageService.ShowInfo("پشتیبان‌گیری با موفقیت انجام شد.", "پشتیبان‌گیری");
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.Log(ex, "FrmSettings.ExportDatabase");
+                UiMessageService.ShowError("پشتیبان‌گیری انجام نشد.", "خطا");
+            }
         }
 
         private static string MakeSafeFileNamePart(string value)
@@ -697,16 +988,85 @@ LIMIT 1;";
 
         private void btnImportDatabase_Click(object? sender, EventArgs e)
         {
-            ShowProtectedMaintenanceUnavailable();
+            if (!QualificationManagementAccess.TryGetSession(out QualificationManagementAccess.QualificationSession? session, out _))
+            {
+                ShowProtectedMaintenanceUnavailable();
+                return;
+            }
+
+            using OpenFileDialog dialog = new()
+            {
+                Filter = "نسخه پشتیبان رمزنگاری‌شده (*.rnbk)|*.rnbk|همه فایل‌ها (*.*)|*.*",
+                CheckFileExists = true,
+                Multiselect = false,
+                InitialDirectory = ApplicationDataPaths.Default.BackupsDirectory,
+                Title = "انتخاب نسخه پشتیبان برای بازیابی"
+            };
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+            if (!IsWithinQualificationRoot(session!.DataRoot, dialog.FileName))
+            {
+                UiMessageService.ShowWarning("نسخه پشتیبان باید داخل مسیر داده جداشده باشد.", "مسیر نامعتبر");
+                return;
+            }
+
+            string backup = Path.GetFullPath(dialog.FileName);
+            string databasePath = SqliteDatabaseHelper.GetDatabasePath();
+            string rollback = DatabaseMaintenanceService.CreateRestoreRollbackPath(databasePath);
+            string checksum = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(backup)));
+            string scope = SqliteProtectedActionBinding.CreateRestoreScope(
+                backup, checksum, databasePath, rollback);
+            if (!TryAuthorizeMaintenance(ProtectedAction.Restore, scope,
+                    out ManagementAuthorizationProof? proof, out int version)) return;
+            if (UiMessageService.ShowMessageBox("بازیابی نسخه پشتیبان، داده‌های جداشده فعلی را جایگزین می‌کند. ادامه می‌دهید؟",
+                    "تأیید بازیابی", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes) return;
+            try
+            {
+                DatabaseMaintenanceService.ImportDatabase(backup, rollback, proof!, version);
+                UiMessageService.ShowInfo("بازیابی با موفقیت انجام شد.", "بازیابی");
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.Log(ex, "FrmSettings.ImportDatabase");
+                UiMessageService.ShowError("بازیابی انجام نشد.", "خطا");
+            }
         }
 
         // ================= Security Methods =================
 
-        private void ShowProtectedMaintenanceUnavailable()
+        private static void ShowProtectedMaintenanceUnavailable()
         {
             UiMessageService.ShowWarning(
-                "این عملیات تا زمان فراهم بودن ManagementCredential و ثبت ممیزی مدیریت‌شده در دسترس نیست.",
+                "این عملیات تا زمان فراهم بودن مجوز مدیریتی و ثبت ممیزی مدیریت‌شده در دسترس نیست.",
                 "دسترسی ایمن در دسترس نیست");
+        }
+
+        private static bool TryAuthorizeMaintenance(ProtectedAction action, string scope,
+            out ManagementAuthorizationProof? proof, out int credentialVersion)
+        {
+            proof = null;
+            credentialVersion = 0;
+            if (!QualificationManagementAccess.IsEnabled(out _))
+            {
+                ShowProtectedMaintenanceUnavailable();
+                return false;
+            }
+
+            QualificationManagementAccess.TryGetSyntheticCredentialForInspection(out string initialCredential);
+            using FrmPasswordConfirm dialog = new(initialCredential);
+            if (dialog.ShowDialog() != DialogResult.OK) return false;
+
+            if (QualificationManagementAccess.TryAuthorize(action, scope, Guid.NewGuid().ToString("N"),
+                    dialog.Password.AsMemory(), out proof, out credentialVersion, out _)) return true;
+
+            UiMessageService.ShowWarning("مجوز مدیریتی پذیرفته نشد.", "دسترسی رد شد");
+            return false;
+        }
+
+        private static bool IsWithinQualificationRoot(string root, string candidate)
+        {
+            string parent = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            string value = Path.GetFullPath(candidate);
+            return value.StartsWith(parent, StringComparison.OrdinalIgnoreCase);
         }
         private void btnResetFactory_Click(object sender, EventArgs e)
         {

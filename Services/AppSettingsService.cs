@@ -4,6 +4,7 @@ using Rah_Negar.Data;
 using Rah_Negar.Foundation.Application.Security;
 using Rah_Negar.Models;
 using Rah_Negar.Utils;
+using Rah_Negar.Services.UI;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -24,8 +25,10 @@ public static class AppSettingsService
     {
         using var conn = SqliteDatabaseHelper.CreateConnection();
 
+        EnsureCanonicalProfileColumns(conn);
+
         const string sql = @"
-SELECT 
+    SELECT
     is_initialized,
     station_type,
     station_name,
@@ -35,7 +38,11 @@ SELECT
     theme_index,
     esd_extra_runtime_enabled,
     esd_extra_runtime_hours,
-    data_start_date
+    data_start_date,
+    profile_id,
+    profile_revision,
+    unit_count,
+    profile_optional_parameters
 FROM app_settings
 LIMIT 1;";
 
@@ -69,7 +76,11 @@ LIMIT 1;";
                     ReadDouble(reader["esd_extra_runtime_hours"]),
 
             DataStartDateRep = reader["data_start_date"] == DBNull.Value
-                ? 0 : ReadLong(reader["data_start_date"])
+                ? 0 : ReadLong(reader["data_start_date"]),
+            ProfileId = reader["profile_id"]?.ToString() ?? string.Empty,
+            ProfileRevision = reader["profile_revision"] == DBNull.Value ? 0 : ReadInt(reader["profile_revision"]),
+            UnitCount = reader["unit_count"] == DBNull.Value ? 0 : ReadInt(reader["unit_count"]),
+            ProfileOptionalParameters = reader["profile_optional_parameters"]?.ToString() ?? string.Empty
 
         };
     }
@@ -226,7 +237,7 @@ LIMIT 1;";
             string shownDate = dataStartDate > 0
                 ? DateFormatHelper.FormatDateRep(dataStartDate)
                 : "ثبت نشده";
-            MessageBox.Show(
+            UiMessageService.ShowMessageBox(
                 "تاریخ مبنای شروع داده‌ها معتبر نیست" +
                 Environment.NewLine +
                 Environment.NewLine +
@@ -246,6 +257,87 @@ LIMIT 1;";
         }
 
         return dataStartDate;
+    }
+
+    /// <summary>
+    /// Adds only non-destructive profile metadata columns to legacy databases.
+    /// Operational tables and rows are never altered here.
+    /// </summary>
+    private static void EnsureCanonicalProfileColumns(SqliteConnection conn)
+    {
+        try
+        {
+            HashSet<string> columns = new(StringComparer.OrdinalIgnoreCase);
+            using (SqliteCommand pragma = conn.CreateCommand())
+            {
+                pragma.CommandText = "PRAGMA table_info(app_settings);";
+                using SqliteDataReader reader = pragma.ExecuteReader();
+                while (reader.Read())
+                    columns.Add(reader["name"]?.ToString() ?? string.Empty);
+            }
+
+            if (columns.Count == 0)
+                return;
+
+            string[] additions =
+            [
+                "profile_id TEXT DEFAULT ''",
+                "profile_revision INTEGER DEFAULT 0",
+                "unit_count INTEGER DEFAULT 0",
+                "profile_optional_parameters TEXT DEFAULT ''"
+            ];
+
+            foreach (string addition in additions)
+            {
+                string name = addition.Split(' ')[0];
+                if (columns.Contains(name))
+                    continue;
+
+                using SqliteCommand alter = conn.CreateCommand();
+                alter.CommandText = $"ALTER TABLE app_settings ADD COLUMN {addition};";
+                alter.ExecuteNonQuery();
+            }
+
+            using SqliteCommand migrate = conn.CreateCommand();
+            migrate.CommandText = """
+                UPDATE app_settings
+                SET unit_count = CASE lower(trim(station_type))
+                    WHEN 'rasht' THEN 3
+                    WHEN 'ramsar' THEN 4
+                    ELSE unit_count
+                END,
+                profile_optional_parameters = CASE WHEN lower(trim(station_type)) = 'rasht' AND profile_optional_parameters = ''
+                    THEN 'line_f_p,line40_p,line30_p' ELSE profile_optional_parameters END,
+                profile_revision = CASE WHEN profile_revision < 1 THEN 1 ELSE profile_revision END
+                WHERE unit_count = 0;
+                """;
+            migrate.ExecuteNonQuery();
+
+            using SqliteCommand read = conn.CreateCommand();
+            read.CommandText = "SELECT id, profile_id, station_name, unit_count FROM app_settings WHERE unit_count BETWEEN 3 AND 5 AND profile_id = '';";
+            List<(long Id, string Name, int Units)> pending = [];
+            using (SqliteDataReader rows = read.ExecuteReader())
+            {
+                while (rows.Read())
+                    pending.Add((ReadLong(rows["id"]), rows["station_name"]?.ToString() ?? string.Empty, ReadInt(rows["unit_count"])));
+            }
+
+            foreach ((long id, string name, int units) in pending)
+            {
+                CanonicalProfileDefinition definition = CanonicalProfileDefinition.Create(name, units);
+                using SqliteCommand update = conn.CreateCommand();
+                update.CommandText = "UPDATE app_settings SET profile_id=$id, profile_revision=$revision, profile_optional_parameters=$optional WHERE id=$row;";
+                update.Parameters.AddWithValue("$id", definition.ProfileId);
+                update.Parameters.AddWithValue("$revision", definition.Revision);
+                update.Parameters.AddWithValue("$optional", string.Join(',', definition.OptionalParameters));
+                update.Parameters.AddWithValue("$row", id);
+                update.ExecuteNonQuery();
+            }
+        }
+        catch (SqliteException)
+        {
+            // A missing app_settings table is the expected first-run state.
+        }
     }
 
     private static int ReadInt(object? value) =>
@@ -322,7 +414,7 @@ WHERE id = (
     }
 
     /// <summary>
-    /// /ذخیره تاریخ آخرین بک اپ تهیه شده 
+    /// /ذخیره تاریخ آخرین بک اپ تهیه شده
     /// </summary>
     public static void SaveLastBackupDate(DateTime dateTime)
     {

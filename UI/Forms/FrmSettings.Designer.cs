@@ -100,7 +100,7 @@
             // lblSubTitle
             // 
             lblSubTitle.AutoSize = true;
-            lblSubTitle.Font = new Font("Segoe UI", 8F);
+            lblSubTitle.Font = new Font("Tahoma", 8F);
             lblSubTitle.Location = new Point(25, 31);
             lblSubTitle.Name = "lblSubTitle";
             lblSubTitle.Size = new Size(149, 13);
@@ -197,6 +197,7 @@
             // pnlBody
             // 
             pnlBody.BackColor = Color.White;
+            pnlBody.Controls.Add(grbBaseLine);
             pnlBody.Controls.Add(grpRuntimeSettings);
             pnlBody.Controls.Add(gpPassword);
             pnlBody.Controls.Add(gpDatabase);
@@ -209,7 +210,6 @@
             // 
             // grpRuntimeSettings
             // 
-            grpRuntimeSettings.Controls.Add(grbBaseLine);
             grpRuntimeSettings.Controls.Add(btnSave);
             grpRuntimeSettings.Controls.Add(ChAddHoursAfterEsd);
             grpRuntimeSettings.Controls.Add(txtEsdExtraHours);
@@ -263,7 +263,7 @@
             // 
             txtDataStartDateInfo.BorderStyle = BorderStyle.FixedSingle;
             txtDataStartDateInfo.Enabled = false;
-            txtDataStartDateInfo.Font = new Font("Segoe UI", 8F);
+            txtDataStartDateInfo.Font = new Font("Tahoma", 8F);
             txtDataStartDateInfo.Location = new Point(173, 40);
             txtDataStartDateInfo.Name = "txtDataStartDateInfo";
             txtDataStartDateInfo.Size = new Size(65, 22);
@@ -549,15 +549,16 @@
             // 
             // FrmSettings
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(704, 389);
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            ClientSize = new Size(860, 580);
             Controls.Add(pnlBody);
             Controls.Add(pnlFooter);
             Controls.Add(pnlHeader);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             KeyPreview = true;
             MaximizeBox = false;
+            MinimumSize = new Size(860, 580);
             Name = "FrmSettings";
             StartPosition = FormStartPosition.CenterScreen;
             Load += FrmSettings_Load;

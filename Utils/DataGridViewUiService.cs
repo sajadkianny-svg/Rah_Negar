@@ -39,7 +39,8 @@ public static class DataGridViewUiService
 
         dgv.Font = UiScaleService.GetDefaultFont(owner, 8.5f);
         dgv.DefaultCellStyle.Font = UiScaleService.GetDefaultFont(owner, 8.5f);
-        dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 8.2f, FontStyle.Bold, GraphicsUnit.Point);
+        dgv.ColumnHeadersDefaultCellStyle.Font = UiStyleService.CreateFont(8.2f, FontStyle.Bold);
+        dgv.RowHeadersDefaultCellStyle.Font = UiStyleService.CreateFont(8.5f);
 
         dgv.RowTemplate.Height = UiScaleService.Scale(owner, 24);
     }
@@ -66,28 +67,47 @@ public static class DataGridViewUiService
     /// عرض ستون‌ها را بر اساس عرض‌های پایه و عرض واقعی گرید Fit می‌کند.
     /// بدون استفاده از Fill؛ مناسب برای گریدهای دارای ستون Frozen یا ستون‌های حساس.
     /// </summary>
-    public static void FitColumnsByBaseWidths(
+    public static bool FitColumnsByBaseWidths(
         DataGridView dgv,
         IReadOnlyList<int> baseWidths,
-        int minimumWidth = 25)
+        int minimumWidth = 25,
+        bool allowHorizontalOverflow = false)
     {
         if (dgv == null)
-            return;
+            return false;
 
         if (dgv.Columns.Count == 0 || baseWidths.Count == 0)
-            return;
+            return false;
 
         int count = Math.Min(dgv.Columns.Count, baseWidths.Count);
 
-        int availableWidth = dgv.ClientSize.Width - 8;
+        int availableWidth = dgv.ClientSize.Width - 2;
+
+        if (dgv.RowHeadersVisible)
+            availableWidth -= dgv.RowHeadersWidth;
 
         if (availableWidth <= 0)
-            return;
+            return false;
 
         int totalBaseWidth = baseWidths.Take(count).Sum();
 
         if (totalBaseWidth <= 0)
-            return;
+            return false;
+
+        if (allowHorizontalOverflow && totalBaseWidth > availableWidth)
+        {
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+
+            for (int i = 0; i < count; i++)
+            {
+                DataGridViewColumn column = dgv.Columns[i];
+                column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                column.MinimumWidth = minimumWidth;
+                column.Width = Math.Max(minimumWidth, baseWidths[i]);
+            }
+
+            return true;
+        }
 
         int usedWidth = 0;
 
@@ -116,5 +136,7 @@ public static class DataGridViewUiService
 
             column.Width = Math.Max(minimumWidth, newWidth);
         }
+
+        return false;
     }
 }

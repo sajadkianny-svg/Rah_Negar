@@ -5,11 +5,14 @@ namespace Rah_Negar.Core;
 public static class GenericPasteProfileFactory
 {
     public static PasteProfile Create(int unitCount)
-    {
-        if (!TargetStationProfileRules.IsUnitCountSupported(unitCount))
-            throw new ArgumentOutOfRangeException(nameof(unitCount));
+        => Create(CanonicalProfileDefinition.Create(GenericProfileIdentity.Create(unitCount), unitCount));
 
-        int gridUnitStart = 3;
+    public static PasteProfile Create(CanonicalProfileDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        int unitCount = definition.UnitCount;
+
+        int gridUnitStart = definition.HasLinePressureColumns ? 6 : 3;
         List<int> statusColumns = [];
         List<int> numericColumns = [0, 1];
         for (int unit = 0; unit < unitCount; unit++)
@@ -24,7 +27,7 @@ public static class GenericPasteProfileFactory
         return new PasteProfile
         {
             ExpectedRows = 12,
-            ExpectedColumns = 2 + unitCount * 2 + 6,
+            ExpectedColumns = gridUnitStart - 1 + unitCount * 2 + 6,
             GridStartColumn = 1,
             HourGridColumnIndex = 0,
             AverageRowIndex = 12,

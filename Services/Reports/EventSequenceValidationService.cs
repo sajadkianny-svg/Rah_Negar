@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
 using Rah_Negar.Data;
 using Rah_Negar.Models;
+using Rah_Negar.Services.UI;
 
 namespace Rah_Negar.Services.Reports;
 
@@ -304,7 +305,7 @@ public static class EventSequenceValidationService
 
     private static void ShowValidationMessage(string message)
     {
-        MessageBox.Show(
+        UiMessageService.ShowMessageBox(
             message,
             "خطا",
             MessageBoxButtons.OK,

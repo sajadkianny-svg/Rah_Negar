@@ -4,16 +4,21 @@ namespace Rah_Negar.Core;
 
 public sealed class GenericDataSchema : IStationDataSchema
 {
-    public GenericDataSchema(int unitCount)
-    {
-        if (!TargetStationProfileRules.IsUnitCountSupported(unitCount))
-            throw new ArgumentOutOfRangeException(nameof(unitCount));
+    private readonly CanonicalProfileDefinition _definition;
 
-        UnitCount = unitCount;
+    public GenericDataSchema(int unitCount)
+        : this(CanonicalProfileDefinition.Create(GenericProfileIdentity.Create(unitCount), unitCount))
+    {
+    }
+
+    public GenericDataSchema(CanonicalProfileDefinition definition)
+    {
+        _definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        UnitCount = definition.UnitCount;
     }
 
     public int UnitCount { get; }
-    public string StationName => GenericProfileIdentity.Create(UnitCount);
+    public string StationName => _definition.StationName;
 
     public string GetCreateTableSql()
     {
@@ -30,6 +35,13 @@ public sealed class GenericDataSchema : IStationDataSchema
         {
             columns.Add($"u{unit}_st TEXT NOT NULL");
             columns.Add($"u{unit}_rpm INTEGER NOT NULL");
+        }
+
+        if (_definition.HasLinePressureColumns)
+        {
+            columns.Insert(5, "line_f_p REAL NOT NULL");
+            columns.Insert(6, "line40_p REAL NOT NULL");
+            columns.Insert(7, "line30_p REAL NOT NULL");
         }
 
         columns.AddRange([

@@ -143,7 +143,7 @@
             btnPDF.Name = "btnPDF";
             btnPDF.Size = new Size(105, 27);
             btnPDF.TabIndex = 34;
-            btnPDF.Text = "PDF Report";
+            btnPDF.Text = "گزارش PDF";
             btnPDF.UseVisualStyleBackColor = false;
             btnPDF.Click += btnPDF_Click;
             // 
@@ -160,7 +160,7 @@
             btnFinalizeMonthlyReport.Name = "btnFinalizeMonthlyReport";
             btnFinalizeMonthlyReport.Size = new Size(105, 27);
             btnFinalizeMonthlyReport.TabIndex = 33;
-            btnFinalizeMonthlyReport.Text = "Finalize Month";
+            btnFinalizeMonthlyReport.Text = "نهایی‌سازی ماه";
             btnFinalizeMonthlyReport.UseVisualStyleBackColor = false;
             btnFinalizeMonthlyReport.Click += btnFinalizeMonthlyReport_Click;
             // 
@@ -172,7 +172,7 @@
             rdoSecondHalf.Name = "rdoSecondHalf";
             rdoSecondHalf.Size = new Size(70, 18);
             rdoSecondHalf.TabIndex = 32;
-            rdoSecondHalf.Text = "2nd Half";
+            rdoSecondHalf.Text = "نیمه دوم";
             rdoSecondHalf.UseVisualStyleBackColor = true;
             rdoSecondHalf.CheckedChanged += ReportMode_CheckedChanged;
             // 
@@ -184,7 +184,7 @@
             rdoFirstHalf.Name = "rdoFirstHalf";
             rdoFirstHalf.Size = new Size(66, 18);
             rdoFirstHalf.TabIndex = 31;
-            rdoFirstHalf.Text = "1st Half";
+            rdoFirstHalf.Text = "نیمه اول";
             rdoFirstHalf.UseVisualStyleBackColor = true;
             rdoFirstHalf.CheckedChanged += ReportMode_CheckedChanged;
             // 
@@ -196,7 +196,7 @@
             rdoYearly.Name = "rdoYearly";
             rdoYearly.Size = new Size(58, 18);
             rdoYearly.TabIndex = 30;
-            rdoYearly.Text = "Yearly";
+            rdoYearly.Text = "سالانه";
             rdoYearly.UseVisualStyleBackColor = true;
             rdoYearly.CheckedChanged += ReportMode_CheckedChanged;
             // 
@@ -210,7 +210,7 @@
             rdoMonthly.Size = new Size(68, 18);
             rdoMonthly.TabIndex = 29;
             rdoMonthly.TabStop = true;
-            rdoMonthly.Text = "Monthly";
+            rdoMonthly.Text = "ماهانه";
             rdoMonthly.UseVisualStyleBackColor = true;
             rdoMonthly.CheckedChanged += ReportMode_CheckedChanged;
             // 
@@ -227,7 +227,7 @@
             btnGenerateReport.Name = "btnGenerateReport";
             btnGenerateReport.Size = new Size(130, 27);
             btnGenerateReport.TabIndex = 0;
-            btnGenerateReport.Text = "Run Analysis";
+            btnGenerateReport.Text = "تولید گزارش";
             btnGenerateReport.UseVisualStyleBackColor = false;
             btnGenerateReport.Click += btnGenerateReport_Click;
             // 
@@ -240,7 +240,7 @@
             label2.Name = "label2";
             label2.Size = new Size(46, 14);
             label2.TabIndex = 27;
-            label2.Text = "Month:";
+            label2.Text = "ماه:";
             // 
             // label1
             // 
@@ -251,7 +251,7 @@
             label1.Name = "label1";
             label1.Size = new Size(36, 14);
             label1.TabIndex = 26;
-            label1.Text = "Year:";
+            label1.Text = "سال:";
             // 
             // cmbMonth
             // 
@@ -302,7 +302,7 @@
             btnLogPage.Size = new Size(120, 26);
             btnLogPage.TabIndex = 3;
             btnLogPage.TabStop = false;
-            btnLogPage.Text = "Event Log";
+            btnLogPage.Text = "گزارش رویدادها";
             btnLogPage.UseVisualStyleBackColor = false;
             btnLogPage.Click += btnLogPage_Click;
             // 
@@ -316,7 +316,7 @@
             rdoLogByEvent.Size = new Size(67, 19);
             rdoLogByEvent.TabIndex = 2;
             rdoLogByEvent.TabStop = true;
-            rdoLogByEvent.Text = "ByEvent";
+            rdoLogByEvent.Text = "بر اساس رویداد";
             rdoLogByEvent.UseVisualStyleBackColor = false;
             rdoLogByEvent.Visible = false;
             rdoLogByEvent.CheckedChanged += EventLogMode_CheckedChanged;
@@ -330,7 +330,7 @@
             rdoLogByUnit.Size = new Size(60, 19);
             rdoLogByUnit.TabIndex = 1;
             rdoLogByUnit.TabStop = true;
-            rdoLogByUnit.Text = "ByUnit";
+            rdoLogByUnit.Text = "بر اساس واحد";
             rdoLogByUnit.UseVisualStyleBackColor = false;
             rdoLogByUnit.Visible = false;
             rdoLogByUnit.CheckedChanged += EventLogMode_CheckedChanged;
@@ -349,7 +349,7 @@
             btnServicePage.Size = new Size(120, 26);
             btnServicePage.TabIndex = 2;
             btnServicePage.TabStop = false;
-            btnServicePage.Text = "Service Analysis";
+            btnServicePage.Text = "تحلیل سرویس";
             btnServicePage.UseVisualStyleBackColor = false;
             btnServicePage.Click += btnServicePage_Click;
             // 
@@ -367,7 +367,7 @@
             btnEventsPage.Size = new Size(120, 26);
             btnEventsPage.TabIndex = 1;
             btnEventsPage.TabStop = false;
-            btnEventsPage.Text = "Event Summary";
+            btnEventsPage.Text = "خلاصه رویدادها";
             btnEventsPage.UseVisualStyleBackColor = false;
             btnEventsPage.Click += btnEventsPage_Click;
             // 
@@ -383,7 +383,7 @@
             btnSummaryPage.Size = new Size(120, 26);
             btnSummaryPage.TabIndex = 0;
             btnSummaryPage.TabStop = false;
-            btnSummaryPage.Text = "Overview";
+            btnSummaryPage.Text = "نمای کلی";
             btnSummaryPage.UseVisualStyleBackColor = false;
             btnSummaryPage.Click += btnSummaryPage_Click;
             // 
@@ -565,7 +565,7 @@
             MaximizeBox = false;
             Name = "FrmReportCenter";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "ReportCenter";
+            Text = "مرکز گزارش";
             Load += FrmReportCenter_Load_1;
             pnlHeader.ResumeLayout(false);
             pnlHeader.PerformLayout();
